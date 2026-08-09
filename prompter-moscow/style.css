@@ -903,7 +903,7 @@ section[id]{scroll-margin-top:84px}
 }
 .radio__b::after{
   content:"";width:10px;height:10px;border-radius:50%;
-  background-image:var(--grad);transform:scale(0);
+  background-image:var(--grad-btn);transform:scale(0);
   transition:transform .16s var(--ease);
 }
 .radio input:checked + .radio__b{border-color:var(--accent)}
@@ -924,7 +924,7 @@ section[id]{scroll-margin-top:84px}
   transition:background-color .16s var(--ease),border-color .16s var(--ease);
 }
 .chk__b .ic{width:14px;height:14px;stroke-width:3;opacity:0;transition:opacity .16s var(--ease)}
-.chk input:checked + .chk__b{background-image:var(--grad);border-color:transparent}
+.chk input:checked + .chk__b{background-image:var(--grad-btn);border-color:transparent}
 .chk input:checked + .chk__b .ic{opacity:1}
 .chk input:focus-visible + .chk__b{outline:2px solid var(--accent);outline-offset:2px}
 .chk__t{font-size:15px;line-height:1.5;color:#41465A}
@@ -934,9 +934,11 @@ section[id]{scroll-margin-top:84px}
 #frm-submit[disabled]{opacity:.62;cursor:not-allowed;transform:none;box-shadow:none}
 
 .modal__done{text-align:center;padding:14px 0 6px}
+/* Логотип над подтверждением: клиент видит, от кого заявка принята. */
+.modal__logo{width:52px;height:52px;margin:0 auto 18px}
 .modal__ok{
   display:grid;place-items:center;width:60px;height:60px;margin:0 auto 20px;
-  border-radius:50%;background-image:var(--grad);color:#fff;
+  border-radius:50%;background-image:var(--grad-btn);color:#fff;
 }
 .modal__ok .ic{width:30px;height:30px;stroke-width:2.5}
 .modal__done .modal__t{padding-right:0}
