@@ -871,11 +871,12 @@ section[id]{scroll-margin-top:84px}
 .frm__i.is-bad{border-color:#D62839;box-shadow:0 0 0 3px rgba(214,40,57,.12)}
 .frm__e{margin:0;color:#C21F2E;font-size:14.5px;line-height:1.4}
 
-/* После первой попытки отправки место под сообщения об ошибках резервируется.
-   Иначе исчезновение ошибки при потере фокуса сдвигает форму вверх между
-   нажатием и отпусканием кнопки мыши, и клик уходит мимо соседнего поля.
+/* Место под сообщения об ошибках зарезервировано всегда, а не только после
+   первой попытки отправки. Появление или исчезновение ошибки сдвигает форму
+   между нажатием и отпусканием кнопки мыши, и клик уходит мимо поля —
+   так переставали нажиматься радиокнопки и галочки.
    visibility:hidden не даёт скринридеру прочитать пустую подсказку. */
-.frm.is-validated .frm__e[hidden]{display:block;visibility:hidden}
+.frm__e[hidden]{display:block;visibility:hidden}
 .frm__fail{margin:0;text-align:center;color:#C21F2E;font-size:15.5px;font-weight:600}
 
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
@@ -903,7 +904,7 @@ section[id]{scroll-margin-top:84px}
 }
 .radio__b::after{
   content:"";width:10px;height:10px;border-radius:50%;
-  background-image:var(--grad-btn);transform:scale(0);
+  background:var(--accent);transform:scale(0);
   transition:transform .16s var(--ease);
 }
 .radio input:checked + .radio__b{border-color:var(--accent)}
@@ -924,7 +925,7 @@ section[id]{scroll-margin-top:84px}
   transition:background-color .16s var(--ease),border-color .16s var(--ease);
 }
 .chk__b .ic{width:14px;height:14px;stroke-width:3;opacity:0;transition:opacity .16s var(--ease)}
-.chk input:checked + .chk__b{background-image:var(--grad-btn);border-color:transparent}
+.chk input:checked + .chk__b{background:var(--accent);border-color:var(--accent)}
 .chk input:checked + .chk__b .ic{opacity:1}
 .chk input:focus-visible + .chk__b{outline:2px solid var(--accent);outline-offset:2px}
 .chk__t{font-size:15px;line-height:1.5;color:#41465A}

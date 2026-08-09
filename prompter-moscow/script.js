@@ -295,11 +295,22 @@
   }
 
   if (form) {
-    fName.addEventListener('blur', validName);
-    fPhone.addEventListener('blur', validPhone);
-    fEmail.addEventListener('blur', validEmail);
-    fCompany.addEventListener('blur', validCompany);
-    fField.addEventListener('blur', validField);
+    /* Пустое поле, в которое человек ещё ничего не вводил, не ругаем при
+       потере фокуса: подсветить ошибку до того, как посетитель начал
+       заполнять форму, — значит отпугнуть его. После первой попытки
+       отправки проверяем всё. */
+    function onBlur(el, check) {
+      return function () {
+        if (el.value.trim() === '' && !form.classList.contains('is-validated')) return;
+        check();
+      };
+    }
+
+    fName.addEventListener('blur', onBlur(fName, validName));
+    fPhone.addEventListener('blur', onBlur(fPhone, validPhone));
+    fEmail.addEventListener('blur', onBlur(fEmail, validEmail));
+    fCompany.addEventListener('blur', onBlur(fCompany, validCompany));
+    fField.addEventListener('blur', onBlur(fField, validField));
     fAgree1.addEventListener('change', validAgree);
     fAgree2.addEventListener('change', validAgree);
 
