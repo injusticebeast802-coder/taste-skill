@@ -794,21 +794,26 @@ section[id]{scroll-margin-top:84px}
 
 /* 13. Счётчики: светлые карточки на тёмном фоне */
 .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+/* Карточки были светлыми — единственные светлые на тёмной странице.
+   Браузеры на телефонах принимали их за «непереведённые в тёмную тему»
+   и выворачивали по-своему: фон чернел, а цифры уходили в почти
+   нечитаемый тёмно-синий. Спорить с этим бесполезно, поэтому карточки
+   сделаны тёмно-синими, как все остальные на сайте: выворачивать
+   нечего, а цифры светлые и видны при любой настройке браузера. */
 .num{
-  background:#F4F4F8;border-radius:var(--r-md);padding:34px 28px;
-  text-align:center;color:#10121F;
-  box-shadow:0 20px 50px rgba(0,0,0,.34);
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:34px 28px;
+  text-align:center;color:var(--text);
 }
 .num__v{
   margin:0 0 10px;font-family:var(--f-display);font-weight:700;
   font-size:clamp(38px,5.2vw,54px);line-height:1;letter-spacing:-.03em;
-  /* Синий градиент вместо розово-фиолетового: цифры перестали быть
-     самым кричащим элементом страницы и попали в общую палитру. */
-  background-image:linear-gradient(100deg,#2B4FD8 0%,#3D6BFF 52%,#5E8BFF 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
+  /* Светло-голубой на тёмной карточке — как у крупных цифр в других
+     блоках. Читается и при принудительном затемнении браузера. */
+  color:var(--accent-text);
   font-variant-numeric:tabular-nums;
 }
-.num__k{margin:0;color:#3F4356;font-size:17px;line-height:1.45}
+.num__k{margin:0;color:var(--muted);font-size:17px;line-height:1.45}
 
 /* 14. Финальный CTA */
 .cta{padding:clamp(56px,7vw,96px) 0}
