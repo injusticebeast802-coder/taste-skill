@@ -18,6 +18,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0A0A0E">
+<meta name="color-scheme" content="dark">
 
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
@@ -27,10 +28,13 @@
      раньше сайт ждал ответа от fonts.googleapis.com и у части
      посетителей из-за этого не открывался.
 
-     Предзагрузку шрифтов намеренно не ставим. Она поднимает их в
-     очереди выше таблицы стилей, и на медленном канале файл стилей
-     приходит последним — страница успевает показаться совсем без
-     оформления. Сначала стили, шрифты следом. -->
+     Два самых нужных начертания просим заранее: основной текст и
+     заголовки. Пока шрифт едет, страница показывает системный —
+     и при подмене буквы заметно меняют ширину. Предзагрузка
+     сокращает этот момент почти до нуля. Больше двух файлов сюда
+     добавлять нельзя: они начнут соперничать с таблицей стилей. -->
+<link rel="preload" href="fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/unbounded-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 
 <!-- Если JavaScript выключен, показываем весь контент сразу:

@@ -88,6 +88,13 @@
   --f-body:'Inter','Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 }
 
+/* Сообщаем браузеру, что страница уже тёмная.
+   Без этого Android и Яндекс.Браузер применяют к ней принудительное
+   затемнение: светлые карточки выворачиваются в почти чёрные, а текст
+   и градиенты искажаются. Именно так «Промптер в цифрах» выглядел
+   на телефоне совсем не так, как на компьютере. */
+:root{color-scheme:dark}
+
 *,*::before,*::after{box-sizing:border-box}
 
 html{scroll-behavior:smooth}
@@ -795,7 +802,10 @@ section[id]{scroll-margin-top:84px}
 .num__v{
   margin:0 0 10px;font-family:var(--f-display);font-weight:700;
   font-size:clamp(38px,5.2vw,54px);line-height:1;letter-spacing:-.03em;
-  background-image:var(--grad-red);-webkit-background-clip:text;background-clip:text;color:transparent;
+  /* Синий градиент вместо розово-фиолетового: цифры перестали быть
+     самым кричащим элементом страницы и попали в общую палитру. */
+  background-image:linear-gradient(100deg,#2B4FD8 0%,#3D6BFF 52%,#5E8BFF 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
   font-variant-numeric:tabular-nums;
 }
 .num__k{margin:0;color:#3F4356;font-size:17px;line-height:1.45}
