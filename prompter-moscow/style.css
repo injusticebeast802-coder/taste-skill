@@ -979,16 +979,52 @@ section[id]{scroll-margin-top:84px}
 
 #frm-submit[disabled]{opacity:.62;cursor:not-allowed;transform:none;box-shadow:none}
 
-.modal__done{text-align:center;padding:14px 0 6px}
-/* Логотип над подтверждением: клиент видит, от кого заявка принята. */
-.modal__logo{width:52px;height:52px;margin:0 auto 18px}
+/* ---------- Экран «Заявка отправлена» ----------
+   Раньше здесь стояли два круга подряд: логотип и кричащий
+   розово-синий кружок с галочкой. Теперь главный акцент один —
+   спокойный зелёный знак подтверждения с мягким ореолом.
+   Логотип уменьшен и отодвинут наверх: он подписывает окно,
+   а не спорит с галочкой за внимание. */
+.modal__done{text-align:center;padding:6px 0 4px}
+
+.modal__logo{width:38px;height:38px;margin:0 auto 24px;opacity:.92}
+
 .modal__ok{
-  display:grid;place-items:center;width:60px;height:60px;margin:0 auto 20px;
-  border-radius:50%;background-image:var(--grad-btn);color:#fff;
+  display:grid;place-items:center;width:74px;height:74px;margin:0 auto 24px;
+  border-radius:50%;background:#16A34A;color:#fff;
+  /* Два полупрозрачных кольца вместо жёсткой границы: круг мягко
+     растворяется в белом фоне окна. */
+  box-shadow:0 0 0 9px rgba(22,163,74,.11),
+             0 0 0 19px rgba(22,163,74,.055),
+             0 12px 28px rgba(22,163,74,.26);
+  animation:okPop .42s var(--ease) both;
 }
-.modal__ok .ic{width:30px;height:30px;stroke-width:2.5}
-.modal__done .modal__t{padding-right:0}
-.modal__done .modal__sub{margin-bottom:24px}
+.modal__ok .ic{
+  width:35px;height:35px;stroke-width:3;
+  animation:okTick .34s var(--ease) .16s both;
+}
+@keyframes okPop{from{transform:scale(.55);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes okTick{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .modal__ok,.modal__ok .ic{animation:none}
+}
+
+.modal__done .modal__t{padding-right:0;font-size:27px;margin-bottom:10px}
+/* text-wrap:balance выравнивает строки по длине, чтобы на последней
+   не оставалось одинокое слово. */
+.modal__done .modal__sub{
+  margin:0 auto 28px;max-width:38ch;color:#5B6076;font-size:16.5px;
+  text-wrap:balance;
+}
+
+/* Кнопка закрытия: спокойная контурная, а не серая заливка. */
+.modal__done .btn--ghost-dark{
+  min-width:184px;padding:15px 30px;font-size:16px;
+  background:#fff;border-color:#DCE0EA;color:#2A2E40;
+}
+.modal__done .btn--ghost-dark:hover{
+  background:#F6F8FF;border-color:var(--accent);color:var(--accent);
+}
 
 /* =========================================================
    Адаптив. Точки: 1024, 768, 480
