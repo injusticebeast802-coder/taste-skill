@@ -27,4 +27,10 @@ define('MAIL_FROM',      '');  // Промптер <zayavki@prompter-ai.moscow>
 $ALLOWED_HOSTS = array(
   'prompter-ai.moscow',
   'www.prompter-ai.moscow',
+
+  /* Пока домен не переключён, сайт проверяется по временному адресу
+     хостинга. Чтобы форма работала и там, впишите этот адрес сюда —
+     без http:// и без косой черты в конце. Например:
+     'u3604910.isp.regruhosting.ru',
+     После переезда строку можно убрать. */
 );
