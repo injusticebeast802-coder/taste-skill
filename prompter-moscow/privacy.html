@@ -9,9 +9,7 @@
 <meta name="theme-color" content="#0A0A0E">
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Шрифты подключаются из style.css с этого же сервера. -->
 <link rel="stylesheet" href="style.css">
 <style>
   .doc{padding:clamp(40px,6vw,72px) 0 clamp(56px,7vw,96px);max-width:820px}
@@ -93,8 +91,10 @@
   </ul>
   <p>Чтобы воспользоваться любым из этих прав, напишите нам на <a href="mailto:prompter.moscow@mail.ru">prompter.moscow@mail.ru</a> или позвоните по телефону <a href="tel:+79067587777">+7 906 758-77-77</a>. Мы ответим в течение 30 календарных дней.</p>
 
-  <h2>8. Файлы cookie</h2>
-  <p>Сайт не использует рекламные и аналитические cookie и не устанавливает счётчики сторонних систем. Технические данные, необходимые для отображения страницы, обрабатываются хостинг-провайдером в объёме стандартных журналов веб-сервера.</p>
+  <h2>8. Файлы cookie и статистика посещений</h2>
+  <p>Сайт не использует файлы cookie и не устанавливает рекламных счётчиков. Мы не отслеживаем вас на других сайтах и не передаём данные рекламным сетям.</p>
+  <p>Для оценки работы сайта хостинг-провайдер собирает обезличенную статистику посещений: адрес открытой страницы, страна, тип устройства, браузер и скорость загрузки. Эти сведения не связываются с конкретным человеком, не позволяют вас идентифицировать и не объединяются с данными из формы заявки.</p>
+  <p>Технические данные, необходимые для отображения страницы, обрабатываются хостинг-провайдером в объёме стандартных журналов веб-сервера.</p>
 
   <h2>9. Изменения Политики</h2>
   <p>Мы можем обновлять Политику. Актуальная редакция всегда доступна на этой странице, дата редакции указана в начале документа.</p>
@@ -123,5 +123,9 @@
 <script>
   document.getElementById('year').textContent = String(new Date().getFullYear());
 </script>
+
+<!-- Те же счётчики, что и на главной: без куки, с адреса самого сайта. -->
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>
