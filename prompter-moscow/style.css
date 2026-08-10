@@ -1122,6 +1122,9 @@ section[id]{scroll-margin-top:84px}
 
 @media (max-width:480px){
   .wrap{padding:0 16px}
+  /* На узком экране подпись занимала две строки и закрывала половину
+     фотографии. Уменьшаем её и поджимаем отступы. */
+  .sup__photo figcaption{font-size:14.5px;padding:26px 16px 14px}
   .niches{grid-template-columns:1fr}
   .niche--span2{grid-column:span 1}
   .hero__panel,.team,.price__card{padding:22px}
