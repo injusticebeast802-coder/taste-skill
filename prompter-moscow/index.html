@@ -22,9 +22,13 @@
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Шрифты лежат на этом же сервере, в папке fonts, и подключаются
+     из style.css. Внешних запросов при загрузке страницы нет вообще:
+     раньше сайт ждал ответа от fonts.googleapis.com и у части
+     посетителей из-за этого не открывался. Два самых нужных начертания
+     запрашиваем заранее, чтобы заголовки не мигали системным шрифтом. -->
+<link rel="preload" href="fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/unbounded-cyrillic-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 
 <!-- Если JavaScript выключен, показываем весь контент сразу:
@@ -213,7 +217,7 @@
       <p class="lead">Платформа ведёт полный цикл продвижения: от идеи и сбора данных до проверки текста и публикации на площадках. Вам не нужно ставить задачи, согласовывать черновики и следить за сроками.</p>
     </div>
     <figure class="solution__img reveal">
-      <img src="img/neurons.jpg" alt="Схема нейронной сети: узлы и связи" width="1400" height="856" loading="lazy" decoding="async">
+      <img src="img/neurons.jpg" alt="Схема нейронной сети: узлы и связи" width="1200" height="734" loading="lazy" decoding="async">
     </figure>
   </div>
 
@@ -633,5 +637,14 @@
 </div>
 
 <script src="script.js"></script>
+
+<!-- Аналитика и замеры скорости Vercel. Оба скрипта раздаются с адреса
+     самого сайта, а не с чужого сервера, поэтому не тормозят загрузку
+     у посетителей из России и не возвращают внешних зависимостей.
+     defer — грузятся после отрисовки страницы и ни на что не влияют.
+     Куки не ставят, посетителей между сайтами не отслеживают.
+     Работают только на боевом домене; локально в консоли будет 404 — это нормально. -->
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>
