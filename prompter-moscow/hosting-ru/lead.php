@@ -161,6 +161,104 @@ function moscowTime() {
   }
 }
 $stamp = moscowTime();
+$emailPretty = prettyEmail($email);
+
+/* ---------- читаемый вид кириллического адреса ----------
+   Поле с типом email заставляет браузер переписывать нелатинский домен
+   в служебный вид: «абоба.рф» приходит как «xn--80aaca8d.xn--p1ai».
+   Адрес рабочий, письмо по нему дойдёт, но менеджеру такое читать
+   невозможно. Возвращаем домену человеческий вид.
+
+   Сначала пробуем системную функцию, а если её нет — раскодируем сами.
+   Расширение intl есть не на всяком хостинге, и заявка не должна
+   зависеть от его наличия. */
+
+function utf8FromCodepoint($cp) {
+  if ($cp < 0x80)    return chr($cp);
+  if ($cp < 0x800)   return chr(0xC0 | ($cp >> 6))  . chr(0x80 | ($cp & 0x3F));
+  if ($cp < 0x10000) return chr(0xE0 | ($cp >> 12)) . chr(0x80 | (($cp >> 6) & 0x3F)) . chr(0x80 | ($cp & 0x3F));
+  return chr(0xF0 | ($cp >> 18)) . chr(0x80 | (($cp >> 12) & 0x3F)) . chr(0x80 | (($cp >> 6) & 0x3F)) . chr(0x80 | ($cp & 0x3F));
+}
+
+/* Раскодирование одной части домена по описанию алгоритма Punycode. */
+function punycodeLabel($label) {
+  if (stripos($label, 'xn--') !== 0) return $label;
+
+  $input = substr($label, 4);
+  $base = 36; $tmin = 1; $tmax = 26; $skew = 38; $damp = 700;
+  $n = 128; $i = 0; $bias = 72;
+  $output = array();
+
+  $delim = strrpos($input, '-');
+  if ($delim !== false) {
+    for ($j = 0; $j < $delim; $j++) $output[] = ord($input[$j]);
+    $input = substr($input, $delim + 1);
+  }
+
+  $len = strlen($input);
+  for ($pos = 0; $pos < $len;) {
+    $oldi = $i; $w = 1;
+    for ($k = $base; ; $k += $base) {
+      if ($pos >= $len) return false;
+      $c = ord($input[$pos++]);
+      if ($c >= 0x30 && $c <= 0x39)      $digit = $c - 0x30 + 26;
+      elseif ($c >= 0x61 && $c <= 0x7A)  $digit = $c - 0x61;
+      elseif ($c >= 0x41 && $c <= 0x5A)  $digit = $c - 0x41;
+      else return false;
+
+      $i += $digit * $w;
+      if ($k <= $bias) $t = $tmin;
+      elseif ($k >= $bias + $tmax) $t = $tmax;
+      else $t = $k - $bias;
+
+      if ($digit < $t) break;
+      $w *= ($base - $t);
+    }
+
+    $outLen = count($output) + 1;
+    $delta = ($oldi == 0) ? intval(($i - $oldi) / $damp) : intval(($i - $oldi) / 2);
+    $delta += intval($delta / $outLen);
+    $k2 = 0;
+    while ($delta > intval((($base - $tmin) * $tmax) / 2)) {
+      $delta = intval($delta / ($base - $tmin));
+      $k2 += $base;
+    }
+    $bias = $k2 + intval((($base - $tmin + 1) * $delta) / ($delta + $skew));
+
+    $n += intval($i / $outLen);
+    $i = $i % $outLen;
+    array_splice($output, $i, 0, array($n));
+    $i++;
+  }
+
+  $s = '';
+  foreach ($output as $cp) $s .= utf8FromCodepoint($cp);
+  return $s;
+}
+
+function prettyEmail($email) {
+  $at = strrpos($email, '@');
+  if ($at === false) return $email;
+
+  $local = substr($email, 0, $at);
+  $host  = substr($email, $at + 1);
+  if (stripos($host, 'xn--') === false) return $email;
+
+  if (function_exists('idn_to_utf8')) {
+    $utf = defined('INTL_IDNA_VARIANT_UTS46')
+      ? @idn_to_utf8($host, 0, INTL_IDNA_VARIANT_UTS46)
+      : @idn_to_utf8($host);
+    if (is_string($utf) && $utf !== '') return $local . '@' . $utf;
+  }
+
+  $parts = explode('.', $host);
+  foreach ($parts as $k => $part) {
+    $decoded = punycodeLabel($part);
+    if ($decoded === false) return $email;   // не разобрали — оставляем как есть
+    $parts[$k] = $decoded;
+  }
+  return $local . '@' . implode('.', $parts);
+}
 
 /* ---------- запрос к внешнему сервису ---------- */
 function postJson($url, $payload, $headers = array()) {
@@ -184,7 +282,7 @@ $text =
   "🆕 Новая заявка\n" .
   "👤 Имя: $name\n" .
   "📞 Телефон: $phone\n" .
-  "📧 Почта: $email\n" .
+  "📧 Почта: $emailPretty\n" .
   "🏢 Компания: $company\n" .
   "📦 Род деятельности: $fieldOf\n" .
   "👔 ЛПР: $dm\n" .
@@ -264,7 +362,7 @@ $mailed = sendMail(
   array(
     'Имя'              => $name,
     'Телефон'          => $phone,
-    'Почта'            => $email,
+    'Почта'            => $emailPretty,
     'Компания'         => $company,
     'Род деятельности' => $fieldOf,
     'ЛПР'              => $dm,
