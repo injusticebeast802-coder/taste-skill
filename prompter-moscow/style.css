@@ -928,6 +928,29 @@ section[id]{scroll-margin-top:84px}
 }
 .frm__i::placeholder{color:#8E93A8}
 .frm__i:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(61,107,255,.16)}
+
+/* Автозаполнение. Браузер закрашивает подставленное поле своим фоном,
+   и на светлой форме оно выглядит тёмной плашкой с чужим цветом текста.
+   Убрать фон напрямую нельзя — он рисуется поверх; закрываем его
+   белой внутренней тенью, а цвет букв задаём через -webkit-text-fill-color.
+   Огромная задержка перехода не даёт браузеру перекрасить поле обратно. */
+.frm__i:-webkit-autofill,
+.frm__i:-webkit-autofill:hover,
+.frm__i:-webkit-autofill:focus{
+  -webkit-text-fill-color:#13131B;
+  caret-color:#13131B;
+  -webkit-box-shadow:0 0 0 40px #fff inset;
+  box-shadow:0 0 0 40px #fff inset;
+  transition:background-color 100000s ease-in-out 0s;
+}
+.frm__i:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 40px #fff inset,0 0 0 3px rgba(61,107,255,.16);
+  box-shadow:0 0 0 40px #fff inset,0 0 0 3px rgba(61,107,255,.16);
+}
+.frm__i.is-bad:-webkit-autofill{
+  -webkit-box-shadow:0 0 0 40px #fff inset,0 0 0 3px rgba(214,40,57,.12);
+  box-shadow:0 0 0 40px #fff inset,0 0 0 3px rgba(214,40,57,.12);
+}
 .frm__i.is-bad{border-color:#D62839;box-shadow:0 0 0 3px rgba(214,40,57,.12)}
 .frm__e{margin:0;color:#C21F2E;font-size:14.5px;line-height:1.4}
 
