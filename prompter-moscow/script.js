@@ -269,14 +269,48 @@
      «проверьте адрес почты» и не понимает, что не так.
 
      Ловим признак такого превращения и подсказываем прямо. */
+  /* Кириллические доменные зоны. Браузер переписывает их в служебный
+     вид, поэтому сверяемся именно с ним: «.рф» приходит как «xn--p1ai».
+     Список закрытый и короткий — так адрес на реальной российской зоне
+     проходит, а «gmail.сщm» (это «xn--m-6tby») по-прежнему нет:
+     набранная не в той раскладке ерунда никогда не совпадёт
+     с настоящей зоной. */
+  var IDN_ZONES = [
+    'xn--p1ai',       // .рф
+    'xn--p1acf',      // .рус
+    'xn--80adxhks',   // .москва
+    'xn--80aswg',     // .сайт
+    'xn--80asehdb',   // .онлайн
+    'xn--c1avg',      // .орг
+    'xn--j1aef',      // .ком
+    'xn--d1acj3b',    // .дети
+    'xn--90ais',      // .бел
+    'xn--j1amh',      // .укр
+    'xn--80ao21a'     // .қаз
+  ];
+
+  function emailZone(v) {
+    var at = v.lastIndexOf('@');
+    if (at < 1) return '';
+    var domain = v.slice(at + 1);
+    var dot = domain.lastIndexOf('.');
+    if (dot < 1) return '';
+    return domain.slice(dot + 1).toLowerCase();
+  }
+
   function validEmail() {
     var v = fEmail.value.trim();
     var msg = form.querySelector('[data-err="email"]');
 
+    var zone = emailZone(v);
+    var shapeOk = /^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(v);
+    // Обычная латинская зона любой длины: ru, com, agency, digital.
+    var zoneOk = /^[a-z]{2,}$/.test(zone) || IDN_ZONES.indexOf(zone) !== -1;
+    var ok = shapeOk && zoneOk;
+
     // Домен переписан браузером либо кириллица осталась как есть
     // (в браузерах, которые не переписывают).
     var wrongLayout = /(^|[@.])xn--/i.test(v) || /[а-яё]/i.test(v);
-    var ok = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(v);
 
     if (msg) {
       msg.textContent = (!ok && wrongLayout)
