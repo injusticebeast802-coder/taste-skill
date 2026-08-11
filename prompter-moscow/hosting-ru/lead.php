@@ -138,6 +138,10 @@ $company = clean(field($body, 'company'), 80);
 $fieldOf = clean(field($body, 'field'), 90);
 $dm      = clean(field($body, 'dm'), 10);
 $dm      = function_exists('mb_strtolower') ? mb_strtolower($dm, 'UTF-8') : strtolower($dm);
+/* Откуда пришла заявка: с сайта поле пустое, из презентации приходит
+   «presentation» — кнопка в ней ведёт на /zayavka?from=presentation.
+   Поле необязательное, на проверку заявки не влияет. */
+$source  = clean(field($body, 'source'), 40);
 
 $digits = preg_replace('/\D/', '', $phone);
 $nameLen = function_exists('mb_strlen') ? mb_strlen($name, 'UTF-8') : strlen($name);
@@ -162,6 +166,21 @@ function moscowTime() {
 }
 $stamp = moscowTime();
 $emailPretty = prettyEmail($email);
+
+/* Известные источники переводим на человеческий язык, незнакомые
+   показываем как есть — они уже очищены функцией clean. */
+function sourceLabel($value) {
+  if ($value === '') return 'сайт';
+  $known = array(
+    'presentation' => 'презентация',
+    'site'         => 'сайт',
+    'email'        => 'письмо',
+    'telegram'     => 'телеграм',
+  );
+  $key = function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
+  return isset($known[$key]) ? $known[$key] : $value;
+}
+$sourcePretty = sourceLabel($source);
 
 /* ---------- читаемый вид кириллического адреса ----------
    Поле с типом email заставляет браузер переписывать нелатинский домен
@@ -286,6 +305,7 @@ $text =
   "🏢 Компания: $company\n" .
   "📦 Род деятельности: $fieldOf\n" .
   "👔 ЛПР: $dm\n" .
+  "📍 Источник: $sourcePretty\n" .
   "🕒 $stamp";
 
 $tg = postJson(
@@ -366,6 +386,7 @@ $mailed = sendMail(
     'Компания'         => $company,
     'Род деятельности' => $fieldOf,
     'ЛПР'              => $dm,
+    'Источник'         => $sourcePretty,
     'Время'            => $stamp,
   ),
   $name, $company, $email

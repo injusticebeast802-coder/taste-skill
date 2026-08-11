@@ -1146,3 +1146,46 @@ section[id]{scroll-margin-top:84px}
   .steps__item{gap:16px}
   .totop{right:14px;bottom:14px}
 }
+
+/* =========================================================
+   Отдельная страница заявки — zayavka.html
+
+   На неё ведёт кнопка «Оставить заявку» из презентации: в PowerPoint
+   форму не встроить, кнопка может только открыть ссылку. Страница
+   показывает ту же форму, что и модальное окно на главной, и теми же
+   стилями — отличается только обрамление: не всплывающее окно поверх
+   сайта, а самостоятельная страница.
+   ========================================================= */
+.fpage{
+  min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:26px;padding:40px 20px 48px;
+  /* Тот же тёмный фон, что и на сайте, с мягким синим свечением
+     за карточкой — чтобы белая форма не висела в пустоте. */
+  background:
+    radial-gradient(760px 520px at 50% 6%, rgba(61,107,255,.26), transparent 68%),
+    radial-gradient(620px 460px at 50% 100%, rgba(232,92,158,.13), transparent 70%),
+    var(--bg);
+}
+
+.fpage__logo{
+  display:inline-flex;align-items:center;gap:11px;
+  text-decoration:none;opacity:.95;
+}
+.fpage__logo img{width:34px;height:34px}
+.fpage__logo:hover{opacity:1}
+
+/* Карточка формы берёт оформление модального окна, но на своей
+   странице ей не нужны ни ограничение по высоте, ни внутренняя
+   прокрутка: длинную форму листает сама страница. */
+.fpage__win{max-height:none;overflow:visible}
+
+.fpage__note{
+  margin:0;color:var(--muted-2);font-size:15.5px;text-align:center;
+}
+.fpage__note a{color:var(--accent-text);text-decoration:underline;text-underline-offset:3px}
+
+@media (max-width:480px){
+  .fpage{padding:26px 14px 34px;gap:20px}
+  .fpage__logo .logo__txt{font-size:15px}
+}
