@@ -95,6 +95,12 @@ function clean(value, maxLen) {
    очищены функцией clean. */
 var SOURCE_LABELS = {
   presentation: 'презентация',
+  // Отраслевые презентации: у каждой своя кнопка со своей меткой,
+  // чтобы в заявке было видно, какую именно показывали клиенту.
+  'presentation-beauty': 'презентация · салоны красоты',
+  'presentation-horeca': 'презентация · HoReCa',
+  'presentation-flowers': 'презентация · цветочные салоны',
+  'presentation-dental': 'презентация · стоматология',
   site: 'сайт',
   email: 'письмо',
   telegram: 'телеграм'
