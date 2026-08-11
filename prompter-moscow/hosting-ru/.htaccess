@@ -101,4 +101,10 @@ Options -Indexes
 </IfModule>
 
 AddType font/woff2 .woff2
+
+# Презентации из раздела «Для кого». Без явного типа часть хостингов
+# отдаёт .pptx как text/plain, и вместо скачивания браузер показывает
+# в окне двоичный мусор.
+AddType application/vnd.openxmlformats-officedocument.presentationml.presentation .pptx
+
 AddDefaultCharset UTF-8

@@ -68,6 +68,12 @@ find "$DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 echo "Раскладываю файлы..."
 cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
 cp -r "$SRC/assets" "$SRC/img" "$SRC/fonts" "$DIR/"
+
+# Презентации по отраслям: на них ведут карточки раздела «Для кого».
+# В репозитории они лежат рядом с описанием, на сайт кладём только
+# сами файлы .pptx.
+mkdir -p "$DIR/presentations"
+cp "$SRC/presentation/"*.pptx "$DIR/presentations/"
 cp "$SRC/hosting-ru/lead.php" "$DIR/"
 cp "$SRC/hosting-ru/.htaccess" "$DIR/"
 
