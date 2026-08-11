@@ -88,6 +88,23 @@ function clean(value, maxLen) {
     .slice(0, maxLen);
 }
 
+/* Откуда пришла заявка. Строку присылает форма: с сайта поле пустое,
+   из презентации приходит «presentation» (ссылка на кнопке ведёт на
+   /zayavka?from=presentation). Известные значения переводим на
+   человеческий язык, незнакомые показываем как есть — они уже
+   очищены функцией clean. */
+var SOURCE_LABELS = {
+  presentation: 'презентация',
+  site: 'сайт',
+  email: 'письмо',
+  telegram: 'телеграм'
+};
+
+function sourceLabel(value) {
+  if (!value) return 'сайт';
+  return SOURCE_LABELS[value.toLowerCase()] || value;
+}
+
 function moscowTime() {
   try {
     return new Intl.DateTimeFormat('ru-RU', {
@@ -118,6 +135,7 @@ async function sendMail(fields, when) {
     ['Компания', fields.company],
     ['Род деятельности', fields.field],
     ['ЛПР', fields.dm],
+    ['Источник', sourceLabel(fields.source)],
     ['Время', when]
   ];
 
@@ -207,6 +225,8 @@ module.exports = async function handler(req, res) {
   var company = clean(body.company, 80);
   var field = clean(body.field, 90);
   var dm = clean(body.dm, 10).toLowerCase();
+  // Источник заявки: необязательное поле, на проверку не влияет.
+  var source = clean(body.source, 40);
 
   var digits = phone.replace(/\D/g, '');
 
@@ -227,6 +247,7 @@ module.exports = async function handler(req, res) {
     '🏢 Компания: ' + company + '\n' +
     '📦 Род деятельности: ' + field + '\n' +
     '👔 ЛПР: ' + dm + '\n' +
+    '📍 Источник: ' + sourceLabel(source) + '\n' +
     '🕒 ' + stamp;
 
   try {
@@ -249,7 +270,7 @@ module.exports = async function handler(req, res) {
     // Телеграм принял заявку. Дублируем письмом, если почта настроена;
     // её сбой не должен превращать принятую заявку в ошибку для клиента.
     var mailed = await sendMail(
-      { name: name, phone: phone, email: email, company: company, field: field, dm: dm },
+      { name: name, phone: phone, email: email, company: company, field: field, dm: dm, source: source },
       stamp
     );
 
