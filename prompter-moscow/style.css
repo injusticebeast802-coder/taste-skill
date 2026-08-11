@@ -465,7 +465,9 @@ section[id]{scroll-margin-top:84px}
 
 /* 6. Шесть ИИ-агентов. Ровная сетка плиток, у каждого агента свой
    цвет значка, чтобы блок читался как набор инструментов. */
-.agents{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+/* Агентов четыре, поэтому сетка два на два — как на макете.
+   При трёх колонках последняя карточка оставалась одна в ряду. */
+.agents{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
 .agent{
   position:relative;padding:26px 24px 24px;
   background:linear-gradient(165deg,rgba(61,107,255,.16),rgba(21,35,67,.94));
