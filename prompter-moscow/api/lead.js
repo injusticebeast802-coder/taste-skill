@@ -101,6 +101,10 @@ var SOURCE_LABELS = {
   'presentation-horeca': 'презентация · HoReCa',
   'presentation-flowers': 'презентация · цветочные салоны',
   'presentation-dental': 'презентация · стоматология',
+  'presentation-retail': 'презентация · розница и услуги',
+  'presentation-home': 'презентация · товары для дома',
+  'presentation-kids': 'презентация · детские товары',
+  'presentation-auto': 'презентация · авто и мото',
   site: 'сайт',
   email: 'письмо',
   telegram: 'телеграм'
