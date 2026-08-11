@@ -105,8 +105,15 @@ if (rateLimited(clientIp())) {
   reply(429, array('ok' => false, 'error' => 'too_many_requests'));
 }
 
-/* ---------- проверка настроек ---------- */
-if (!defined('TG_TOKEN') || !defined('TG_CHAT_ID') || !TG_TOKEN || !TG_CHAT_ID) {
+/* ---------- проверка настроек ----------
+   Многоточие — то, что стоит в config.example.php вместо значений.
+   Если его не заменили, Телеграм отвечает «неверный токен», и на сайте
+   это выглядит как непонятный сбой отправки. Ловим случай сразу: так
+   в журнале ошибок видно настоящую причину. */
+$tokenSet  = defined('TG_TOKEN') && TG_TOKEN && TG_TOKEN !== '...';
+$chatIdSet = defined('TG_CHAT_ID') && TG_CHAT_ID && TG_CHAT_ID !== '...';
+
+if (!$tokenSet || !$chatIdSet) {
   error_log('TG_TOKEN или TG_CHAT_ID не заданы в config.php');
   reply(500, array('ok' => false, 'error' => 'not_configured'));
 }

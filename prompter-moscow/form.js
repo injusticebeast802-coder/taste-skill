@@ -353,28 +353,26 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Отправляем…';
 
-      fetch('/api/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: fName.value.trim(),
-          phone: fPhone.value.trim(),
-          email: fEmail.value.trim(),
-          company: fCompany.value.trim(),
-          field: fField.value.trim(),
-          dm: dmValue(),
-          source: leadSource()
-        })
+      sendLead({
+        name: fName.value.trim(),
+        phone: fPhone.value.trim(),
+        email: fEmail.value.trim(),
+        company: fCompany.value.trim(),
+        field: fField.value.trim(),
+        dm: dmValue(),
+        source: leadSource()
       })
         .then(function (res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.json().catch(function () { return {}; });
-        })
-        .then(function () {
+          if (!res.ok) {
+            var err = new Error('lead ' + res.status);
+            err.status = res.status;
+            err.reason = res.data && res.data.error;
+            throw err;
+          }
           showDone();
         })
-        .catch(function () {
-          failMsg.hidden = false;
+        .catch(function (err) {
+          showFail(err);
         })
         .then(function () {
           sending = false;
@@ -382,6 +380,78 @@
           submitBtn.textContent = 'ОСТАВИТЬ ЗАЯВКУ';
         });
     });
+  }
+
+  /* ---------- Отправка заявки ----------
+     Основной адрес — /api/lead: так было на Vercel, где заявку
+     принимала серверная функция. На обычном хостинге этот адрес
+     ведёт к файлу lead.php правилом из .htaccess.
+
+     Правило может не сработать: на части тарифов переписывание
+     адресов выключено, да и сам .htaccess легко потерять при ручной
+     заливке файлов. Тогда сервер отвечает на /api/lead своей
+     страницей «не найдено», и заявка пропадает, хотя lead.php лежит
+     на месте. Поэтому на 404 и 405 пробуем файл напрямую. */
+  var LEAD_URLS = ['/api/lead', '/lead.php'];
+
+  function postLead(url, payload) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      // Ответ бывает и не JSON — например, страница ошибки хостинга.
+      return res.json()
+        .catch(function () { return {}; })
+        .then(function (data) {
+          return { ok: res.ok, status: res.status, data: data, url: url };
+        });
+    });
+  }
+
+  function sendLead(payload) {
+    return postLead(LEAD_URLS[0], payload).then(function (res) {
+      if (res.status !== 404 && res.status !== 405) return res;
+
+      if (window.console && console.warn) {
+        console.warn('Адрес ' + LEAD_URLS[0] + ' ответил ' + res.status + ', пробуем ' + LEAD_URLS[1]);
+      }
+      return postLead(LEAD_URLS[1], payload);
+    });
+  }
+
+  /* ---------- Отправить не удалось ----------
+     Раньше на любую неудачу выводилось одно и то же «попробуйте ещё
+     раз». Человек повторял отправку, получал то же самое и уходил,
+     а понять причину можно было только через панель разработчика.
+
+     Теперь на понятные случаи есть понятный ответ: при слишком
+     частой отправке сервер отвечает 429, и правильный совет —
+     подождать минуту, а не жать кнопку снова. Остальные сбои —
+     не вина посетителя, ему незачем знать их устройство: показываем
+     общую фразу и телефон, а технический код пишем в консоль, чтобы
+     разбираться было по чему. */
+  var FAIL_TEXT = {
+    too_many_requests: 'Заявки уходят слишком часто. Подождите минуту и отправьте ещё раз',
+    bad_name: 'Проверьте имя',
+    bad_phone: 'Проверьте номер телефона',
+    bad_email: 'Проверьте адрес почты',
+    bad_company: 'Проверьте название компании',
+    bad_field: 'Проверьте род деятельности',
+    bad_dm: 'Отметьте, принимаете ли вы решения'
+  };
+
+  var FAIL_DEFAULT = 'Не получилось отправить. Попробуйте ещё раз или позвоните: +7 906 758-77-77';
+
+  function showFail(err) {
+    var reason = err && err.reason;
+
+    if (window.console && console.error) {
+      console.error('Заявка не отправлена:', (err && err.status) || 'сеть', reason || (err && err.message));
+    }
+
+    failMsg.textContent = (reason && FAIL_TEXT[reason]) || FAIL_DEFAULT;
+    failMsg.hidden = false;
   }
 
   function showDone() {
