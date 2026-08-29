@@ -39,7 +39,16 @@
      добавлять нельзя: они начнут соперничать с таблицей стилей. -->
 <link rel="preload" href="fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/unbounded-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css">
+
+<!-- ?v=4 — номер версии статики. Страницы браузер не кэширует, а стили
+     и скрипты держит час (правило в .htaccess). Из-за этого после
+     обновления сайта постоянный посетитель час получал новую разметку
+     со старыми стилями: карточки разъезжались, ссылки шли подчёркнутыми.
+     Номер в адресе делает файл новым для браузера.
+
+     ПРАВИЛО: поменяли style.css, script.js или form.js — увеличьте
+     номер здесь, в zayavka.html и в privacy.html. -->
+<link rel="stylesheet" href="style.css?v=5">
 
 <!-- Если JavaScript выключен, показываем весь контент сразу:
      без этого блоки с анимацией появления остались бы прозрачными. -->
@@ -157,6 +166,7 @@
   <symbol id="i-car" viewBox="0 0 24 24"><path d="M4 16v-3.2L5.8 8A2 2 0 0 1 7.7 6.7h8.6A2 2 0 0 1 18.2 8L20 12.8V16"/><path d="M4 16h16v2.6h-2.8V16"/><path d="M6.8 18.6V16"/><circle cx="7.6" cy="13.2" r="1"/><circle cx="16.4" cy="13.2" r="1"/></symbol>
   <symbol id="i-toy" viewBox="0 0 24 24"><circle cx="12" cy="6.6" r="2.6"/><path d="M6.6 20.2v-4.4a5.4 5.4 0 0 1 10.8 0v4.4"/><path d="M6.6 17h10.8"/><path d="M4.4 13.4l2.4 1.4"/><path d="M19.6 13.4l-2.4 1.4"/></symbol>
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10"/><path d="M8 10.5l4 4 4-4"/><path d="M5 18.5h14"/></symbol>
 </svg>
 
 <a class="skip" href="#main">Перейти к содержимому</a>
@@ -418,26 +428,68 @@
 <section class="sec" id="niches">
   <div class="wrap">
     <h2 class="h2 reveal">Для кого</h2>
-    <div class="niches">
-      <article class="niche niche--n1 reveal"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-cup"/></svg><h3 class="h3">HoReCa</h3><p>Рестораны, кафе, бары и доставка.</p></article>
-      <article class="niche niche--n2 reveal"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-scissors"/></svg><h3 class="h3">Салоны красоты</h3><p>Парикмахерские, барбершопы, студии ногтевого сервиса.</p></article>
-      <article class="niche niche--n3 reveal"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-tooth"/></svg><h3 class="h3">Стоматология</h3><p>Клиники и частные кабинеты.</p></article>
-      <article class="niche niche--n4 reveal"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-flower"/></svg><h3 class="h3">Цветочные салоны</h3><p>Магазины, мастерские и доставка букетов.</p></article>
-      <article class="niche niche--n5 reveal"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-bag"/></svg><h3 class="h3">Розница и услуги</h3><p>Локальные магазины и сервисные компании.</p></article>
-      <article class="niche niche--n6 reveal"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-home"/></svg><h3 class="h3">Товары для дома</h3><p>Мебель, текстиль, интерьерные решения.</p></article>
 
-      <article class="niche niche--n7 reveal">
+    <!-- Каждая карточка — ссылка на презентацию своей ниши. Подсказку
+         держим прямо под заголовком: без неё карточки выглядят как
+         обычный текст, и человек не догадается по ним нажать. -->
+    <p class="lead niches__hint reveal">
+      <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+      Нажмите на свою нишу — скачается презентация именно для неё.
+      В карточке «Без ограничений по отраслям» — общая презентация компании.
+    </p>
+
+    <div class="niches">
+      <a class="niche niche--n1 reveal" href="presentations/prompter-horeca.pptx" download="Промптер — HoReCa.pptx">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-cup"/></svg>
+        <h3 class="h3">HoReCa</h3>
+        <p>Рестораны, кафе, бары и доставка.</p>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
+      <a class="niche niche--n2 reveal" href="presentations/prompter-beauty.pptx" download="Промптер — салоны красоты.pptx">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-scissors"/></svg>
+        <h3 class="h3">Салоны красоты</h3>
+        <p>Парикмахерские, барбершопы, студии ногтевого сервиса.</p>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
+      <a class="niche niche--n3 reveal" href="presentations/prompter-dental.pptx" download="Промптер — стоматология.pptx">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-tooth"/></svg>
+        <h3 class="h3">Стоматология</h3>
+        <p>Клиники и частные кабинеты.</p>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
+      <a class="niche niche--n4 reveal" href="presentations/prompter-flowers.pptx" download="Промптер — цветочные салоны.pptx">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-flower"/></svg>
+        <h3 class="h3">Цветочные салоны</h3>
+        <p>Магазины, мастерские и доставка букетов.</p>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
+      <a class="niche niche--n5 reveal" href="presentations/prompter-retail.pptx" download="Промптер — розница и услуги.pptx">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-bag"/></svg>
+        <h3 class="h3">Розница и услуги</h3>
+        <p>Локальные магазины и сервисные компании.</p>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
+      <a class="niche niche--n6 reveal" href="presentations/prompter-home.pptx" download="Промптер — товары для дома.pptx">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-home"/></svg>
+        <h3 class="h3">Товары для дома</h3>
+        <p>Мебель, текстиль, интерьерные решения.</p>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
+
+      <a class="niche niche--n7 reveal" href="presentations/prompter-kids.pptx" download="Промптер — детские товары.pptx">
         <svg class="ic ic--lg" aria-hidden="true"><use href="#i-toy"/></svg>
         <h3 class="h3">Детские товары</h3>
         <p>Магазины и бренды детских товаров. Родители всё чаще спрашивают совета у нейросетей: что безопаснее, что выбрать по возрасту, какому производителю можно верить. Кого назовёт нейросеть, к тому и пойдут.</p>
-      </article>
-      <article class="niche niche--span2 niche--n8 reveal">
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
+      <a class="niche niche--span2 niche--n8 reveal" href="presentations/prompter-auto.pptx" download="Промптер — авто и мото.pptx">
         <svg class="ic ic--lg" aria-hidden="true"><use href="#i-car"/></svg>
         <h3 class="h3">Авто и мотоиндустрия</h3>
         <p>Дилеры, автосервисы, детейлинг, шиномонтаж, мотосалоны и всё, что связано с авто и мото. Клиент выбирает сервис по отзывам и рекомендациям, и первым делом спрашивает нейросеть.</p>
-      </article>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
 
-      <article class="niche niche--wide reveal">
+      <a class="niche niche--wide reveal" href="presentations/prompter-predstavlenie-kompanii.pptx" download="Промптер — представление компании.pptx">
         <svg class="ic ic--lg" aria-hidden="true"><use href="#i-grid"/></svg>
         <h3 class="h3">Без ограничений по отраслям</h3>
         <p>Списком выше мы себя не ограничиваем. Наши модули изучают любую нишу с нуля: собирают вопросы ваших клиентов, разбирают конкурентов и на этих данных строят стратегию продвижения. Отрасль может быть узкой или редкой — принцип работы не меняется.</p>
@@ -445,7 +497,8 @@
           <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
           Подойдёт любому бизнесу — модули создадут стратегию под вашу нишу
         </p>
-      </article>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Общая презентация компании</span>
+      </a>
     </div>
   </div>
 </section>
@@ -715,7 +768,11 @@
   </div>
 </div>
 
-<script src="script.js"></script>
+<script src="script.js?v=5"></script>
+<!-- Логика формы вынесена отдельно: тот же файл подключает страница
+     zayavka.html, на которую ведёт кнопка «Оставить заявку» из
+     презентации. Правила проверки и адрес отправки едины для обеих. -->
+<script src="form.js?v=5"></script>
 
 </body>
 </html>

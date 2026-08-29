@@ -105,8 +105,15 @@ if (rateLimited(clientIp())) {
   reply(429, array('ok' => false, 'error' => 'too_many_requests'));
 }
 
-/* ---------- проверка настроек ---------- */
-if (!defined('TG_TOKEN') || !defined('TG_CHAT_ID') || !TG_TOKEN || !TG_CHAT_ID) {
+/* ---------- проверка настроек ----------
+   Многоточие — то, что стоит в config.example.php вместо значений.
+   Если его не заменили, Телеграм отвечает «неверный токен», и на сайте
+   это выглядит как непонятный сбой отправки. Ловим случай сразу: так
+   в журнале ошибок видно настоящую причину. */
+$tokenSet  = defined('TG_TOKEN') && TG_TOKEN && TG_TOKEN !== '...';
+$chatIdSet = defined('TG_CHAT_ID') && TG_CHAT_ID && TG_CHAT_ID !== '...';
+
+if (!$tokenSet || !$chatIdSet) {
   error_log('TG_TOKEN или TG_CHAT_ID не заданы в config.php');
   reply(500, array('ok' => false, 'error' => 'not_configured'));
 }
@@ -138,6 +145,10 @@ $company = clean(field($body, 'company'), 80);
 $fieldOf = clean(field($body, 'field'), 90);
 $dm      = clean(field($body, 'dm'), 10);
 $dm      = function_exists('mb_strtolower') ? mb_strtolower($dm, 'UTF-8') : strtolower($dm);
+/* Откуда пришла заявка: с сайта поле пустое, из презентации приходит
+   «presentation» — кнопка в ней ведёт на /zayavka?from=presentation.
+   Поле необязательное, на проверку заявки не влияет. */
+$source  = clean(field($body, 'source'), 40);
 
 $digits = preg_replace('/\D/', '', $phone);
 $nameLen = function_exists('mb_strlen') ? mb_strlen($name, 'UTF-8') : strlen($name);
@@ -162,6 +173,31 @@ function moscowTime() {
 }
 $stamp = moscowTime();
 $emailPretty = prettyEmail($email);
+
+/* Известные источники переводим на человеческий язык, незнакомые
+   показываем как есть — они уже очищены функцией clean. */
+function sourceLabel($value) {
+  if ($value === '') return 'сайт';
+  $known = array(
+    'presentation' => 'презентация',
+    /* Отраслевые презентации: у каждой своя кнопка со своей меткой,
+       чтобы в заявке было видно, какую именно показывали клиенту. */
+    'presentation-beauty'  => 'презентация · салоны красоты',
+    'presentation-horeca'  => 'презентация · HoReCa',
+    'presentation-flowers' => 'презентация · цветочные салоны',
+    'presentation-dental'  => 'презентация · стоматология',
+    'presentation-retail'  => 'презентация · розница и услуги',
+    'presentation-home'    => 'презентация · товары для дома',
+    'presentation-kids'    => 'презентация · детские товары',
+    'presentation-auto'    => 'презентация · авто и мото',
+    'site'         => 'сайт',
+    'email'        => 'письмо',
+    'telegram'     => 'телеграм',
+  );
+  $key = function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
+  return isset($known[$key]) ? $known[$key] : $value;
+}
+$sourcePretty = sourceLabel($source);
 
 /* ---------- читаемый вид кириллического адреса ----------
    Поле с типом email заставляет браузер переписывать нелатинский домен
@@ -286,6 +322,7 @@ $text =
   "🏢 Компания: $company\n" .
   "📦 Род деятельности: $fieldOf\n" .
   "👔 ЛПР: $dm\n" .
+  "📍 Источник: $sourcePretty\n" .
   "🕒 $stamp";
 
 $tg = postJson(
@@ -366,6 +403,7 @@ $mailed = sendMail(
     'Компания'         => $company,
     'Род деятельности' => $fieldOf,
     'ЛПР'              => $dm,
+    'Источник'         => $sourcePretty,
     'Время'            => $stamp,
   ),
   $name, $company, $email

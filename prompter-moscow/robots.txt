@@ -2,8 +2,10 @@
 User-agent: *
 Allow: /
 
-# Служебные страницы в поиске не нужны.
+# Служебные страницы в поиске не нужны: у обеих стоит запрет
+# в самой странице, дублируем его и здесь.
 Disallow: /privacy.html
+Disallow: /zayavka.html
 
 Sitemap: https://prompter-ai.moscow/sitemap.xml
 Host: prompter-ai.moscow

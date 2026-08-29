@@ -661,6 +661,54 @@ section[id]{scroll-margin-top:84px}
 }
 .niche__kicker .ic{margin:0;width:20px;height:20px;color:#5FD08A;stroke-width:2.5;flex:none}
 
+/* ---------- Карточка ниши — ссылка на презентацию ----------
+   Каждая ниша ведёт на свою презентацию, «Без ограничений» — на общую.
+   Раз карточка стала ссылкой, по ней должно быть видно, что она
+   нажимается: строка со стрелкой внизу, подсветка и лёгкий подъём
+   при наведении. */
+/* Колонка, а не блок: текст растягивается, и строка-подпись прижимается
+   к низу — в ряду карточек разной высоты подписи стоят на одной линии. */
+.niche{display:flex;flex-direction:column;color:inherit;text-decoration:none}
+.niche p{flex:1 1 auto}
+
+.niche__dl{
+  display:inline-flex;align-items:center;gap:9px;
+  margin-top:16px;font-size:15.5px;font-weight:600;
+  color:var(--accent-text);
+}
+.niche__dl .ic{
+  margin:0;width:19px;height:19px;flex:none;stroke-width:2;
+  color:inherit;transition:transform .2s var(--ease);
+}
+/* Подъём карточки при наведении не делаем: те же карточки выезжают
+   при прокрутке через .reveal, и два разных смещения дерутся за
+   transform. Наведение и так видно по рамке и подложке, а стрелка
+   подписи подпрыгивает — этого достаточно. */
+.niche:hover .niche__dl{color:#fff}
+.niche:hover .niche__dl .ic{transform:translateY(2px)}
+.niche:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* На широкой карточке подпись стоит по центру, как и остальной текст. */
+.niche--wide .niche__dl{margin-left:auto;margin-right:auto}
+/* Карточка авто/мото центрирует содержимое по вертикали — подпись
+   не растягиваем, иначе она отрывается от текста. */
+.niche--span2 p{flex:0 1 auto}
+.niche--span2 .niche__dl{align-self:flex-start}
+
+/* Подсказка под заголовком раздела: с иконкой, в одну строку с текстом. */
+.niches__hint{
+  display:flex;align-items:flex-start;gap:11px;
+  max-width:74ch;margin-bottom:26px;
+}
+.niches__hint .ic{
+  width:21px;height:21px;flex:none;margin-top:4px;
+  color:var(--accent-text);stroke-width:2;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .niche:hover .niche__dl .ic{transform:none}
+}
+
 /* 10. КЛЮЧЕВЫЕ ВЫГОДЫ — главный коммерческий блок.
    Собственная подложка, крупная кратность выгоды над заголовком. */
 .gains-sec{position:relative;overflow:hidden;background:#0B1226}
@@ -1150,4 +1198,47 @@ section[id]{scroll-margin-top:84px}
   .hero__actions .btn{width:100%}
   .steps__item{gap:16px}
   .totop{right:14px;bottom:14px}
+}
+
+/* =========================================================
+   Отдельная страница заявки — zayavka.html
+
+   На неё ведёт кнопка «Оставить заявку» из презентации: в PowerPoint
+   форму не встроить, кнопка может только открыть ссылку. Страница
+   показывает ту же форму, что и модальное окно на главной, и теми же
+   стилями — отличается только обрамление: не всплывающее окно поверх
+   сайта, а самостоятельная страница.
+   ========================================================= */
+.fpage{
+  min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:26px;padding:40px 20px 48px;
+  /* Тот же тёмный фон, что и на сайте, с мягким синим свечением
+     за карточкой — чтобы белая форма не висела в пустоте. */
+  background:
+    radial-gradient(760px 520px at 50% 6%, rgba(61,107,255,.26), transparent 68%),
+    radial-gradient(620px 460px at 50% 100%, rgba(232,92,158,.13), transparent 70%),
+    var(--bg);
+}
+
+.fpage__logo{
+  display:inline-flex;align-items:center;gap:11px;
+  text-decoration:none;opacity:.95;
+}
+.fpage__logo img{width:34px;height:34px}
+.fpage__logo:hover{opacity:1}
+
+/* Карточка формы берёт оформление модального окна, но на своей
+   странице ей не нужны ни ограничение по высоте, ни внутренняя
+   прокрутка: длинную форму листает сама страница. */
+.fpage__win{max-height:none;overflow:visible}
+
+.fpage__note{
+  margin:0;color:var(--muted-2);font-size:15.5px;text-align:center;
+}
+.fpage__note a{color:var(--accent-text);text-decoration:underline;text-underline-offset:3px}
+
+@media (max-width:480px){
+  .fpage{padding:26px 14px 34px;gap:20px}
+  .fpage__logo .logo__txt{font-size:15px}
 }
