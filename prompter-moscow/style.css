@@ -122,7 +122,7 @@ a{color:inherit}
 
 .skip{
   position:absolute;left:-9999px;top:0;z-index:100;
-  background:var(--accent);color:#fff;padding:12px 18px;border-radius:0 0 var(--r-sm) 0;
+  background:#2F5AE0;color:#fff;padding:12px 18px;border-radius:0 0 var(--r-sm) 0;
 }
 .skip:focus{left:0}
 
@@ -501,10 +501,6 @@ section[id]{scroll-margin-top:84px}
 .agent--c2 .agent__t{color:#8FD9F0}
 .agent--c3 .agent__ic{background:linear-gradient(150deg,#7E7BF5,#4A44CE)}
 .agent--c3 .agent__t{color:#B3B0FF}
-.agent--c4 .agent__ic{background:linear-gradient(150deg,#4FC3A1,#22876C)}
-.agent--c4 .agent__t{color:#8FE0C6}
-.agent--c5 .agent__ic{background:linear-gradient(150deg,#6FA8FF,#3468CC)}
-.agent--c5 .agent__t{color:#A8C8FF}
 .agent--c6 .agent__ic{background:linear-gradient(150deg,#C583EE,#7B44B8)}
 .agent--c6 .agent__t{color:#DDAEF5}
 
@@ -887,7 +883,6 @@ section[id]{scroll-margin-top:84px}
    единица измерения остаётся обычным текстом. */
 .hl{color:var(--text);font-weight:700;font-size:1.14em}
 .hl--accent{color:var(--red-text);font-weight:700}
-.hl--save{color:#5FD08A;font-weight:700}
 
 /* ---------- Появление секций при скролле ---------- */
 .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
@@ -1022,7 +1017,10 @@ section[id]{scroll-margin-top:84px}
 .chk input:checked + .chk__b .ic{opacity:1}
 .chk input:focus-visible + .chk__b{outline:2px solid var(--accent);outline-offset:2px}
 .chk__t{font-size:15px;line-height:1.5;color:#41465A}
-.chk__t a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+/* На белом фоне формы основной синий даёт контраст 4.43 при норме 4.5:
+   мелкий текст ссылки читается хуже нормы. Берём чуть более тёмный
+   оттенок — 5.01, разницы на глаз нет, а требование выполняется. */
+.chk__t a{color:#3563F0;text-decoration:underline;text-underline-offset:2px}
 .chk.is-bad .chk__b{border-color:#D62839}
 
 #frm-submit[disabled]{opacity:.62;cursor:not-allowed;transform:none;box-shadow:none}
@@ -1090,6 +1088,13 @@ section[id]{scroll-margin-top:84px}
 }
 
 @media (max-width:768px){
+  /* Пальцем в строку высотой 25 пикселей попасть трудно, особенно
+     в контактах, где ссылки идут подряд. Расширяем область нажатия
+     до 44 пикселей — это принятый минимум для сенсорных экранов.
+     Сам текст не меняется, растёт только зона касания. */
+  .team__contacts a,.ftr__site,.ftr__pp{display:inline-flex;align-items:center;min-height:44px}
+  .team__contacts li{align-items:center}
+
   .hdr__in{height:64px;gap:12px}
   .hdr__cta{display:none}
   .burger{display:grid}
