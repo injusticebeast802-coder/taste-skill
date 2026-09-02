@@ -54,11 +54,11 @@
 :root{
   /* Фон и поверхности. Фон тёмный, карточки — тёмно-графитовые:
      пастельные акценты видны только на спокойной подложке. */
-  --bg:#0A0A0E;
-  --surface:#14141E;             /* карточка */
-  --surface-2:#1C1C2A;           /* карточка светлее, для наведения */
-  --line:rgba(198,184,226,.20);
-  --line-2:rgba(198,184,226,.36);
+  --bg:#0E0F17;
+  --surface:#1C1E2C;             /* карточка */
+  --surface-2:#262941;           /* карточка светлее, для наведения */
+  --line:rgba(198,184,226,.24);
+  --line-2:rgba(198,184,226,.42);
 
   /* Четыре пастельных цвета. Розовый — самый заметный, поэтому
      используется точечно: иначе страница становится пёстрой. */
@@ -91,8 +91,8 @@
   --grad-red:var(--grad-btn);
 
   --text:#FFFFFF;
-  --muted:#DCDEE8;               /* описания на тёмных карточках */
-  --muted-2:#A4A8BC;
+  --muted:#E3E5EF;               /* описания на тёмных карточках */
+  --muted-2:#AFB3C6;
 
   --r-lg:24px;
   --r-md:20px;
@@ -327,8 +327,8 @@ section[id]{scroll-margin-top:84px}
 .hero__glow{
   position:absolute;inset:0;pointer-events:none;
   background:
-    linear-gradient(90deg,rgba(10,10,14,.92) 0%,rgba(10,10,14,.62) 34%,rgba(10,10,14,.30) 62%,rgba(10,10,14,.58) 100%),
-    linear-gradient(180deg,rgba(10,10,14,.42) 0%,transparent 26%,transparent 66%,var(--bg) 100%),
+    linear-gradient(90deg,rgba(14,15,23,.90) 0%,rgba(14,15,23,.58) 34%,rgba(14,15,23,.26) 62%,rgba(14,15,23,.54) 100%),
+    linear-gradient(180deg,rgba(14,15,23,.38) 0%,transparent 26%,transparent 66%,var(--bg) 100%),
     url("img/hero-bg.jpg") center/cover no-repeat;
   /* Картинка осталась прежней, а на ней есть красные волны. Приглушаем
      насыщенность и кладём сверху мятно-лавандовый налёт, иначе фон
@@ -347,22 +347,13 @@ section[id]{scroll-margin-top:84px}
 }
 .hero__copy{min-width:0}
 
-.plate{
-  display:inline-flex;align-items:center;gap:8px;
-  margin:0 0 20px;padding:9px 17px;
-  border:1px solid var(--line-2);border-radius:var(--r-sm);
-  background:var(--accent-soft);
-  font-size:15px;font-weight:600;color:var(--accent-text);letter-spacing:.01em;
-}
-.plate__dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
-
 .hero__sub{color:var(--muted);font-size:clamp(18px,1.9vw,21px);max-width:52ch;margin:0 0 30px}
 .hero__actions{display:flex;flex-wrap:wrap;gap:12px}
 
 .hero__panel{
   /* Фон первого экрана сам синий, поэтому панель делаем графитовой:
      тёмное стекло с холодной каймой, чтобы она читалась поверх волн. */
-  background:linear-gradient(160deg,rgba(28,30,42,.86),rgba(16,17,26,.92));
+  background:linear-gradient(160deg,rgba(44,47,66,.86),rgba(28,30,44,.92));
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border:1px solid rgba(198,184,226,.30);
   border-radius:var(--r-lg);
@@ -386,10 +377,10 @@ section[id]{scroll-margin-top:84px}
 /* ---------- Секции ---------- */
 /* Отступы чуть плотнее, чем на первом сайте: страница и так длинная,
    а воздуха между секциями хватает и такого. */
-.sec{padding:clamp(48px,6.2vw,84px) 0}
+.sec{padding:clamp(44px,5.6vw,76px) 0}
 /* Тонированная секция: тот же тёмный, но с еле заметным пастельным
    налётом — страница перестаёт быть просто чёрно-серой. */
-.sec--tint{background:linear-gradient(180deg,rgba(166,214,230,.06),rgba(198,184,226,.06)),#101017}
+.sec--tint{background:linear-gradient(180deg,rgba(166,214,230,.09),rgba(198,184,226,.09)),#191B28}
 
 /* 3. Раньше / Сейчас */
 .vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
@@ -398,12 +389,12 @@ section[id]{scroll-margin-top:84px}
   border-radius:var(--r-md);padding:26px;
 }
 .vs__card--past{
-  background:linear-gradient(180deg,rgba(120,130,150,.10),rgba(18,20,28,.96));
+  background:linear-gradient(180deg,rgba(120,130,150,.12),rgba(28,30,42,.96));
   border-color:rgba(150,160,180,.22);
 }
 .vs__card--past .vs__lead,.vs__card--past .vs__note{color:#9AA3B5}
 .vs__card--now{
-  background:linear-gradient(180deg,rgba(168,220,200,.20),rgba(20,34,32,.94));
+  background:linear-gradient(180deg,rgba(168,220,200,.22),rgba(30,46,44,.94));
   border-color:rgba(168,220,200,.50);
   box-shadow:0 16px 44px rgba(168,220,200,.14);
 }
@@ -431,7 +422,7 @@ section[id]{scroll-margin-top:84px}
 .why__cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .why__card{
   padding:26px 24px;
-  background:linear-gradient(170deg,rgba(166,214,230,.10),rgba(18,18,28,.94));
+  background:linear-gradient(170deg,rgba(166,214,230,.13),rgba(28,30,44,.94));
   border:1px solid var(--line);border-radius:var(--r-md);
   transition:transform .2s var(--ease),border-color .2s var(--ease);
 }
@@ -462,14 +453,28 @@ section[id]{scroll-margin-top:84px}
 .solution{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,56px);align-items:center}
 .solution__copy .lead{margin-bottom:26px}
 
-/* Картинка нейронов со второго слайда презентации стоит справа от текста. */
-.solution__img{
-  margin:0;border-radius:var(--r-lg);overflow:hidden;
-  border:1px solid var(--line);
+/* Знак компании стоит справа от текста, на схеме нейронной сети:
+   картинка приглушена, чтобы светящийся знак читался поверх неё. */
+.solution__logo{
+  position:relative;margin:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  min-height:clamp(240px,25vw,320px);padding:30px;
+  border-radius:var(--r-lg);overflow:hidden;
+  border:1px solid var(--line-2);
+  background:
+    linear-gradient(160deg,rgba(166,214,230,.12),rgba(198,184,226,.10)),
+    linear-gradient(0deg,rgba(14,15,23,.82),rgba(14,15,23,.82)),
+    url("img/neurons.jpg") center/cover no-repeat;
 }
-.solution__img img{
-  width:100%;height:clamp(240px,26vw,340px);
-  object-fit:cover;object-position:center 45%;display:block;
+.solution__mark{
+  width:clamp(150px,17vw,220px);height:auto;
+  animation:markSpin 44s linear infinite;
+}
+@keyframes markSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.solution__mark{animation:none}}
+.solution__logo figcaption{
+  font-family:var(--f-display);font-weight:700;
+  font-size:clamp(22px,2.4vw,30px);letter-spacing:-.02em;color:var(--text);
 }
 
 /* Два факта о платформе идут строками под текстом: крупная цифра
@@ -503,7 +508,7 @@ section[id]{scroll-margin-top:84px}
 .agents__mid .lead{margin:0 auto;max-width:58ch}
 .agent{
   position:relative;padding:26px 24px 24px;
-  background:linear-gradient(165deg,rgba(198,184,226,.12),rgba(20,20,30,.95));
+  background:linear-gradient(165deg,rgba(198,184,226,.15),rgba(30,32,47,.95));
   border:1px solid var(--line);border-radius:var(--r-md);
   transition:transform .2s var(--ease),border-color .2s var(--ease);
 }
@@ -532,7 +537,7 @@ section[id]{scroll-margin-top:84px}
 /* 2. ЧТО ГЕНЕРИРУЕМ И КУДА ПУБЛИКУЕМ — главный акцент страницы.
    Секция стоит сразу за первым экраном и вынесена на собственную
    подложку: это то, за чем к нам приходят. */
-.tech{position:relative;overflow:hidden;background:#0D0D13}
+.tech{position:relative;overflow:hidden;background:#161825}
 .tech__glow{
   position:absolute;inset:0;pointer-events:none;
   background:
@@ -560,7 +565,7 @@ section[id]{scroll-margin-top:84px}
 .make{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:clamp(28px,3.4vw,40px)}
 .make__card{
   padding:28px 24px;
-  background:rgba(19,19,27,.72);border:1px solid var(--line);
+  background:rgba(32,34,50,.78);border:1px solid var(--line);
   border-radius:var(--r-md);
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   transition:transform .2s var(--ease),border-color .2s var(--ease);
@@ -587,7 +592,7 @@ section[id]{scroll-margin-top:84px}
   padding:clamp(26px,3vw,34px);
   border-radius:var(--r-lg);
   border:1px solid rgba(168,220,200,.45);
-  background:linear-gradient(150deg,rgba(168,220,200,.14),rgba(198,184,226,.10)),rgba(13,13,19,.86);
+  background:linear-gradient(150deg,rgba(168,220,200,.16),rgba(198,184,226,.12)),rgba(30,32,48,.88);
   box-shadow:0 18px 50px rgba(0,0,0,.34);
 }
 .feed__head{margin-bottom:22px}
@@ -658,19 +663,20 @@ section[id]{scroll-margin-top:84px}
 .steps__item:nth-child(4) .h3{color:var(--blush)}
 .steps__item p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
 
-/* Слоган «Level up» со стрелкой вверх. Занимает всю ширину раздела
-   под шагами: это точка, ради которой раздел и написан. */
+/* Слоган «Level up» — последний блок страницы: знак слева,
+   стрелка вверх справа, между ними сама фраза. */
 .levelup{
-  grid-column:1 / -1;
   display:flex;align-items:center;gap:clamp(18px,2.6vw,28px);
-  margin-top:clamp(30px,3.6vw,46px);
+  margin-top:clamp(20px,2.6vw,32px);
   padding:clamp(24px,3vw,32px) clamp(24px,3.4vw,38px);
   border-radius:var(--r-lg);
   border:1px solid rgba(168,220,200,.42);
-  background:linear-gradient(110deg,rgba(168,220,200,.16),rgba(166,214,230,.12) 46%,rgba(198,184,226,.14)),rgba(13,13,19,.86);
+  background:linear-gradient(110deg,rgba(168,220,200,.18),rgba(166,214,230,.14) 46%,rgba(198,184,226,.16)),rgba(30,32,48,.88);
 }
+.levelup__mark{flex:none;width:clamp(48px,5vw,62px);height:auto}
+.levelup__copy{flex:1 1 auto;min-width:0}
 .levelup__ic{
-  flex:none;display:grid;place-items:center;width:62px;height:62px;
+  flex:none;margin-left:auto;display:grid;place-items:center;width:62px;height:62px;
   border-radius:18px;color:var(--ink);
   background-image:var(--grad-btn);
   box-shadow:0 12px 30px rgba(168,220,200,.22);
@@ -681,7 +687,6 @@ section[id]{scroll-margin-top:84px}
   0%,58%,100%{transform:translateY(0)}
   30%{transform:translateY(-7px)}
 }
-.levelup__copy{min-width:0}
 .levelup__t{
   margin:0 0 6px;font-family:var(--f-display);font-weight:700;
   font-size:clamp(30px,4.4vw,52px);line-height:1;letter-spacing:-.03em;
@@ -724,7 +729,7 @@ section[id]{scroll-margin-top:84px}
 
 /* 10. КЛЮЧЕВЫЕ ВЫГОДЫ — главный коммерческий блок.
    Собственная подложка, крупная кратность выгоды над заголовком. */
-.gains-sec{position:relative;overflow:hidden;background:#101019}
+.gains-sec{position:relative;overflow:hidden;background:#1A1C2A}
 .gains-sec__glow{
   position:absolute;inset:0;pointer-events:none;
   background:
@@ -736,7 +741,7 @@ section[id]{scroll-margin-top:84px}
 .bens{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .ben{
   position:relative;padding:34px 30px 30px;
-  background:linear-gradient(170deg,rgba(198,184,226,.16),rgba(18,18,28,.95));
+  background:linear-gradient(170deg,rgba(198,184,226,.18),rgba(30,32,47,.95));
   border:1px solid var(--line-2);border-radius:var(--r-lg);
   transition:transform .22s var(--ease),box-shadow .22s var(--ease);
 }
@@ -767,7 +772,7 @@ section[id]{scroll-margin-top:84px}
 .inc-box{
   margin-top:clamp(24px,3vw,36px);
   padding:clamp(26px,3vw,34px);
-  background:rgba(14,14,22,.72);
+  background:rgba(30,32,48,.75);
   border:1px solid var(--line-2);border-radius:var(--r-lg);
 }
 .inc-box .h2--sm{margin:0 0 20px}
@@ -811,7 +816,7 @@ section[id]{scroll-margin-top:84px}
   margin-top:22px;padding:24px clamp(20px,2.6vw,30px);
   border-radius:var(--r-lg);
   border:1px solid rgba(168,220,200,.42);
-  background:linear-gradient(120deg,rgba(168,220,200,.14),rgba(166,214,230,.10)),rgba(14,14,22,.80);
+  background:linear-gradient(120deg,rgba(168,220,200,.16),rgba(166,214,230,.12)),rgba(30,32,48,.84);
 }
 .callbar__t{margin:0;font-size:18px;line-height:1.4;color:var(--text);max-width:52ch}
 .callbar__phone{
@@ -825,7 +830,7 @@ section[id]{scroll-margin-top:84px}
 .callbar__phone:hover{color:var(--mint)}
 
 /* 13. Счётчики: светлые карточки на тёмном фоне */
-.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:clamp(28px,3.4vw,44px)}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:clamp(22px,2.6vw,32px)}
 /* Карточки были светлыми — единственные светлые на тёмной странице.
    Браузеры на телефонах принимали их за «непереведённые в тёмную тему»
    и выворачивали по-своему: фон чернел, а цифры уходили в почти
@@ -857,7 +862,7 @@ section[id]{scroll-margin-top:84px}
 .num__k{margin:0;color:var(--muted);font-size:17px;line-height:1.45}
 
 /* 14. Финальный CTA */
-.cta{padding:clamp(48px,6vw,80px) 0}
+.cta{padding:clamp(44px,5.4vw,70px) 0}
 .cta__in{
   background:
     radial-gradient(120% 140% at 12% 0%,rgba(198,184,226,.22) 0%,transparent 58%),
@@ -1139,7 +1144,7 @@ section[id]{scroll-margin-top:84px}
   .nav{
     position:absolute;left:0;right:0;top:100%;
     flex-direction:column;align-items:stretch;gap:0;margin:0;
-    background:#101017;border-bottom:1px solid var(--line);
+    background:#191B28;border-bottom:1px solid var(--line);
     padding:8px 20px 18px;
     display:none;
   }
@@ -1162,7 +1167,8 @@ section[id]{scroll-margin-top:84px}
   .bens{grid-template-columns:1fr}
   .cta__in{grid-template-columns:1fr;gap:28px}
   .callbar{flex-direction:column;align-items:flex-start;gap:12px}
-  .levelup{flex-direction:column;align-items:flex-start;gap:16px}
+  .levelup{flex-wrap:wrap;gap:16px}
+  .levelup__copy{flex:1 1 100%;order:3}
   .sup__list{grid-template-columns:1fr}
   .nums{grid-template-columns:1fr}
   .ftr__in{flex-direction:column;align-items:flex-start;gap:8px}
