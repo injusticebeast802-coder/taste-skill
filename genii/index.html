@@ -106,6 +106,10 @@
       <stop offset=".5" stop-color="#3F63F2"/>
       <stop offset="1" stop-color="#A93DF0"/>
     </linearGradient>
+    <linearGradient id="g-tg" x1="24" y1="2" x2="24" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#37BBFE"/>
+      <stop offset="1" stop-color="#007DBB"/>
+    </linearGradient>
   </defs>
   <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z"/><path d="M13.5 6.5l3 3"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></symbol>
@@ -139,8 +143,8 @@
   <!-- Значки площадок. Рисуются целиком, со своими цветами: это
        фирменные знаки, а не контурные иконки сайта. -->
   <symbol id="s-tg" viewBox="0 0 48 48">
-    <circle cx="24" cy="24" r="24" fill="#2AABEE"/>
-    <path fill="#fff" d="M10.9 23.2 34.6 14c1.2-.4 2.2.3 1.8 2l-4 19c-.3 1.3-1.1 1.6-2.2 1l-6.1-4.5-2.9 2.8c-.3.3-.6.6-1.2.6l.4-6.4 11.6-10.5c.5-.4-.1-.7-.8-.3L17 24.5l-6-1.9c-1.3-.4-1.3-1.3.9-1.4z"/>
+    <circle cx="24" cy="24" r="24" fill="url(#g-tg)"/>
+    <path fill="#fff" d="M9.6 22.9 36 12.7c1.2-.4 2.3.3 1.9 2.1l-4.5 21.2c-.3 1.5-1.2 1.8-2.4 1.1l-6.7-5-3.2 3.1c-.4.4-.7.7-1.4.7l.5-7.1 12.9-11.6c.6-.5-.1-.8-.9-.3L16.3 24.4l-6.8-2.1c-1.5-.5-1.5-1.5.1-1.6z"/>
   </symbol>
   <symbol id="s-vk" viewBox="0 0 48 48">
     <rect width="48" height="48" rx="13" fill="#0077FF"/>
@@ -160,7 +164,9 @@
   </symbol>
   <symbol id="s-max" viewBox="0 0 48 48">
     <rect width="48" height="48" rx="13" fill="url(#g-max)"/>
-    <path fill="#fff" d="M25 10.5a13.5 13.5 0 1 1-10.2 22.3l-3.4 3.8c-1 1.1-2.8.2-2.4-1.3l1.4-5.3A13.5 13.5 0 0 1 25 10.5zm0 6.6a6.9 6.9 0 1 0 0 13.8 6.9 6.9 0 0 0 0-13.8z"/>
+    <!-- Белая капля-диалог: внешний контур и отверстие описаны одним
+         путём, поэтому сквозь дырку видно заливку плитки. -->
+    <path fill="#fff" fill-rule="evenodd" d="M25 9.1a14.2 14.2 0 1 1-10.5 23.8l-4.3 3.9c-1.2 1.1-2.8 0-2.3-1.5l1.5-5.1A14.2 14.2 0 0 1 25 9.1zm0 6.7a5.9 5.9 0 1 0 0 11.8 5.9 5.9 0 0 0 0-11.8z"/>
   </symbol>
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></symbol>
 </svg>
