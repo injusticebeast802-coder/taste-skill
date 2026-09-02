@@ -129,7 +129,10 @@ body.is-locked{overflow:hidden}
 img{max-width:100%;display:block}
 a{color:inherit}
 
-.sprite{display:none}
+/* Спрайт убираем из потока, но не через display:none: градиенты
+   значков (Telegram, Max) описаны внутри него, а из скрытого таким
+   способом элемента браузер их не рисует — плитки оставались пустыми. */
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
 
 .ic{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .ic--lg{width:28px;height:28px}
