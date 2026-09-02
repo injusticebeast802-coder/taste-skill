@@ -3,8 +3,14 @@
    Тема зафиксирована: тёмная на всей странице (Page Theme Lock).
    Радиусы: 24px крупные панели и модалка, 20px карточки,
             14px инпуты, кнопки и мелкие элементы. Пилюль нет.
-   Акценты: мята, голубой, сирень и розовый — те же семейства, что
-   на фирменном фоне, но в насыщенном виде, чтобы не выглядело блёкло.
+   Акценты: мята (тиффани), голубой, сирень и розовый.
+
+   ВАЖНО: цветные заливки и цветной текст — только сплошными цветами,
+   без градиентов. Браузеры на Android в тёмной теме считают градиент
+   картинкой и затемняют его, даже когда страница объявила себя тёмной
+   через color-scheme. Из-за этого мятные плитки на телефоне выглядели
+   болотными. Градиенты остались только в декоративных свечениях,
+   где потемнение незаметно.
    ========================================================= */
 
 /* =========================================================
@@ -77,15 +83,10 @@
   /* На белой форме фирменные цвета не читаются: берём тёмную сирень. */
   --accent-ink:#5140A0;
 
-  /* Кнопки: перелив мята → голубой → сирень → розовый.
-     Градиент шире кнопки и медленно едет. */
-  --grad-btn:linear-gradient(100deg,#81D8D0 0%,#A6D6E6 30%,#C6B8E2 62%,#F0CCD2 100%);
-  --grad-text:linear-gradient(100deg,#81D8D0 0%,#A6D6E6 52%,#C6B8E2 100%);
 
   --red-text:#C6B8E2;            /* прежний красный текст — сиреневый */
   --green:#81D8D0;               /* выгода и экономия */
   --red-soft:rgba(198,184,226,.16);
-  --grad-red:var(--grad-btn);
 
   --text:#FFFFFF;
   --muted:#D7DEF5;               /* описания на тёмных ячейках */
@@ -186,12 +187,8 @@ section[id]{scroll-margin-top:84px}
 }
 
 /* ---------- Кнопки ----------
-   Розово-синий перелив: градиент вчетверо шире кнопки и медленно
-   едет сам по себе, при наведении ускоряется. */
-@keyframes btnFlow{
-  0%{background-position:0% 50%}
-  100%{background-position:200% 50%}
-}
+   Заливка сплошная, мятная. Градиента здесь нет намеренно: браузеры
+   на Android в тёмной теме затемняют его до болотного. -------- */
 
 .btn{
   display:inline-flex;align-items:center;justify-content:center;
@@ -209,13 +206,12 @@ section[id]{scroll-margin-top:84px}
 .btn--grad,.btn--red{
   /* Пастель светлая: белый текст на ней не читается. */
   color:var(--ink);
-  background-image:var(--grad-btn);
-  background-size:200% 100%;
-  animation:btnFlow 7s linear infinite;
+  background-color:var(--mint);
+  background-image:none;
   box-shadow:0 8px 26px rgba(166,214,230,.34);
 }
 .btn--grad:hover,.btn--red:hover{
-  animation-duration:2.4s;
+  background-color:#96E2DB;
   box-shadow:0 14px 40px rgba(198,184,226,.46);
   transform:translateY(-1px);
 }
@@ -248,7 +244,7 @@ section[id]{scroll-margin-top:84px}
 .btn--hero:active{transform:translateY(-1px) scale(.99)}
 
 @media (prefers-reduced-motion:reduce){
-  .btn--grad,.btn--red,.btn--hero{animation:none;background-position:25% 50%}
+  .btn--grad,.btn--red,.btn--hero{animation:none}
   .btn--hero,.btn--hero .btn__arrow,.btn--hero::before{transition:none}
   .btn--hero:hover{transform:none}
   .btn--hero:hover::before{left:-60%}
@@ -450,15 +446,15 @@ section[id]{scroll-margin-top:84px}
 .why__ic{
   display:grid;place-items:center;width:46px;height:46px;margin-bottom:18px;
   border-radius:14px;color:var(--ink);
-  background:linear-gradient(150deg,#BFE4EF,#8FC4D8);
+  background:var(--sky);
   box-shadow:0 8px 22px rgba(0,0,0,.38);
 }
 /* У каждой карточки свой цвет плитки и вывода. */
-.why__card:nth-child(2) .why__ic{background:linear-gradient(150deg,#81D8D0,#4FBDB4)}
+.why__card:nth-child(2) .why__ic{background:var(--mint)}
 .why__card:nth-child(2) .why__v{color:var(--mint)}
-.why__card:nth-child(3) .why__ic{background:linear-gradient(150deg,#C6B8E2,#AC9BD6)}
+.why__card:nth-child(3) .why__ic{background:var(--lav)}
 .why__card:nth-child(3) .why__v{color:var(--lav)}
-.why__card:nth-child(4) .why__ic{background:linear-gradient(150deg,#F0CCD2,#DFAAB4)}
+.why__card:nth-child(4) .why__ic{background:var(--blush)}
 .why__card:nth-child(4) .why__v{color:var(--blush)}
 .why__ic .ic{width:24px;height:24px;stroke-width:1.9}
 .why__v{
@@ -491,7 +487,7 @@ section[id]{scroll-margin-top:84px}
 .fact__num{
   margin:0 0 6px;font-family:var(--f-display);font-weight:700;
   font-size:clamp(34px,4.4vw,46px);line-height:1;letter-spacing:-.02em;
-  background-image:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent;
+  color:var(--sky);
 }
 .fact__t{margin:0 0 10px;font-family:var(--f-display);font-weight:600;font-size:19px}
 .fact__d{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
@@ -528,13 +524,13 @@ section[id]{scroll-margin-top:84px}
 }
 .agent p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
 
-.agent--c1 .agent__ic{background:linear-gradient(150deg,#BFE4EF,#8FC4D8)}
+.agent--c1 .agent__ic{background:var(--sky)}
 .agent--c1 .agent__t{color:#A6D6E6}
-.agent--c2 .agent__ic{background:linear-gradient(150deg,#81D8D0,#4FBDB4)}
+.agent--c2 .agent__ic{background:var(--mint)}
 .agent--c2 .agent__t{color:#81D8D0}
-.agent--c3 .agent__ic{background:linear-gradient(150deg,#C6B8E2,#AC9BD6)}
+.agent--c3 .agent__ic{background:var(--lav)}
 .agent--c3 .agent__t{color:#C6B8E2}
-.agent--c6 .agent__ic{background:linear-gradient(150deg,#F0CCD2,#DFAAB4)}
+.agent--c6 .agent__ic{background:var(--blush)}
 .agent--c6 .agent__t{color:#F0CCD2}
 
 /* 7. КЛЮЧЕВАЯ ТЕХНОЛОГИЯ — главный акцент страницы.
@@ -598,11 +594,11 @@ section[id]{scroll-margin-top:84px}
 }
 .rail__item--key .rail__n{color:var(--red-text)}
 .rail__item--key .rail__ic{
-  background-image:var(--grad-red);border-color:transparent;color:var(--ink);
+  background-color:var(--lav);background-image:none;border-color:transparent;color:var(--ink);
 }
 .rail__flag{
   display:inline-block;margin-top:16px;padding:7px 13px;
-  border-radius:10px;background:var(--grad-red);
+  border-radius:10px;background:var(--blush);
   font-size:13.5px;font-weight:700;letter-spacing:.03em;color:var(--ink);
 }
 
@@ -795,12 +791,12 @@ section[id]{scroll-margin-top:84px}
 .ben__ic{
   display:grid;place-items:center;width:54px;height:54px;margin-bottom:20px;
   border-radius:16px;color:var(--ink);
-  background:linear-gradient(150deg,#BFE4EF,#8FC4D8);
+  background:var(--sky);
   box-shadow:0 10px 26px rgba(0,0,0,.42);
 }
-.ben:nth-child(2) .ben__ic{background:linear-gradient(150deg,#81D8D0,#4FBDB4)}
+.ben:nth-child(2) .ben__ic{background:var(--mint)}
 .ben:nth-child(2) .ben__v{color:var(--mint)}
-.ben:nth-child(3) .ben__ic{background:linear-gradient(150deg,#C6B8E2,#AC9BD6)}
+.ben:nth-child(3) .ben__ic{background:var(--lav)}
 .ben:nth-child(3) .ben__v{color:var(--lav)}
 .ben__ic .ic{width:28px;height:28px;stroke-width:1.9}
 .ben__v{
@@ -860,9 +856,9 @@ section[id]{scroll-margin-top:84px}
   box-shadow:0 8px 22px rgba(0,0,0,.34);
 }
 .sup__ic .ic{width:25px;height:25px;stroke-width:1.9}
-.sup__list li:nth-child(1) .sup__ic{background:linear-gradient(150deg,#BFE4EF,#8FC4D8)}
-.sup__list li:nth-child(2) .sup__ic{background:linear-gradient(150deg,#C6B8E2,#AC9BD6)}
-.sup__list li:nth-child(3) .sup__ic{background:linear-gradient(150deg,#81D8D0,#4FBDB4)}
+.sup__list li:nth-child(1) .sup__ic{background:var(--sky)}
+.sup__list li:nth-child(2) .sup__ic{background:var(--lav)}
+.sup__list li:nth-child(3) .sup__ic{background:var(--mint)}
 .sup__list .h3{font-size:18px;margin-bottom:7px;line-height:1.3}
 .sup__list p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.5}
 
@@ -1005,16 +1001,12 @@ section[id]{scroll-margin-top:84px}
 }
 /* Надпись закрашена градиентом, а значок рядом — своей заливкой:
    background-clip:text съел бы и его. */
-.levelup__t{
-  background-image:var(--grad-btn);background-size:200% 100%;
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  animation:btnFlow 9s linear infinite;
-}
+.levelup__t{color:var(--mint)}
 .levelup__ic{
   display:grid;place-items:center;flex:none;width:46px;height:46px;
   border-radius:14px;color:var(--ink);
-  background-image:var(--grad-btn);
-  box-shadow:0 10px 26px rgba(166,214,230,.30);
+  background-color:var(--mint);
+  box-shadow:0 10px 26px rgba(0,0,0,.34);
   animation:levelUp 2.6s var(--ease) infinite;
 }
 .levelup__ic .ic{width:26px;height:26px;stroke-width:2.6}
