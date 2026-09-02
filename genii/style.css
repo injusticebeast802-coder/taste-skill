@@ -62,7 +62,7 @@
 
   /* Четыре фирменных цвета. Розовый самый громкий, поэтому идёт
      точечно: в кнопках, флажке и одной-двух метках. */
-  --mint:#A8DCC8;
+  --mint:#81D8D0;             /* тиффани */
   --sky:#A6D6E6;
   --lav:#C6B8E2;
   --blush:#F0CCD2;
@@ -79,11 +79,11 @@
 
   /* Кнопки: перелив мята → голубой → сирень → розовый.
      Градиент шире кнопки и медленно едет. */
-  --grad-btn:linear-gradient(100deg,#A8DCC8 0%,#A6D6E6 30%,#C6B8E2 62%,#F0CCD2 100%);
-  --grad-text:linear-gradient(100deg,#A8DCC8 0%,#A6D6E6 52%,#C6B8E2 100%);
+  --grad-btn:linear-gradient(100deg,#81D8D0 0%,#A6D6E6 30%,#C6B8E2 62%,#F0CCD2 100%);
+  --grad-text:linear-gradient(100deg,#81D8D0 0%,#A6D6E6 52%,#C6B8E2 100%);
 
   --red-text:#C6B8E2;            /* прежний красный текст — сиреневый */
-  --green:#A8DCC8;               /* выгода и экономия */
+  --green:#81D8D0;               /* выгода и экономия */
   --red-soft:rgba(198,184,226,.16);
   --grad-red:var(--grad-btn);
 
@@ -319,7 +319,7 @@ section[id]{scroll-margin-top:84px}
   content:"";position:absolute;inset:0;
   background:
     radial-gradient(70% 80% at 80% 18%,rgba(198,184,226,.22),transparent 66%),
-    radial-gradient(60% 70% at 16% 92%,rgba(168,220,200,.16),transparent 70%);
+    radial-gradient(60% 70% at 16% 92%,rgba(129,216,208,.16),transparent 70%);
 }
 .hero__in{
   position:relative;
@@ -338,6 +338,26 @@ section[id]{scroll-margin-top:84px}
 
 .hero__sub{color:var(--muted);font-size:clamp(18px,1.9vw,21px);max-width:52ch;margin:0 0 30px}
 .hero__actions{display:flex;flex-wrap:wrap;gap:12px}
+
+/* Правая колонка первого экрана: окошко с показателями,
+   под ним — значок компании и состав цикла. */
+.hero__right{display:grid;gap:14px;min-width:0}
+
+.cycle{
+  display:flex;align-items:center;gap:16px;
+  padding:20px 22px;border-radius:var(--r-lg);
+  border:1px solid rgba(129,216,208,.42);
+  background:linear-gradient(120deg,rgba(129,216,208,.16),rgba(198,184,226,.14)),rgba(16,22,48,.86);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.cycle__mark{flex:none;width:52px;height:52px}
+.cycle__copy{min-width:0}
+.cycle__t{
+  margin:0 0 6px;font-family:var(--f-display);font-weight:700;
+  font-size:clamp(17px,1.9vw,21px);line-height:1.1;letter-spacing:.02em;
+  text-transform:uppercase;color:var(--mint);
+}
+.cycle__d{margin:0;color:var(--muted);font-size:15.5px;line-height:1.45}
 
 .hero__panel{
   /* Фон первого экрана сам синий, поэтому панель делаем графитовой:
@@ -361,7 +381,7 @@ section[id]{scroll-margin-top:84px}
 
 /* ---------- Секции ---------- */
 /* Отступы плотнее, чем на первом сайте: страница и так длинная. */
-.sec{padding:clamp(34px,3.7vw,48px) 0}
+.sec{padding:clamp(32px,3.4vw,42px) 0}
 /* Тонированная секция: тёмная подложка с фирменным налётом. */
 .sec--tint{background:linear-gradient(180deg,rgba(166,214,230,.10),rgba(198,184,226,.10)),#111531}
 
@@ -377,12 +397,12 @@ section[id]{scroll-margin-top:84px}
 }
 .vs__card--past .vs__lead,.vs__card--past .vs__note{color:#9AA3B5}
 .vs__card--now{
-  background:linear-gradient(180deg,rgba(168,220,200,.26),rgba(14,58,60,.92));
-  border-color:rgba(168,220,200,.55);
-  box-shadow:0 16px 44px rgba(168,220,200,.18);
+  background:linear-gradient(180deg,rgba(129,216,208,.26),rgba(12,52,56,.92));
+  border-color:rgba(129,216,208,.55);
+  box-shadow:0 16px 44px rgba(129,216,208,.18);
 }
 .vs__card--now .vs__lead{color:#fff}
-.vs__card--now .vs__note{color:#C8F5E8}
+.vs__card--now .vs__note{color:#CDF0ED}
 .vs__tag{
   margin:0 0 14px;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted-2);
@@ -431,7 +451,7 @@ section[id]{scroll-margin-top:84px}
   box-shadow:0 8px 22px rgba(0,0,0,.38);
 }
 /* У каждой карточки свой цвет плитки и вывода. */
-.why__card:nth-child(2) .why__ic{background:linear-gradient(150deg,#A8DCC8,#8ECBB6)}
+.why__card:nth-child(2) .why__ic{background:linear-gradient(150deg,#81D8D0,#4FBDB4)}
 .why__card:nth-child(2) .why__v{color:var(--mint)}
 .why__card:nth-child(3) .why__ic{background:linear-gradient(150deg,#C6B8E2,#AC9BD6)}
 .why__card:nth-child(3) .why__v{color:var(--lav)}
@@ -507,8 +527,8 @@ section[id]{scroll-margin-top:84px}
 
 .agent--c1 .agent__ic{background:linear-gradient(150deg,#BFE4EF,#8FC4D8)}
 .agent--c1 .agent__t{color:#A6D6E6}
-.agent--c2 .agent__ic{background:linear-gradient(150deg,#A8DCC8,#8ECBB6)}
-.agent--c2 .agent__t{color:#A8DCC8}
+.agent--c2 .agent__ic{background:linear-gradient(150deg,#81D8D0,#4FBDB4)}
+.agent--c2 .agent__t{color:#81D8D0}
 .agent--c3 .agent__ic{background:linear-gradient(150deg,#C6B8E2,#AC9BD6)}
 .agent--c3 .agent__t{color:#C6B8E2}
 .agent--c6 .agent__ic{background:linear-gradient(150deg,#F0CCD2,#DFAAB4)}
@@ -602,8 +622,8 @@ section[id]{scroll-margin-top:84px}
   margin-top:clamp(26px,3.2vw,38px);
   padding:clamp(22px,2.6vw,28px);
   border-radius:var(--r-lg);
-  border:1px solid rgba(168,220,200,.40);
-  background:linear-gradient(150deg,rgba(168,220,200,.16),rgba(198,184,226,.14)),rgba(16,22,48,.86);
+  border:1px solid rgba(129,216,208,.40);
+  background:linear-gradient(150deg,rgba(129,216,208,.16),rgba(198,184,226,.14)),rgba(16,22,48,.86);
   box-shadow:0 18px 50px rgba(0,0,0,.34);
 }
 .feed__head{margin-bottom:20px}
@@ -664,7 +684,7 @@ section[id]{scroll-margin-top:84px}
   content:"";position:absolute;left:23px;top:12px;bottom:12px;width:1px;
   background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,.06));
 }
-.steps__item{display:flex;gap:22px;padding:0 0 20px;position:relative}
+.steps__item{display:flex;gap:22px;padding:0 0 18px;position:relative}
 .steps__item:last-child{padding-bottom:0}
 .steps__n{
   flex:none;width:46px;height:46px;border-radius:var(--r-sm);
@@ -676,9 +696,7 @@ section[id]{scroll-margin-top:84px}
 .steps__item p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
 
 /* 9. Ниши */
-/* На широком экране ниши идут по четыре в ряд: строк меньше,
-   а карточки остаются читаемыми. */
-.niches{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.niches{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .niche{
   background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r-md);padding:22px;
@@ -777,7 +795,7 @@ section[id]{scroll-margin-top:84px}
   background:linear-gradient(150deg,#BFE4EF,#8FC4D8);
   box-shadow:0 10px 26px rgba(0,0,0,.42);
 }
-.ben:nth-child(2) .ben__ic{background:linear-gradient(150deg,#A8DCC8,#8ECBB6)}
+.ben:nth-child(2) .ben__ic{background:linear-gradient(150deg,#81D8D0,#4FBDB4)}
 .ben:nth-child(2) .ben__v{color:var(--mint)}
 .ben:nth-child(3) .ben__ic{background:linear-gradient(150deg,#C6B8E2,#AC9BD6)}
 .ben:nth-child(3) .ben__v{color:var(--lav)}
@@ -828,7 +846,7 @@ section[id]{scroll-margin-top:84px}
 }
 .sup__list li{
   background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-md);padding:18px 16px;
+  border-radius:var(--r-md);padding:24px 22px;
   transition:border-color .2s var(--ease),background-color .2s var(--ease);
 }
 .sup__list li:hover{border-color:var(--line-2);background:var(--surface-2)}
@@ -841,9 +859,35 @@ section[id]{scroll-margin-top:84px}
 .sup__ic .ic{width:25px;height:25px;stroke-width:1.9}
 .sup__list li:nth-child(1) .sup__ic{background:linear-gradient(150deg,#BFE4EF,#8FC4D8)}
 .sup__list li:nth-child(2) .sup__ic{background:linear-gradient(150deg,#C6B8E2,#AC9BD6)}
-.sup__list li:nth-child(3) .sup__ic{background:linear-gradient(150deg,#A8DCC8,#8ECBB6)}
+.sup__list li:nth-child(3) .sup__ic{background:linear-gradient(150deg,#81D8D0,#4FBDB4)}
 .sup__list .h3{font-size:18px;margin-bottom:7px;line-height:1.3}
 .sup__list p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.5}
+
+/* Площадки, на которых выходят публикации. Кружки-ссылки: адреса
+   каналов подставляются в href, когда они появятся. */
+.chans{
+  display:flex;flex-wrap:wrap;align-items:center;gap:18px 26px;
+  margin-top:22px;padding:20px clamp(20px,2.6vw,28px);
+  border-radius:var(--r-lg);
+  background:var(--surface);border:1px solid var(--line);
+}
+.chans__t{
+  margin:0;font-size:13.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted-2);
+}
+.chans__list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px}
+.chan{
+  display:grid;place-items:center;width:60px;height:60px;border-radius:50%;
+  text-decoration:none;color:var(--ink);
+  font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.02em;
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease);
+}
+.chan:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.36)}
+.chan--tg{background:linear-gradient(150deg,#BFE4EF,#8FC4D8)}
+.chan--vk{background:linear-gradient(150deg,#D6CBEC,#AC9BD6)}
+.chan--dzen{background:linear-gradient(150deg,#F6DCE0,#DFAAB4);font-size:14px}
+.chan--ok{background:linear-gradient(150deg,#A6E6E1,#4FBDB4)}
+.chan--max{background:linear-gradient(150deg,#BFE4EF,#AC9BD6);font-size:13.5px}
 
 /* Полоса с телефоном: единственный контакт на странице, поэтому
    стоит отдельно и крупно. */
@@ -851,8 +895,8 @@ section[id]{scroll-margin-top:84px}
   display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;
   margin-top:22px;padding:24px clamp(20px,2.6vw,30px);
   border-radius:var(--r-lg);
-  border:1px solid rgba(168,220,200,.42);
-  background:linear-gradient(120deg,rgba(168,220,200,.16),rgba(166,214,230,.12)),var(--surface);
+  border:1px solid rgba(129,216,208,.42);
+  background:linear-gradient(120deg,rgba(129,216,208,.16),rgba(166,214,230,.12)),var(--surface);
 }
 .callbar__t{margin:0;font-size:18px;line-height:1.4;color:var(--text);max-width:52ch}
 .callbar__phone{
@@ -890,14 +934,14 @@ section[id]{scroll-margin-top:84px}
 
 /* Слайд со знаком компании: цветная полоса во всю ширину,
    знак слева, фирменный текст справа. */
-.brand{padding:clamp(22px,2.8vw,36px) 0}
+.brand{padding:clamp(18px,2.2vw,28px) 0}
 .brand__in{
   display:flex;align-items:center;gap:clamp(24px,4vw,54px);
   padding:clamp(24px,3.2vw,38px) clamp(26px,4vw,52px);
   border-radius:var(--r-lg);
   border:1px solid var(--line-2);
   background:
-    radial-gradient(90% 140% at 8% 20%,rgba(168,220,200,.26),transparent 62%),
+    radial-gradient(90% 140% at 8% 20%,rgba(129,216,208,.26),transparent 62%),
     radial-gradient(90% 140% at 92% 80%,rgba(198,184,226,.32),transparent 62%),
     linear-gradient(100deg,#141C3E,#1B2350);
   box-shadow:0 24px 60px rgba(0,0,0,.36);
@@ -907,7 +951,7 @@ section[id]{scroll-margin-top:84px}
 .brand__txt{margin:0;color:#EEF2FF;font-size:clamp(17px,1.9vw,21px);line-height:1.55;max-width:64ch}
 
 /* 14. Финальный CTA */
-.cta{padding:clamp(40px,4.6vw,62px) 0}
+.cta{padding:clamp(36px,4vw,54px) 0}
 .cta__in{
   background:
     radial-gradient(120% 140% at 12% 0%,rgba(198,184,226,.38) 0%,transparent 58%),
@@ -940,6 +984,8 @@ section[id]{scroll-margin-top:84px}
 }
 .cta__facts li:first-child .cta__v{color:var(--red-text)}
 .cta__k{color:var(--muted);font-size:16px;line-height:1.4}
+/* Сноска про Instagram: она обязательна везде, где стоит звёздочка. */
+.cta__note{grid-column:1 / -1;margin:18px 0 0;color:var(--muted-2);font-size:12.5px;line-height:1.45}
 
 /* Слоган компании — последний блок страницы: значок слева,
    стрелка вверх сразу за самой надписью. */
@@ -948,8 +994,8 @@ section[id]{scroll-margin-top:84px}
   margin-top:clamp(18px,2.4vw,28px);
   padding:clamp(22px,2.8vw,30px) clamp(24px,3.2vw,36px);
   border-radius:var(--r-lg);
-  border:1px solid rgba(168,220,200,.42);
-  background:linear-gradient(110deg,rgba(168,220,200,.18),rgba(166,214,230,.14) 46%,rgba(198,184,226,.18)),var(--surface);
+  border:1px solid rgba(129,216,208,.42);
+  background:linear-gradient(110deg,rgba(129,216,208,.18),rgba(166,214,230,.14) 46%,rgba(198,184,226,.18)),var(--surface);
 }
 .levelup__mark{flex:none;width:clamp(46px,5vw,58px);height:auto}
 .levelup__copy{min-width:0}
@@ -1204,7 +1250,6 @@ section[id]{scroll-margin-top:84px}
    Адаптив. Точки: 1024, 768, 480
    ========================================================= */
 @media (max-width:1024px){
-  .niches{grid-template-columns:repeat(3,1fr)}
   .nav{gap:18px}
   .nav a{font-size:14px}
   .hero__in{grid-template-columns:1fr .9fr}
@@ -1258,6 +1303,8 @@ section[id]{scroll-margin-top:84px}
   .brand__in{flex-direction:column;text-align:center}
   .levelup{flex-wrap:wrap}
   .cta__in{grid-template-columns:1fr;gap:28px}
+  .cycle{flex-direction:column;align-items:flex-start;gap:12px}
+  .chans{flex-direction:column;align-items:flex-start;gap:14px}
   .sup__list{grid-template-columns:1fr}
   .nums{grid-template-columns:1fr}
   .ftr__in{flex-direction:column;align-items:flex-start;gap:8px}
