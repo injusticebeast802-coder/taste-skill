@@ -902,12 +902,8 @@ section[id]{scroll-margin-top:84px}
     linear-gradient(100deg,#141C3E,#1B2350);
   box-shadow:0 24px 60px rgba(0,0,0,.36);
 }
-.brand__mark{
-  flex:none;width:clamp(130px,15vw,210px);height:auto;
-  animation:markSpin 48s linear infinite;
-}
-@keyframes markSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.brand__mark{animation:none}}
+/* Логотип с надписью — не вращаем: вместе со знаком поехали бы буквы. */
+.brand__mark{flex:none;width:clamp(130px,15vw,200px);height:auto}
 .brand__txt{margin:0;color:#EEF2FF;font-size:clamp(17px,1.9vw,21px);line-height:1.55;max-width:64ch}
 
 /* 14. Финальный CTA */
