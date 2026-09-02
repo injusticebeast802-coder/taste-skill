@@ -877,17 +877,13 @@ section[id]{scroll-margin-top:84px}
 }
 .chans__list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px}
 .chan{
-  display:grid;place-items:center;width:60px;height:60px;border-radius:50%;
-  text-decoration:none;color:var(--ink);
-  font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.02em;
+  display:block;line-height:0;border-radius:14px;
   transition:transform .18s var(--ease),box-shadow .18s var(--ease);
 }
-.chan:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.36)}
-.chan--tg{background:linear-gradient(150deg,#BFE4EF,#8FC4D8)}
-.chan--vk{background:linear-gradient(150deg,#D6CBEC,#AC9BD6)}
-.chan--dzen{background:linear-gradient(150deg,#F6DCE0,#DFAAB4);font-size:14px}
-.chan--ok{background:linear-gradient(150deg,#A6E6E1,#4FBDB4)}
-.chan--max{background:linear-gradient(150deg,#BFE4EF,#AC9BD6);font-size:13.5px}
+.chan:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.40)}
+.chan:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Значок рисуется целиком, со своими фирменными цветами. */
+.chan__ic{width:56px;height:56px;display:block}
 
 /* Полоса с телефоном: единственный контакт на странице, поэтому
    стоит отдельно и крупно. */
