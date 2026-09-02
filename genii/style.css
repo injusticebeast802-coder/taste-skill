@@ -1,0 +1,1119 @@
+/* =========================================================
+   ГенИИ — style.css
+   Тема зафиксирована: тёмная на всей странице (Page Theme Lock).
+   Радиусы: 24px крупные панели и модалка, 20px карточки,
+            14px инпуты, кнопки и мелкие элементы. Пилюль нет.
+   Акценты пастельные: мята, лаванда, голубой и розовый — на тёмном фоне.
+   ========================================================= */
+
+/* =========================================================
+   Шрифты лежат рядом с сайтом, в папке fonts.
+   Раньше они подключались с fonts.googleapis.com, и это была
+   главная причина, по которой сайт подолгу не открывался у части
+   посетителей: браузер не показывает страницу, пока не получит
+   внешний файл стилей, а сервисы Google в России отвечают
+   с перебоями. Теперь всё приходит с того же адреса, что и сайт.
+
+   Каждый файл содержит сразу кириллицу, латиницу и знак рубля,
+   поэтому на страницу приходится семь запросов вместо двенадцати:
+   на плохой связи число запросов важнее их размера.
+
+   font-display:swap показывает текст системным шрифтом сразу,
+   не дожидаясь загрузки, — страница читается с первой секунды.
+   ========================================================= */
+
+@font-face{
+  font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;
+  src:url('fonts/inter-400.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;
+  src:url('fonts/inter-500.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;
+  src:url('fonts/inter-600.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;
+  src:url('fonts/inter-700.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Unbounded';font-style:normal;font-weight:500;font-display:swap;
+  src:url('fonts/unbounded-500.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Unbounded';font-style:normal;font-weight:600;font-display:swap;
+  src:url('fonts/unbounded-600.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Unbounded';font-style:normal;font-weight:700;font-display:swap;
+  src:url('fonts/unbounded-700.woff2') format('woff2');
+}
+
+:root{
+  /* Фон и поверхности. Фон тёмный, карточки — тёмно-графитовые:
+     пастельные акценты видны только на спокойной подложке. */
+  --bg:#0A0A0E;
+  --surface:#14141E;             /* карточка */
+  --surface-2:#1C1C2A;           /* карточка светлее, для наведения */
+  --line:rgba(198,184,226,.20);
+  --line-2:rgba(198,184,226,.36);
+
+  /* Четыре пастельных цвета. Розовый — самый заметный, поэтому
+     используется точечно: иначе страница становится пёстрой. */
+  --mint:#A8DCC8;
+  --sky:#A6D6E6;
+  --lav:#C6B8E2;
+  --blush:#F0CCD2;
+
+  --accent:var(--sky);
+  --accent-2:var(--lav);
+  --accent-text:#A6D6E6;         /* выделения в тексте и крупные цифры */
+  --accent-soft:rgba(166,214,230,.14);
+
+  /* Пастель светлая, поэтому текст и значки на ней — тёмные.
+     Белый по мяте не читается. */
+  --ink:#0E1018;
+
+  /* На белой форме пастель тоже не читается: там берём тёмный
+     лавандовый того же семейства. */
+  --accent-ink:#5B4B8A;
+
+  /* Кнопки: перелив мята → голубой → лаванда → розовый.
+     Градиент шире кнопки и медленно едет. */
+  --grad-btn:linear-gradient(100deg,#A8DCC8 0%,#A6D6E6 32%,#C6B8E2 64%,#F0CCD2 100%);
+  --grad-text:linear-gradient(100deg,#A8DCC8 0%,#A6D6E6 52%,#C6B8E2 100%);
+
+  --red-text:var(--lav);         /* прежний красный текст — лавандовый */
+  --green:var(--mint);           /* выгода и экономия */
+  --red-soft:rgba(198,184,226,.16);
+  --grad-red:var(--grad-btn);
+
+  --text:#FFFFFF;
+  --muted:#DCDEE8;               /* описания на тёмных карточках */
+  --muted-2:#A4A8BC;
+
+  --r-lg:24px;
+  --r-md:20px;
+  --r-sm:14px;
+
+  --wrap:1400px;
+  --ease:cubic-bezier(.16,1,.3,1);
+
+  --f-display:'Unbounded','Manrope','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-body:'Inter','Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+
+/* Сообщаем браузеру, что страница уже тёмная.
+   Без этого Android и Яндекс.Браузер применяют к ней принудительное
+   затемнение: светлые карточки выворачиваются в почти чёрные, а текст
+   и градиенты искажаются. Именно так блок с цифрами выглядел
+   на телефоне совсем не так, как на компьютере. */
+:root{color-scheme:dark}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--f-body);
+  font-size:18px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body.is-locked{overflow:hidden}
+
+img{max-width:100%;display:block}
+a{color:inherit}
+
+.sprite{display:none}
+
+.ic{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ic--lg{width:28px;height:28px}
+
+.skip{
+  position:absolute;left:-9999px;top:0;z-index:100;
+  background:#2F5AE0;color:#fff;padding:12px 18px;border-radius:0 0 var(--r-sm) 0;
+}
+.skip:focus{left:0}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+#top-sentinel{position:absolute;top:0;left:0;width:1px;height:1px}
+
+/* Липкая шапка перекрывает заголовок секции при переходе по якорю. */
+section[id]{scroll-margin-top:84px}
+
+.wrap{width:100%;max-width:var(--wrap);margin:0 auto;padding:0 clamp(20px,3.2vw,48px)}
+
+/* ---------- Типографика ---------- */
+.h1{
+  font-family:var(--f-display);
+  font-weight:700;
+  font-size:clamp(30px,5.4vw,56px);
+  line-height:1.12;
+  letter-spacing:-.02em;
+  margin:0 0 18px;
+}
+.h2{
+  font-family:var(--f-display);
+  font-weight:600;
+  font-size:clamp(24px,3.4vw,40px);
+  line-height:1.2;
+  letter-spacing:-.015em;
+  margin:0 0 16px;
+}
+.h2--sm{font-size:clamp(20px,2.4vw,26px)}
+.h3{
+  font-family:var(--f-display);
+  font-weight:600;
+  font-size:clamp(20px,1.5vw,22px);
+  line-height:1.4;
+  letter-spacing:-.005em;
+  margin:0 0 10px;
+}
+.lead{
+  color:var(--muted);
+  font-size:clamp(17px,1.6vw,20px);
+  max-width:64ch;
+  margin:0 0 40px;
+}
+
+/* ---------- Кнопки ----------
+   Розово-синий перелив: градиент вчетверо шире кнопки и медленно
+   едет сам по себе, при наведении ускоряется. */
+@keyframes btnFlow{
+  0%{background-position:0% 50%}
+  100%{background-position:200% 50%}
+}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;white-space:nowrap;
+  font-family:var(--f-body);font-size:16px;font-weight:600;
+  padding:14px 26px;border-radius:var(--r-sm);
+  border:1px solid transparent;cursor:pointer;
+  text-decoration:none;
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),background-color .18s var(--ease);
+}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn--lg{padding:17px 32px;font-size:17px}
+.btn--full{width:100%}
+
+.btn--grad,.btn--red{
+  /* Буквы тёмные: пастель светлая, белый текст на ней не читается. */
+  color:var(--ink);
+  background-image:var(--grad-btn);
+  background-size:200% 100%;
+  animation:btnFlow 7s linear infinite;
+  box-shadow:0 8px 26px rgba(166,214,230,.22);
+}
+.btn--grad:hover,.btn--red:hover{
+  animation-duration:2.4s;
+  box-shadow:0 14px 40px rgba(198,184,226,.34);
+  transform:translateY(-1px);
+}
+
+/* Главная кнопка первого экрана: крупнее, со стрелкой и бегущим бликом. */
+.btn--hero{
+  position:relative;overflow:hidden;
+  padding:22px 44px;font-size:19px;letter-spacing:.01em;
+  border-radius:18px;
+  box-shadow:0 10px 34px rgba(166,214,230,.26);
+}
+.btn--hero .btn__label{position:relative;z-index:1}
+.btn--hero .btn__arrow{
+  position:relative;z-index:1;width:22px;height:22px;stroke-width:2.2;
+  transition:transform .28s var(--ease);
+}
+.btn--hero::before{
+  content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.60),transparent);
+  transform:skewX(-18deg);
+  transition:left .55s var(--ease);
+  pointer-events:none;z-index:1;
+}
+.btn--hero:hover{
+  transform:translateY(-3px);
+  box-shadow:0 18px 50px rgba(198,184,226,.40),0 0 0 1px rgba(14,16,24,.10) inset;
+}
+.btn--hero:hover .btn__arrow{transform:translateX(6px)}
+.btn--hero:hover::before{left:115%}
+.btn--hero:active{transform:translateY(-1px) scale(.99)}
+
+@media (prefers-reduced-motion:reduce){
+  .btn--grad,.btn--red,.btn--hero{animation:none;background-position:25% 50%}
+  .btn--hero,.btn--hero .btn__arrow,.btn--hero::before{transition:none}
+  .btn--hero:hover{transform:none}
+  .btn--hero:hover::before{left:-60%}
+}
+
+.btn--ghost{
+  color:var(--text);
+  background:rgba(255,255,255,.05);
+  border-color:var(--line-2);
+}
+.btn--ghost:hover{background:rgba(255,255,255,.10)}
+
+.btn--ghost-dark{
+  color:#13131B;background:#EFEFF5;border-color:#DDDDE8;
+}
+.btn--ghost-dark:hover{background:#E3E3EC}
+
+/* ---------- Шапка ---------- */
+.hdr{
+  position:sticky;top:0;z-index:40;
+  background:rgba(10,10,14,.86);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.hdr__in{display:flex;align-items:center;gap:20px;height:72px}
+
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex:none}
+/* Логотип-знак. Файл лежит в assets/logo.png — чтобы заменить логотип
+   на всём сайте, достаточно подменить этот один файл. */
+.logo__mark{
+  width:34px;height:34px;flex:none;
+  transition:transform .2s var(--ease);
+}
+.logo:hover .logo__mark{transform:scale(1.06)}
+.logo__txt{font-family:var(--f-display);font-weight:500;font-size:16px;letter-spacing:-.01em}
+.logo__txt b{font-weight:700}
+
+.nav{display:flex;align-items:center;gap:26px;margin-left:auto}
+.nav a{
+  color:var(--muted);text-decoration:none;font-size:15px;font-weight:500;
+  transition:color .18s var(--ease);
+}
+.nav a:hover{color:var(--text)}
+
+.hdr__cta{flex:none;padding:11px 20px;font-size:15px}
+.burger{
+  display:none;flex:none;
+  width:42px;height:42px;border-radius:var(--r-sm);
+  background:rgba(255,255,255,.05);border:1px solid var(--line-2);
+  color:var(--text);cursor:pointer;place-items:center;
+}
+
+/* ---------- Первый экран ---------- */
+.hero{
+  position:relative;overflow:hidden;
+  padding:clamp(48px,5.4vw,76px) 0 clamp(50px,5.8vw,80px);
+}
+/* Фон первого экрана — тёмное поле со световыми волнами.
+   Затемняющие слои поверх картинки нужны, чтобы белый заголовок
+   читался в любой её точке. */
+.hero__glow{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(10,10,14,.92) 0%,rgba(10,10,14,.62) 34%,rgba(10,10,14,.30) 62%,rgba(10,10,14,.58) 100%),
+    linear-gradient(180deg,rgba(10,10,14,.42) 0%,transparent 26%,transparent 66%,var(--bg) 100%),
+    url("img/hero-bg.jpg") center/cover no-repeat;
+  /* Картинка осталась прежней, а на ней есть красные волны. Приглушаем
+     насыщенность и кладём сверху мятно-лавандовый налёт, иначе фон
+     спорит с пастельной палитрой сайта. */
+  filter:saturate(.5);
+}
+.hero__glow::after{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(70% 80% at 78% 20%,rgba(198,184,226,.20),transparent 66%),
+    radial-gradient(60% 70% at 20% 90%,rgba(168,220,200,.14),transparent 70%);
+}
+.hero__in{
+  position:relative;
+  display:grid;grid-template-columns:1.35fr .85fr;gap:clamp(28px,4vw,56px);align-items:center;
+}
+.hero__copy{min-width:0}
+
+.plate{
+  display:inline-flex;align-items:center;gap:8px;
+  margin:0 0 20px;padding:9px 17px;
+  border:1px solid var(--line-2);border-radius:var(--r-sm);
+  background:var(--accent-soft);
+  font-size:15px;font-weight:600;color:var(--accent-text);letter-spacing:.01em;
+}
+.plate__dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+
+.hero__sub{color:var(--muted);font-size:clamp(18px,1.9vw,21px);max-width:52ch;margin:0 0 30px}
+.hero__actions{display:flex;flex-wrap:wrap;gap:12px}
+
+.hero__panel{
+  /* Фон первого экрана сам синий, поэтому панель делаем графитовой:
+     тёмное стекло с холодной каймой, чтобы она читалась поверх волн. */
+  background:linear-gradient(160deg,rgba(28,30,42,.86),rgba(16,17,26,.92));
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(198,184,226,.30);
+  border-radius:var(--r-lg);
+  padding:30px 28px;
+  min-width:0;
+  box-shadow:0 18px 50px rgba(0,0,0,.45);
+}
+.gains{list-style:none;margin:0;padding:0;display:grid;gap:24px}
+.gains__row{display:flex;flex-direction:column;gap:6px}
+.gains__v{
+  font-family:var(--f-display);font-weight:700;
+  font-size:clamp(34px,4.2vw,48px);line-height:1;letter-spacing:-.02em;
+  color:var(--accent-text);
+}
+.gains__k{color:#fff;font-size:17.5px;line-height:1.4;font-weight:500}
+
+/* ---------- Секции ---------- */
+/* Отступы чуть плотнее, чем на первом сайте: страница и так длинная,
+   а воздуха между секциями хватает и такого. */
+.sec{padding:clamp(48px,6.2vw,84px) 0}
+.sec--tint{background:#101017}
+
+/* 3. Раньше / Сейчас */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+.vs__card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:26px;
+}
+.vs__card--past{
+  background:linear-gradient(180deg,rgba(120,130,150,.10),rgba(18,20,28,.96));
+  border-color:rgba(150,160,180,.22);
+}
+.vs__card--past .vs__lead,.vs__card--past .vs__note{color:#9AA3B5}
+.vs__card--now{
+  background:linear-gradient(180deg,rgba(168,220,200,.20),rgba(20,34,32,.94));
+  border-color:rgba(168,220,200,.50);
+  box-shadow:0 16px 44px rgba(168,220,200,.14);
+}
+.vs__card--now .vs__lead{color:#fff}
+.vs__card--now .vs__note{color:#CBE9DC}
+.vs__tag{
+  margin:0 0 14px;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted-2);
+}
+.vs__card--now .vs__tag{color:var(--mint)}
+.vs__lead{margin:0 0 14px;font-size:19px;line-height:1.5}
+.vs__note{margin:0;color:var(--muted);font-size:17px}
+
+.verdict{
+  margin:0;padding:26px 28px;
+  background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-md);
+  font-family:var(--f-display);font-weight:500;
+  font-size:clamp(17px,2.2vw,22px);line-height:1.4;
+  border-left:3px solid var(--accent);
+}
+.verdict b{font-weight:700;color:var(--red-text)}
+
+/* 4. Доводы: у каждого свой вывод крупно и пояснение мельче.
+   Главный тезис стоит выше, в блоке .verdict. */
+.why__cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.why__card{
+  padding:26px 24px;
+  background:linear-gradient(170deg,rgba(166,214,230,.10),rgba(18,18,28,.94));
+  border:1px solid var(--line);border-radius:var(--r-md);
+  transition:transform .2s var(--ease),border-color .2s var(--ease);
+}
+.why__card:hover{transform:translateY(-3px);border-color:var(--line-2)}
+.why__ic{
+  display:grid;place-items:center;width:46px;height:46px;margin-bottom:18px;
+  border-radius:14px;color:var(--ink);
+  background:linear-gradient(150deg,var(--sky),var(--lav));
+  box-shadow:0 8px 22px rgba(0,0,0,.34);
+}
+.why__ic .ic{width:24px;height:24px;stroke-width:1.9}
+.why__v{
+  margin:0 0 8px;font-family:var(--f-display);font-weight:700;
+  font-size:clamp(22px,1.9vw,26px);line-height:1.15;letter-spacing:-.02em;
+  color:var(--accent-text);
+}
+.why__card .h3{font-size:18px;margin-bottom:10px;line-height:1.35}
+.why__d{margin:0;color:var(--muted);font-size:16px;line-height:1.55}
+
+/* 5. Решение */
+.solution{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,56px);align-items:center}
+.solution__copy .lead{margin-bottom:26px}
+
+/* Картинка нейронов со второго слайда презентации стоит справа от текста. */
+.solution__img{
+  margin:0;border-radius:var(--r-lg);overflow:hidden;
+  border:1px solid var(--line);
+}
+.solution__img img{
+  width:100%;height:clamp(240px,26vw,340px);
+  object-fit:cover;object-position:center 45%;display:block;
+}
+
+/* Два факта о платформе идут строками под текстом: крупная цифра
+   слева, пояснение рядом. Отдельными карточками они занимали целый
+   экран и повторяли то, что уже сказано абзацем выше. */
+.solution__facts{display:grid;gap:12px;margin-top:clamp(20px,2.6vw,28px)}
+.fact{
+  display:flex;align-items:baseline;gap:14px;margin:0;
+  padding:16px 20px;color:var(--muted);font-size:16.5px;line-height:1.5;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  border-left:3px solid var(--accent-text);
+}
+.fact__num{
+  flex:none;font-family:var(--f-display);font-weight:700;
+  font-size:clamp(24px,2.6vw,32px);line-height:1;letter-spacing:-.02em;
+  background-image:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+
+/* 6. Шесть ИИ-агентов. Ровная сетка плиток, у каждого агента свой
+   цвет значка, чтобы блок читался как набор инструментов. */
+/* Агентов четыре, поэтому сетка два на два — как на макете.
+   Заголовок раздела стоит не сверху, а между рядами: две карточки,
+   надпись во всю ширину, ещё две карточки. */
+.agents{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.agents__mid{
+  grid-column:1 / -1;
+  text-align:center;
+  padding:clamp(16px,2.6vw,30px) 0 clamp(6px,1.4vw,14px);
+}
+.agents__mid .h2{margin:0 0 12px}
+.agents__mid .lead{margin:0 auto;max-width:58ch}
+.agent{
+  position:relative;padding:26px 24px 24px;
+  background:linear-gradient(165deg,rgba(198,184,226,.12),rgba(20,20,30,.95));
+  border:1px solid var(--line);border-radius:var(--r-md);
+  transition:transform .2s var(--ease),border-color .2s var(--ease);
+}
+.agent:hover{transform:translateY(-3px);border-color:var(--line-2)}
+.agent__ic{
+  display:grid;place-items:center;width:52px;height:52px;margin-bottom:18px;
+  border-radius:15px;color:var(--ink);
+  box-shadow:0 8px 22px rgba(0,0,0,.34);
+}
+.agent__ic .ic{width:27px;height:27px;stroke-width:1.9}
+.agent__t{
+  margin:0 0 10px;font-family:var(--f-display);font-weight:600;
+  font-size:clamp(19px,1.5vw,21px);line-height:1.3;
+}
+.agent p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
+
+.agent--c1 .agent__ic{background:linear-gradient(150deg,#BEE6D6,#A8DCC8)}
+.agent--c1 .agent__t{color:var(--mint)}
+.agent--c2 .agent__ic{background:linear-gradient(150deg,#BFE4EF,#A6D6E6)}
+.agent--c2 .agent__t{color:var(--sky)}
+.agent--c3 .agent__ic{background:linear-gradient(150deg,#D6CBEC,#C6B8E2)}
+.agent--c3 .agent__t{color:var(--lav)}
+.agent--c6 .agent__ic{background:linear-gradient(150deg,#F6DCE0,#F0CCD2)}
+.agent--c6 .agent__t{color:var(--blush)}
+
+/* 2. ЧТО ГЕНЕРИРУЕМ И КУДА ПУБЛИКУЕМ — главный акцент страницы.
+   Секция стоит сразу за первым экраном и вынесена на собственную
+   подложку: это то, за чем к нам приходят. */
+.tech{position:relative;overflow:hidden;background:#0D0D13}
+.tech__glow{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(80% 90% at 8% 0%,rgba(166,214,230,.16) 0%,transparent 60%),
+    radial-gradient(70% 90% at 96% 100%,rgba(198,184,226,.14) 0%,transparent 62%);
+}
+.tech__in{position:relative}
+.tech::before,.tech::after{
+  content:"";position:absolute;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(198,184,226,.50),transparent);
+}
+.tech::before{top:0}
+.tech::after{bottom:0}
+
+.tech__eyebrow{
+  margin:0 0 12px;font-size:14px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--red-text);
+}
+.tech__h{font-size:clamp(28px,4vw,50px);margin-bottom:18px;max-width:22ch}
+.tech__h b{font-weight:700;color:var(--red-text)}
+.tech__lead{max-width:72ch;margin-bottom:44px}
+
+/* Три формата контента. Каждая карточка — свой пастельный цвет,
+   чтобы блок читался как набор, а не как список. */
+.make{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:clamp(28px,3.4vw,40px)}
+.make__card{
+  padding:28px 24px;
+  background:rgba(19,19,27,.72);border:1px solid var(--line);
+  border-radius:var(--r-md);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  transition:transform .2s var(--ease),border-color .2s var(--ease);
+}
+.make__card:hover{transform:translateY(-3px);border-color:var(--line-2)}
+.make__ic{
+  display:grid;place-items:center;width:50px;height:50px;margin-bottom:18px;
+  border-radius:15px;color:var(--ink);
+  box-shadow:0 8px 22px rgba(0,0,0,.34);
+}
+.make__ic .ic{width:26px;height:26px;stroke-width:1.9}
+.make__card p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
+.make__card .h3{margin-bottom:10px}
+.make__card--mint .make__ic{background:linear-gradient(150deg,#BEE6D6,#A8DCC8)}
+.make__card--mint .h3{color:var(--mint)}
+.make__card--lav .make__ic{background:linear-gradient(150deg,#D6CBEC,#C6B8E2)}
+.make__card--lav .h3{color:var(--lav)}
+.make__card--sky .make__ic{background:linear-gradient(150deg,#BFE4EF,#A6D6E6)}
+.make__card--sky .h3{color:var(--sky)}
+
+/* Шесть площадок. Ради этого блока и написана вся секция, поэтому
+   он выделен рамкой и стоит отдельной плитой. */
+.feed{
+  padding:clamp(26px,3vw,34px);
+  border-radius:var(--r-lg);
+  border:1px solid rgba(168,220,200,.45);
+  background:linear-gradient(150deg,rgba(168,220,200,.14),rgba(198,184,226,.10)),rgba(13,13,19,.86);
+  box-shadow:0 18px 50px rgba(0,0,0,.34);
+}
+.feed__head{margin-bottom:22px}
+.feed__t{
+  margin:0 0 8px;font-family:var(--f-display);font-weight:600;
+  font-size:clamp(21px,2.4vw,28px);line-height:1.25;letter-spacing:-.02em;
+}
+.feed__t b{font-weight:700;color:var(--mint)}
+.feed__d{margin:0;color:var(--muted);font-size:17px;line-height:1.5;max-width:60ch}
+
+.feed__list{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-wrap:wrap;gap:10px;
+}
+.feed__item{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 18px;border-radius:var(--r-sm);
+  background:rgba(255,255,255,.05);border:1px solid var(--line-2);
+  font-size:17px;font-weight:600;color:var(--text);
+}
+.feed__item sup{font-size:.7em;color:var(--muted-2)}
+/* Instagram добавился последним — помечаем, чтобы это заметили. */
+.feed__item--new{
+  background:linear-gradient(120deg,rgba(240,204,210,.22),rgba(198,184,226,.16));
+  border-color:rgba(240,204,210,.55);
+}
+.feed__tag{
+  padding:3px 9px;border-radius:8px;
+  background:var(--blush);color:var(--ink);
+  font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+}
+.feed__note{margin:18px 0 0;color:var(--muted-2);font-size:13px;line-height:1.45;max-width:80ch}
+
+/* 8. Как это работает: вертикальный таймлайн */
+.how{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(28px,4vw,60px);align-items:start}
+.how__head .lead{margin-bottom:26px}
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{
+  content:"";position:absolute;left:23px;top:12px;bottom:12px;width:1px;
+  background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,.06));
+}
+.steps__item{display:flex;gap:22px;padding:0 0 26px;position:relative}
+.steps__item:last-child{padding-bottom:0}
+.steps__n{
+  flex:none;width:46px;height:46px;border-radius:var(--r-sm);
+  display:grid;place-items:center;
+  background:var(--surface-2);border:1px solid var(--line-2);
+  font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--text);
+  position:relative;z-index:1;
+}
+.steps__item p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
+
+/* Ниши. Раньше это были девять больших карточек со скачиванием
+   презентаций; теперь просто перечисление — блок стал вчетверо ниже,
+   а смысл тот же: мы работаем с любой отраслью. */
+.niches{
+  list-style:none;margin:26px 0 0;padding:0;
+  display:flex;flex-wrap:wrap;gap:12px;
+}
+.niche{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:13px 20px;border-radius:var(--r-sm);
+  background:var(--surface);border:1px solid var(--line);
+  font-size:17px;font-weight:500;color:var(--text);
+  transition:border-color .2s var(--ease),background-color .2s var(--ease);
+}
+.niche:hover{border-color:var(--line-2);background:var(--surface-2)}
+.niche .ic{width:22px;height:22px;color:var(--accent-text)}
+.niche--all{
+  background:linear-gradient(120deg,rgba(168,220,200,.16),rgba(198,184,226,.12));
+  border-color:rgba(168,220,200,.45);font-weight:600;
+}
+.niche--all .ic{color:var(--mint)}
+
+/* 10. КЛЮЧЕВЫЕ ВЫГОДЫ — главный коммерческий блок.
+   Собственная подложка, крупная кратность выгоды над заголовком. */
+.gains-sec{position:relative;overflow:hidden;background:#101019}
+.gains-sec__glow{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(70% 90% at 10% 0%,rgba(168,220,200,.18) 0%,transparent 62%),
+    radial-gradient(70% 90% at 92% 100%,rgba(198,184,226,.16) 0%,transparent 62%);
+}
+.gains-sec .wrap{position:relative}
+
+.bens{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.ben{
+  position:relative;padding:34px 30px 30px;
+  background:linear-gradient(170deg,rgba(198,184,226,.16),rgba(18,18,28,.95));
+  border:1px solid var(--line-2);border-radius:var(--r-lg);
+  transition:transform .22s var(--ease),box-shadow .22s var(--ease);
+}
+.ben:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(198,184,226,.18)}
+.ben__ic{
+  display:grid;place-items:center;width:54px;height:54px;margin-bottom:20px;
+  border-radius:16px;color:var(--ink);
+  background:linear-gradient(150deg,var(--mint),var(--sky));
+  box-shadow:0 10px 26px rgba(0,0,0,.34);
+}
+.ben__ic .ic{width:28px;height:28px;stroke-width:1.9}
+.ben__v{
+  margin:0 0 6px;font-family:var(--f-display);font-weight:700;
+  font-size:clamp(32px,3.4vw,44px);line-height:1;letter-spacing:-.02em;
+  color:var(--accent-text);
+}
+.ben:first-child .ben__v{color:var(--green)}
+.ben .h3{margin-bottom:12px;font-size:clamp(20px,1.6vw,23px)}
+.ben__d{margin:0;color:var(--muted);font-size:16.5px;line-height:1.6}
+
+/* Что входит в подписку. Цен на сайте нет намеренно: их называет
+   специалист при разговоре, поэтому блок — просто состав услуги. */
+.inc-box{
+  margin-top:clamp(24px,3vw,36px);
+  padding:clamp(26px,3vw,34px);
+  background:rgba(14,14,22,.72);
+  border:1px solid var(--line-2);border-radius:var(--r-lg);
+}
+.inc-box .h2--sm{margin:0 0 20px}
+.inc{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:14px 32px}
+.inc li{display:flex;gap:13px;align-items:flex-start;color:var(--muted);font-size:17.5px;line-height:1.5}
+.inc .ic{width:22px;height:22px;color:var(--mint);margin-top:3px;stroke-width:2.5}
+
+/* Поддержка: три пункта в ряд и полоса с телефоном под ними.
+   Фотографии офиса и карточки партнёра здесь больше нет. */
+.sup{display:block}
+.sup__list{
+  list-style:none;margin:0;padding:0;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+}
+.sup__list li{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:20px 18px;
+  transition:border-color .2s var(--ease),background-color .2s var(--ease);
+}
+.sup__list li:hover{border-color:var(--line-2);background:var(--surface-2)}
+.sup__ic{
+  display:grid;place-items:center;width:48px;height:48px;margin-bottom:16px;
+  border-radius:14px;color:var(--ink);border:0;
+  box-shadow:0 8px 22px rgba(0,0,0,.34);
+}
+.sup__ic .ic{width:25px;height:25px;stroke-width:1.9}
+.sup__list li:nth-child(1) .sup__ic{background:linear-gradient(150deg,#BFE4EF,#A6D6E6)}
+.sup__list li:nth-child(2) .sup__ic{background:linear-gradient(150deg,#D6CBEC,#C6B8E2)}
+.sup__list li:nth-child(3) .sup__ic{background:linear-gradient(150deg,#BEE6D6,#A8DCC8)}
+.sup__list .h3{font-size:18px;margin-bottom:7px;line-height:1.3}
+.sup__list p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.5}
+
+/* Полоса с телефоном: единственный контакт на странице, поэтому
+   стоит отдельно и крупно. */
+.callbar{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;
+  margin-top:22px;padding:24px clamp(20px,2.6vw,30px);
+  border-radius:var(--r-lg);
+  border:1px solid rgba(168,220,200,.42);
+  background:linear-gradient(120deg,rgba(168,220,200,.14),rgba(166,214,230,.10)),rgba(14,14,22,.80);
+}
+.callbar__t{margin:0;font-size:18px;line-height:1.4;color:var(--text);max-width:52ch}
+.callbar__phone{
+  display:inline-flex;align-items:center;gap:12px;
+  font-family:var(--f-display);font-weight:700;
+  font-size:clamp(22px,2.4vw,30px);letter-spacing:-.01em;
+  color:var(--text);text-decoration:none;white-space:nowrap;
+  transition:color .18s var(--ease);
+}
+.callbar__phone .ic{width:26px;height:26px;color:var(--mint)}
+.callbar__phone:hover{color:var(--mint)}
+
+/* 13. Счётчики: светлые карточки на тёмном фоне */
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:clamp(28px,3.4vw,44px)}
+/* Карточки были светлыми — единственные светлые на тёмной странице.
+   Браузеры на телефонах принимали их за «непереведённые в тёмную тему»
+   и выворачивали по-своему: фон чернел, а цифры уходили в почти
+   нечитаемый тёмно-синий. Спорить с этим бесполезно, поэтому карточки
+   сделаны тёмно-синими, как все остальные на сайте: выворачивать
+   нечего, а цифры светлые и видны при любой настройке браузера. */
+.num{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:34px 28px;
+  text-align:center;color:var(--text);
+}
+.num__v{
+  margin:0 0 10px;font-family:var(--f-display);font-weight:700;
+  font-size:clamp(38px,5.2vw,54px);line-height:1;letter-spacing:-.03em;
+  /* Светло-голубой на тёмной карточке — как у крупных цифр в других
+     блоках. Читается и при принудительном затемнении браузера. */
+  color:var(--accent-text);
+  font-variant-numeric:tabular-nums;
+}
+.num__k{margin:0;color:var(--muted);font-size:17px;line-height:1.45}
+
+/* 14. Финальный CTA */
+.cta{padding:clamp(48px,6vw,80px) 0}
+.cta__in{
+  background:
+    radial-gradient(120% 140% at 12% 0%,rgba(198,184,226,.22) 0%,transparent 58%),
+    radial-gradient(120% 140% at 92% 100%,rgba(168,220,200,.18) 0%,transparent 60%),
+    var(--surface);
+  border:1px solid var(--line-2);border-radius:var(--r-lg);
+  padding:clamp(34px,5vw,60px);text-align:center;
+}
+.cta__in{
+  display:grid;grid-template-columns:1.15fr .85fr;
+  gap:clamp(28px,4vw,64px);align-items:center;text-align:left;
+}
+.cta__copy{min-width:0}
+.cta__h{margin:0 0 14px;max-width:18ch}
+.cta__p{margin:0 0 30px;color:var(--muted);font-size:19px;max-width:46ch}
+
+/* Три коммерческих факта справа от призыва: крупная цифра, пояснение мельче. */
+.cta__facts{
+  list-style:none;margin:0;padding:0;display:grid;gap:2px;
+  border-top:1px solid rgba(255,255,255,.14);
+}
+.cta__facts li{
+  display:flex;flex-direction:column;gap:3px;
+  padding:18px 0;border-bottom:1px solid rgba(255,255,255,.14);
+}
+.cta__v{
+  font-family:var(--f-display);font-weight:700;
+  font-size:clamp(24px,2.4vw,30px);line-height:1.1;letter-spacing:-.02em;
+  color:var(--text);
+}
+.cta__facts li:first-child .cta__v{color:var(--red-text)}
+.cta__k{color:var(--muted);font-size:16px;line-height:1.4}
+/* Сноска про Instagram: она обязательна везде, где стоит звёздочка. */
+.cta__note{grid-column:1 / -1;margin:18px 0 0;color:var(--muted-2);font-size:12.5px;line-height:1.45}
+
+/* Футер */
+.ftr{border-top:1px solid var(--line);padding:34px 0}
+.ftr__in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 26px;color:var(--muted);font-size:15.5px}
+.ftr__phone{color:var(--text);text-decoration:none;font-weight:600}
+.ftr__phone:hover{color:var(--mint)}
+.ftr__site{margin-right:auto;color:var(--muted);text-decoration:none}
+.ftr__site:hover{color:var(--text)}
+.ftr__pp{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.ftr__pp:hover{color:var(--text)}
+.ftr__c{margin:0;display:flex;align-items:center;gap:10px}
+.ftr__mark{width:24px;height:24px;flex:none;opacity:.9}
+
+/* Кнопка «наверх» */
+.totop{
+  position:fixed;right:20px;bottom:20px;z-index:35;
+  width:46px;height:46px;border-radius:var(--r-sm);
+  display:grid;place-items:center;cursor:pointer;
+  background:var(--surface-2);border:1px solid var(--line-2);color:var(--text);
+  opacity:0;transform:translateY(8px);
+  transition:opacity .22s var(--ease),transform .22s var(--ease);
+}
+.totop[hidden]{display:none}
+.totop.is-on{opacity:1;transform:translateY(0)}
+.totop:hover{background:var(--accent);border-color:transparent;color:var(--ink)}
+
+/* Подсветка цифр и выгод внутри текста: цифра крупная и белая,
+   единица измерения остаётся обычным текстом. */
+.hl{color:var(--text);font-weight:700;font-size:1.14em}
+.hl--accent{color:var(--red-text);font-weight:700}
+
+/* ---------- Появление секций при скролле ---------- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.is-in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  .btn,.agent,.niche,.ben,.totop,.logo__mark{transition:none}
+}
+
+/* ---------- Модальное окно ---------- */
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px}
+.modal[hidden]{display:none}
+.modal__bd{position:absolute;inset:0;background:rgba(6,7,14,.76);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+
+.modal__win{
+  position:relative;width:100%;max-width:470px;max-height:calc(100dvh - 40px);
+  overflow-y:auto;background:#fff;color:#10121F;
+  border-radius:var(--r-lg);padding:34px 30px;
+  box-shadow:0 30px 90px rgba(0,0,0,.5);
+  animation:pop .3s var(--ease);
+}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.modal__win{animation:none}}
+
+.modal__x{
+  position:absolute;top:14px;right:14px;
+  width:38px;height:38px;border-radius:var(--r-sm);
+  display:grid;place-items:center;cursor:pointer;
+  background:#F1F1F6;border:1px solid #E2E2EC;color:#4A4E63;
+}
+.modal__x:hover{background:#E6E6EF}
+
+.modal__t{
+  margin:0 0 8px;font-family:var(--f-display);font-weight:600;
+  font-size:25px;line-height:1.25;letter-spacing:-.015em;padding-right:34px;
+}
+.modal__sub{margin:0 0 22px;color:#54596E;font-size:16px;line-height:1.5}
+
+.frm{display:grid;gap:18px}
+.frm__f{display:grid;gap:8px}
+.frm__l{font-size:15px;font-weight:600;color:#333749}
+.frm__i{
+  width:100%;padding:13px 15px;
+  border:1px solid #D5D6E0;border-radius:var(--r-sm);
+  background:#fff;color:#10121F;
+  font-family:var(--f-body);font-size:17px;line-height:1.3;
+  transition:border-color .18s var(--ease),box-shadow .18s var(--ease);
+}
+.frm__i::placeholder{color:#8E93A8}
+.frm__i:focus{outline:none;border-color:var(--accent-ink);box-shadow:0 0 0 3px rgba(91,75,138,.18)}
+
+/* Автозаполнение. Браузер закрашивает подставленное поле своим фоном,
+   и на светлой форме оно выглядит тёмной плашкой с чужим цветом текста.
+   Убрать фон напрямую нельзя — он рисуется поверх; закрываем его
+   белой внутренней тенью, а цвет букв задаём через -webkit-text-fill-color.
+   Огромная задержка перехода не даёт браузеру перекрасить поле обратно. */
+.frm__i:-webkit-autofill,
+.frm__i:-webkit-autofill:hover,
+.frm__i:-webkit-autofill:focus{
+  -webkit-text-fill-color:#13131B;
+  caret-color:#13131B;
+  -webkit-box-shadow:0 0 0 40px #fff inset;
+  box-shadow:0 0 0 40px #fff inset;
+  transition:background-color 100000s ease-in-out 0s;
+}
+.frm__i:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 40px #fff inset,0 0 0 3px rgba(91,75,138,.18);
+  box-shadow:0 0 0 40px #fff inset,0 0 0 3px rgba(91,75,138,.18);
+}
+.frm__i.is-bad:-webkit-autofill{
+  -webkit-box-shadow:0 0 0 40px #fff inset,0 0 0 3px rgba(214,40,57,.12);
+  box-shadow:0 0 0 40px #fff inset,0 0 0 3px rgba(214,40,57,.12);
+}
+.frm__i.is-bad{border-color:#D62839;box-shadow:0 0 0 3px rgba(214,40,57,.12)}
+.frm__e{margin:0;color:#C21F2E;font-size:14.5px;line-height:1.4}
+
+/* Место под сообщения об ошибках зарезервировано всегда, а не только после
+   первой попытки отправки. Появление или исчезновение ошибки сдвигает форму
+   между нажатием и отпусканием кнопки мыши, и клик уходит мимо поля —
+   так переставали нажиматься радиокнопки и галочки.
+   visibility:hidden не даёт скринридеру прочитать пустую подсказку. */
+.frm__e[hidden]{display:block;visibility:hidden}
+.frm__fail{margin:0;text-align:center;color:#C21F2E;font-size:15.5px;font-weight:600}
+
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* Вопрос про ЛПР: fieldset, чтобы вариантами управляли клавиатурой и
+   чтобы скринридер читал вопрос целиком. */
+.frm__fs{border:0;margin:0;padding:0;min-width:0}
+.frm__fs .frm__l{padding:0}
+.radios{display:flex;gap:10px;margin-top:2px}
+.radio{
+  /* position:relative обязателен: скрытый input внутри позиционируется
+     абсолютно и без этого якоря уезжает относительно модального окна. */
+  position:relative;
+  flex:1 1 0;display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:12px 16px;border:1px solid #D5D6E0;border-radius:var(--r-sm);
+  background:#fff;transition:border-color .16s var(--ease),background-color .16s var(--ease);
+}
+.radio:hover{background:#F7F7FB}
+.radio input{position:absolute;opacity:0;width:0;height:0}
+.radio__b{
+  flex:none;width:20px;height:20px;border-radius:50%;
+  border:1.5px solid #C6C8D4;background:#fff;
+  display:grid;place-items:center;
+  transition:border-color .16s var(--ease);
+}
+.radio__b::after{
+  content:"";width:10px;height:10px;border-radius:50%;
+  background:var(--accent-ink);transform:scale(0);
+  transition:transform .16s var(--ease);
+}
+.radio input:checked + .radio__b{border-color:var(--accent-ink)}
+.radio input:checked + .radio__b::after{transform:scale(1)}
+.radio input:checked ~ .radio__t{font-weight:600;color:#13131B}
+.radio:has(input:checked){border-color:var(--accent-ink);background:rgba(91,75,138,.07)}
+.radio input:focus-visible + .radio__b{outline:2px solid var(--accent-ink);outline-offset:2px}
+.radio__t{font-size:16px;color:#41465A}
+.radios.is-bad .radio{border-color:#D62839}
+
+.chk{position:relative;display:flex;gap:11px;align-items:flex-start;cursor:pointer;margin-bottom:12px}
+.chk:last-of-type{margin-bottom:0}
+.chk input{position:absolute;opacity:0;width:0;height:0}
+.chk__b{
+  flex:none;width:21px;height:21px;margin-top:1px;border-radius:6px;
+  border:1.5px solid #C6C8D4;background:#fff;
+  display:grid;place-items:center;color:#fff;
+  transition:background-color .16s var(--ease),border-color .16s var(--ease);
+}
+.chk__b .ic{width:14px;height:14px;stroke-width:3;opacity:0;transition:opacity .16s var(--ease)}
+.chk input:checked + .chk__b{background:var(--accent-ink);border-color:var(--accent-ink)}
+.chk input:checked + .chk__b .ic{opacity:1}
+.chk input:focus-visible + .chk__b{outline:2px solid var(--accent-ink);outline-offset:2px}
+.chk__t{font-size:15px;line-height:1.5;color:#41465A}
+/* Пастель на белом фоне не читается вовсе, поэтому ссылки и отметки
+   в форме окрашены тёмным лавандовым того же семейства. */
+.chk__t a{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px}
+.chk.is-bad .chk__b{border-color:#D62839}
+
+#frm-submit[disabled]{opacity:.62;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ---------- Экран «Заявка отправлена» ----------
+   Раньше здесь стояли два круга подряд: логотип и кричащий
+   розово-синий кружок с галочкой. Теперь главный акцент один —
+   спокойный зелёный знак подтверждения с мягким ореолом.
+   Логотип уменьшен и отодвинут наверх: он подписывает окно,
+   а не спорит с галочкой за внимание. */
+.modal__done{text-align:center;padding:6px 0 4px}
+
+.modal__logo{width:38px;height:38px;margin:0 auto 24px;opacity:.92}
+
+.modal__ok{
+  display:grid;place-items:center;width:74px;height:74px;margin:0 auto 24px;
+  border-radius:50%;background:#16A34A;color:#fff;
+  /* Два полупрозрачных кольца вместо жёсткой границы: круг мягко
+     растворяется в белом фоне окна. */
+  box-shadow:0 0 0 9px rgba(22,163,74,.11),
+             0 0 0 19px rgba(22,163,74,.055),
+             0 12px 28px rgba(22,163,74,.26);
+  animation:okPop .42s var(--ease) both;
+}
+.modal__ok .ic{
+  width:35px;height:35px;stroke-width:3;
+  animation:okTick .34s var(--ease) .16s both;
+}
+@keyframes okPop{from{transform:scale(.55);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes okTick{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .modal__ok,.modal__ok .ic{animation:none}
+}
+
+.modal__done .modal__t{padding-right:0;font-size:27px;margin-bottom:10px}
+/* text-wrap:balance выравнивает строки по длине, чтобы на последней
+   не оставалось одинокое слово. */
+.modal__done .modal__sub{
+  margin:0 auto 28px;max-width:38ch;color:#5B6076;font-size:16.5px;
+  text-wrap:balance;
+}
+
+/* Кнопка закрытия: спокойная контурная, а не серая заливка. */
+.modal__done .btn--ghost-dark{
+  min-width:184px;padding:15px 30px;font-size:16px;
+  background:#fff;border-color:#DCE0EA;color:#2A2E40;
+}
+.modal__done .btn--ghost-dark:hover{
+  background:#F7F5FC;border-color:var(--accent-ink);color:var(--accent-ink);
+}
+
+/* =========================================================
+   Адаптив. Точки: 1024, 768, 480
+   ========================================================= */
+@media (max-width:1024px){
+  .nav{gap:18px}
+  .nav a{font-size:14px}
+  .hero__in{grid-template-columns:1fr .9fr}
+  .make{grid-template-columns:1fr}
+  .agents{grid-template-columns:repeat(2,1fr)}
+  .why__cards{grid-template-columns:repeat(2,1fr)}
+  .bens{grid-template-columns:1fr}
+}
+
+@media (max-width:768px){
+  /* Пальцем в строку высотой 25 пикселей попасть трудно, особенно
+     в контактах, где ссылки идут подряд. Расширяем область нажатия
+     до 44 пикселей — это принятый минимум для сенсорных экранов.
+     Сам текст не меняется, растёт только зона касания. */
+  .ftr__site,.ftr__pp,.ftr__phone{display:inline-flex;align-items:center;min-height:44px}
+
+  .hdr__in{height:64px;gap:12px}
+  .hdr__cta{display:none}
+  .burger{display:grid}
+
+  .nav{
+    position:absolute;left:0;right:0;top:100%;
+    flex-direction:column;align-items:stretch;gap:0;margin:0;
+    background:#101017;border-bottom:1px solid var(--line);
+    padding:8px 20px 18px;
+    display:none;
+  }
+  .nav.is-open{display:flex}
+  .nav a{padding:13px 0;border-bottom:1px solid var(--line);font-size:16px}
+  .nav a:last-child{border-bottom:0}
+
+  .hero__in{grid-template-columns:1fr;gap:30px}
+  .hero__glow{width:460px;height:460px;top:-180px;right:-140px}
+  .hero__actions .btn{flex:1 1 auto}
+
+  .vs{grid-template-columns:1fr}
+  .why__cards{grid-template-columns:1fr}
+  .solution{grid-template-columns:1fr}
+  .solution__facts{grid-template-columns:1fr}
+  .agents{grid-template-columns:1fr}
+  .make{grid-template-columns:1fr}
+  .how{grid-template-columns:1fr}
+  .inc{grid-template-columns:1fr}
+  .bens{grid-template-columns:1fr}
+  .cta__in{grid-template-columns:1fr;gap:28px}
+  .callbar{flex-direction:column;align-items:flex-start;gap:12px}
+  .sup__list{grid-template-columns:1fr}
+  .nums{grid-template-columns:1fr}
+  .ftr__in{flex-direction:column;align-items:flex-start;gap:8px}
+  .ftr__site{margin-right:0}
+}
+
+@media (max-width:480px){
+  .wrap{padding:0 16px}
+  .hero__panel{padding:22px}
+  .vs__card,.agent,.ben,.make__card{padding:22px}
+  .niche{padding:11px 16px;font-size:16px}
+  .feed__item{padding:10px 14px;font-size:16px}
+  .verdict{padding:22px}
+  .modal__win{padding:28px 20px}
+  .hero__actions{flex-direction:column}
+  .hero__actions .btn{width:100%}
+  .steps__item{gap:16px}
+  .totop{right:14px;bottom:14px}
+}
+
+/* =========================================================
+   Отдельная страница заявки — zayavka.html
+
+   На неё ведёт кнопка «Оставить заявку» из презентации: в PowerPoint
+   форму не встроить, кнопка может только открыть ссылку. Страница
+   показывает ту же форму, что и модальное окно на главной, и теми же
+   стилями — отличается только обрамление: не всплывающее окно поверх
+   сайта, а самостоятельная страница.
+   ========================================================= */
+.fpage{
+  min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:26px;padding:40px 20px 48px;
+  /* Тот же тёмный фон, что и на сайте, с мягким синим свечением
+     за карточкой — чтобы белая форма не висела в пустоте. */
+  background:
+    radial-gradient(760px 520px at 50% 6%, rgba(166,214,230,.16), transparent 68%),
+    radial-gradient(620px 460px at 50% 100%, rgba(240,204,210,.10), transparent 70%),
+    var(--bg);
+}
+
+.fpage__logo{
+  display:inline-flex;align-items:center;gap:11px;
+  text-decoration:none;opacity:.95;
+}
+.fpage__logo img{width:34px;height:34px}
+.fpage__logo:hover{opacity:1}
+
+/* Карточка формы берёт оформление модального окна, но на своей
+   странице ей не нужны ни ограничение по высоте, ни внутренняя
+   прокрутка: длинную форму листает сама страница. */
+.fpage__win{max-height:none;overflow:visible}
+
+.fpage__note{
+  margin:0;color:var(--muted-2);font-size:15.5px;text-align:center;
+}
+.fpage__note a{color:var(--accent-text);text-decoration:underline;text-underline-offset:3px}
+
+@media (max-width:480px){
+  .fpage{padding:26px 14px 34px;gap:20px}
+  .fpage__logo .logo__txt{font-size:15px}
+}

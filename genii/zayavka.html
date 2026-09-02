@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Оставить заявку — ГенИИ</title>
+<meta name="description" content="Оставьте заявку, и специалист «ГенИИ» свяжется с вами. Расскажем, как ваша ниша выглядит в ответах нейросетей.">
+<link rel="canonical" href="https://genii-ai.ru/zayavka">
+
+<!-- Страница только для приёма заявок, в поиске ей делать нечего. -->
+<meta name="robots" content="noindex, follow">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ГенИИ">
+<meta property="og:url" content="https://genii-ai.ru/zayavka">
+<meta property="og:title" content="Оставить заявку — ГенИИ">
+<meta property="og:description" content="Заполните форму, и специалист свяжется с вами в ближайшее время.">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:image" content="https://genii-ai.ru/assets/og.png?v=1">
+<meta name="theme-color" content="#0A0A0E">
+<meta name="color-scheme" content="dark">
+
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+
+<link rel="preload" href="fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/unbounded-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+
+<!-- Из общего спрайта сайта здесь нужна одна иконка — галочка
+     в чекбоксах согласий и на экране «Заявка отправлена». -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+</svg>
+
+<main class="fpage">
+  <a class="fpage__logo" href="/" aria-label="ГенИИ, на главную">
+    <img src="assets/logo.svg" alt="" width="34" height="34">
+    <span class="logo__txt">Ген<b>ИИ</b></span>
+  </a>
+
+  <div class="fpage__win modal__win">
+    <div class="modal__body" id="modal-body">
+      <h2 class="modal__t" id="modal-t">Оставить заявку</h2>
+      <p class="modal__sub">Заполните форму, и специалист свяжется с вами в ближайшее время.</p>
+
+      <!-- data-source — запасной вариант, если в ссылке нет ?from=…
+           Строка попадает в сообщение боту как «Источник». -->
+      <form class="frm" id="frm" data-source="zayavka" novalidate>
+        <div class="frm__f">
+          <label class="frm__l" for="f-name">Ваше имя</label>
+          <input class="frm__i" id="f-name" name="name" type="text" autocomplete="name" maxlength="60" required>
+          <p class="frm__e" data-err="name" hidden>Укажите имя, минимум 2 символа</p>
+        </div>
+
+        <div class="frm__f">
+          <label class="frm__l" for="f-phone">Телефон</label>
+          <input class="frm__i" id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required>
+          <p class="frm__e" data-err="phone" hidden>Укажите телефон полностью</p>
+        </div>
+
+        <div class="frm__f">
+          <label class="frm__l" for="f-email">Ваша почта</label>
+          <input class="frm__i" id="f-email" name="email" type="email" autocomplete="email" maxlength="80" required>
+          <p class="frm__e" data-err="email" hidden>Проверьте адрес почты</p>
+        </div>
+
+        <div class="frm__f">
+          <label class="frm__l" for="f-company">Название компании</label>
+          <input class="frm__i" id="f-company" name="company" type="text" autocomplete="organization" maxlength="80" required>
+          <p class="frm__e" data-err="company" hidden>Укажите название компании</p>
+        </div>
+
+        <div class="frm__f">
+          <label class="frm__l" for="f-field">Род деятельности</label>
+          <input class="frm__i" id="f-field" name="field" type="text" maxlength="90" placeholder="Например: стоматология, доставка цветов" required>
+          <p class="frm__e" data-err="field" hidden>Укажите род деятельности</p>
+        </div>
+
+        <fieldset class="frm__f frm__fs">
+          <legend class="frm__l">Являетесь ли вы лицом, принимающим решения?</legend>
+          <div class="radios">
+            <label class="radio">
+              <input type="radio" name="dm" value="да" required>
+              <span class="radio__b" aria-hidden="true"></span>
+              <span class="radio__t">Да</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="dm" value="нет">
+              <span class="radio__b" aria-hidden="true"></span>
+              <span class="radio__t">Нет</span>
+            </label>
+          </div>
+          <p class="frm__e" data-err="dm" hidden>Выберите один из вариантов</p>
+        </fieldset>
+
+        <!-- honeypot: скрыт от людей, боты его заполняют. -->
+        <div class="hp" aria-hidden="true">
+          <label for="f-website">Сайт</label>
+          <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="frm__f">
+          <label class="chk">
+            <input type="checkbox" id="f-agree1" required>
+            <span class="chk__b" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
+            <span class="chk__t">Согласен на обработку персональных данных в соответствии с <a href="privacy.html" target="_blank" rel="noopener">Политикой</a></span>
+          </label>
+          <label class="chk">
+            <input type="checkbox" id="f-agree2" required>
+            <span class="chk__b" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
+            <span class="chk__t">Согласен на передачу персональных данных третьим лицам на условиях <a href="privacy.html" target="_blank" rel="noopener">Политики</a></span>
+          </label>
+          <p class="frm__e" data-err="agree" hidden>Нужно отметить оба согласия</p>
+        </div>
+
+        <button class="btn btn--grad btn--lg btn--full" type="submit" id="frm-submit">ОСТАВИТЬ ЗАЯВКУ</button>
+        <p class="frm__fail" id="frm-fail" hidden>Не получилось, попробуйте ещё раз</p>
+      </form>
+    </div>
+
+    <div class="modal__done" id="modal-done" hidden>
+      <img class="modal__logo" src="assets/logo.svg" alt="ГенИИ" width="52" height="52">
+      <span class="modal__ok" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
+      <h2 class="modal__t">Заявка отправлена</h2>
+      <p class="modal__sub">Специалист свяжется с вами в ближайшее время.</p>
+      <a class="btn btn--ghost-dark" href="/">Перейти на сайт</a>
+    </div>
+  </div>
+
+  <p class="fpage__note">
+    Уже знакомы с платформой? <a href="/">Открыть сайт «ГенИИ»</a>
+  </p>
+</main>
+
+<script src="form.js?v=1"></script>
+
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

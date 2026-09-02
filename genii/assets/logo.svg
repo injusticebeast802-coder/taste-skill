@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="ГенИИ">
+  <defs>
+    <linearGradient id="g-pin" x1="6" y1="8" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3B8CFF"/>
+      <stop offset="0.55" stop-color="#4B6BFF"/>
+      <stop offset="1" stop-color="#A24BFF"/>
+    </linearGradient>
+    <linearGradient id="g-lens" x1="28" y1="16" x2="56" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EAF2FF"/>
+      <stop offset="1" stop-color="#8FB8FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Капля-указатель: контур, внутри узлы нейросети -->
+  <path d="M32 5C19 5 8.5 14.5 8.5 27c0 12 12.5 21.5 23.5 31 11-9.5 23.5-19 23.5-31C55.5 14.5 45 5 32 5Z"
+        fill="none" stroke="url(#g-pin)" stroke-width="3.6" stroke-linejoin="round"/>
+  <g stroke="#5AB7FF" stroke-width="1.8" stroke-linecap="round" fill="#5AB7FF">
+    <path d="M19 21.5 26 27M26 27 20.5 34.5M20.5 34.5 27 41" fill="none" opacity=".85"/>
+    <circle cx="19" cy="21.5" r="2.4"/>
+    <circle cx="26" cy="27" r="2"/>
+    <circle cx="20.5" cy="34.5" r="2.4"/>
+    <circle cx="27" cy="41" r="2"/>
+  </g>
+
+  <!-- Лупа с растущим графиком. Диск залит фоном, чтобы контур капли
+       не просвечивал сквозь линзу. -->
+  <circle cx="41" cy="30" r="13.4" fill="#0B0D1A"/>
+  <g stroke="#7FC4FF" stroke-width="2.4" stroke-linecap="round" fill="none">
+    <path d="M35.5 35.5V31M41 35.5v-7.5M46.5 35.5v-4"/>
+  </g>
+  <path d="M34.5 27.5 39 23l3.5 3.5L48 21" fill="none" stroke="#A24BFF" stroke-width="2.4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M43.5 21H48v4.5" fill="none" stroke="#A24BFF" stroke-width="2.4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="41" cy="30" r="13.4" fill="none" stroke="url(#g-lens)" stroke-width="3.2"/>
+  <path d="M50.8 39.8 56 45" stroke="url(#g-lens)" stroke-width="4.2" stroke-linecap="round"/>
+</svg>
