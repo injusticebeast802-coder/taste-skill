@@ -1,25 +1,28 @@
 #!/bin/sh
 # =========================================================
-# Установка и обновление сайта на хостинге одной командой.
+# Установка и обновление сайта genii-ai.ru на хостинге одной командой.
+#
+# Это отдельный сайт: папка prompter-ai.moscow и её config.php
+# этим скриптом не затрагиваются.
 #
 # Скачивает свежую версию сайта из репозитория и раскладывает
 # её в папку сайта. Файл config.php с токеном бота НЕ трогает:
 # он создаётся один раз и переживает все обновления.
 #
 # Запуск в Shell-клиенте панели управления:
-#   sh -c "$(curl -sSL https://raw.githubusercontent.com/injusticebeast802-coder/taste-skill/main/prompter-moscow/hosting-ru/deploy.sh)"
+#   sh -c "$(curl -sSL https://raw.githubusercontent.com/injusticebeast802-coder/taste-skill/main/genii/hosting-ru/deploy.sh)"
 #
 # Обычно берётся ветка main — то, что считается рабочей версией сайта.
 # Чтобы выложить другую ветку (например, посмотреть правку до того,
 # как она попала в main), укажите её имя:
-#   BRANCH=имя-ветки sh -c "$(curl -sSL .../имя-ветки/prompter-moscow/hosting-ru/deploy.sh)"
+#   BRANCH=имя-ветки sh -c "$(curl -sSL .../имя-ветки/genii/hosting-ru/deploy.sh)"
 # =========================================================
 
 set -e
 
 BRANCH="${BRANCH:-main}"
 REPO="https://codeload.github.com/injusticebeast802-coder/taste-skill/tar.gz/refs/heads/$BRANCH"
-DIR="${SITE_DIR:-$HOME/www/prompter-ai.moscow}"
+DIR="${SITE_DIR:-$HOME/www/genii-ai.ru}"
 
 echo "Ветка: $BRANCH"
 echo "Папка сайта: $DIR"
@@ -50,7 +53,7 @@ fi
 
 tar xzf "$TMP/src.tgz" -C "$TMP"
 
-SRC=$(find "$TMP" -maxdepth 2 -type d -name prompter-moscow | head -n 1)
+SRC=$(find "$TMP" -maxdepth 2 -type d -name genii | head -n 1)
 if [ -z "$SRC" ] || [ ! -f "$SRC/index.html" ]; then
   echo "ОШИБКА: в архиве не нашлись файлы сайта."
   exit 1
@@ -69,12 +72,6 @@ echo "Раскладываю файлы..."
 cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
 cp "$SRC/robots.txt" "$SRC/sitemap.xml" "$DIR/"
 cp -r "$SRC/assets" "$SRC/img" "$SRC/fonts" "$DIR/"
-
-# Презентации по отраслям: на них ведут карточки раздела «Для кого».
-# В репозитории они лежат рядом с описанием, на сайт кладём только
-# сами файлы .pptx.
-mkdir -p "$DIR/presentations"
-cp "$SRC/presentation/"*.pptx "$DIR/presentations/"
 cp "$SRC/hosting-ru/lead.php" "$DIR/"
 cp "$SRC/hosting-ru/.htaccess" "$DIR/"
 
@@ -102,6 +99,3 @@ find "$DIR" -type f ! -name config.php -exec chmod 644 {} +
 echo
 echo "Готово. В папке сайта $(ls -1A "$DIR" | wc -l) файлов и папок:"
 ls -1A "$DIR"
-
-echo
-echo "Презентаций выложено: $(ls -1 "$DIR"/presentations/*.pptx 2>/dev/null | wc -l)"

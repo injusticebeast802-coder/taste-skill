@@ -1,0 +1,110 @@
+# =========================================================
+# Настройки сайта на обычном хостинге.
+# Файл заменяет vercel.json: те же заголовки безопасности,
+# то же кэширование, тот же адрес отправки формы.
+# =========================================================
+
+# ---------- Закрываем настройки от посторонних ----------
+# Даже если что-то пойдёт не так с обработкой PHP, содержимое
+# config.php с токеном бота наружу не отдастся.
+# Записано в двух вариантах: старые версии Apache не понимают
+# Require, новые не понимают Order. Лишний блок просто не сработает.
+<Files "config.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+<Files "config.example.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # ---------- Только https и без www ----------
+  # Правило работает исключительно для боевого домена. На временном
+  # адресе хостинга (вида u3604910.isp.regruhosting.ru) сертификата
+  # ещё нет, и принудительный https закрыл бы доступ к проверке.
+  #
+  # Проверяем и HTTPS, и X-Forwarded-Proto: на хостингах с проксирующим
+  # сервером переменная HTTPS часто пуста даже при защищённом
+  # соединении, и правило уводит браузер в бесконечную переадресацию.
+  RewriteCond %{HTTP_HOST} ^(www\.)?genii-ai\.ru$ [NC]
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^(.*)$ https://genii-ai.ru/$1 [R=301,L]
+
+  # www убираем, чтобы адрес был один.
+  RewriteCond %{HTTP_HOST} ^www\.genii-ai\.ru$ [NC]
+  RewriteRule ^(.*)$ https://genii-ai.ru/$1 [R=301,L]
+
+  # ---------- Форма ----------
+  # Сайт отправляет заявку на /api/lead — так было на Vercel.
+  # Перенаправляем этот адрес на lead.php, чтобы не трогать
+  # рабочий код формы.
+  RewriteRule ^api/lead/?$ lead.php [L]
+
+  # ---------- Адреса без .html ----------
+  # Было cleanUrls на Vercel: /privacy вместо /privacy.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^(.+?)/?$ $1.html [L]
+</IfModule>
+
+# ---------- Заголовки безопасности ----------
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+  # Ответ формы не кэшируем никогда.
+  <FilesMatch "^lead\.php$">
+    Header always set Cache-Control "no-store"
+  </FilesMatch>
+</IfModule>
+
+# ---------- Кэширование ----------
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Шрифты не меняются — храним год.
+  ExpiresByType font/woff2 "access plus 1 year"
+
+  # Картинки: сутки, дальше браузер обновит их в фоне.
+  ExpiresByType image/png  "access plus 1 day"
+  ExpiresByType image/jpeg "access plus 1 day"
+  ExpiresByType image/svg+xml "access plus 1 day"
+
+  # Страницы и стили всегда свежие, иначе правки не будут видны.
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css  "access plus 1 hour"
+  ExpiresByType application/javascript "access plus 1 hour"
+</IfModule>
+
+# ---------- Сжатие ----------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+AddType font/woff2 .woff2
+
+# Презентации из раздела «Для кого». Без явного типа часть хостингов
+# отдаёт .pptx как text/plain, и вместо скачивания браузер показывает
+# в окне двоичный мусор.
+AddType application/vnd.openxmlformats-officedocument.presentationml.presentation .pptx
+
+AddDefaultCharset UTF-8

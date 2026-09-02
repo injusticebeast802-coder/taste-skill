@@ -1,0 +1,11 @@
+# Разрешаем обход всего сайта всем поисковым системам и нейросетям.
+User-agent: *
+Allow: /
+
+# Служебные страницы в поиске не нужны: у обеих стоит запрет
+# в самой странице, дублируем его и здесь.
+Disallow: /privacy.html
+Disallow: /zayavka.html
+
+Sitemap: https://genii-ai.ru/sitemap.xml
+Host: genii-ai.ru
