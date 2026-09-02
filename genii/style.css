@@ -658,6 +658,43 @@ section[id]{scroll-margin-top:84px}
 .steps__item:nth-child(4) .h3{color:var(--blush)}
 .steps__item p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
 
+/* Слоган «Level up» со стрелкой вверх. Занимает всю ширину раздела
+   под шагами: это точка, ради которой раздел и написан. */
+.levelup{
+  grid-column:1 / -1;
+  display:flex;align-items:center;gap:clamp(18px,2.6vw,28px);
+  margin-top:clamp(30px,3.6vw,46px);
+  padding:clamp(24px,3vw,32px) clamp(24px,3.4vw,38px);
+  border-radius:var(--r-lg);
+  border:1px solid rgba(168,220,200,.42);
+  background:linear-gradient(110deg,rgba(168,220,200,.16),rgba(166,214,230,.12) 46%,rgba(198,184,226,.14)),rgba(13,13,19,.86);
+}
+.levelup__ic{
+  flex:none;display:grid;place-items:center;width:62px;height:62px;
+  border-radius:18px;color:var(--ink);
+  background-image:var(--grad-btn);
+  box-shadow:0 12px 30px rgba(168,220,200,.22);
+  animation:levelUp 2.6s var(--ease) infinite;
+}
+.levelup__ic .ic{width:32px;height:32px;stroke-width:2.4}
+@keyframes levelUp{
+  0%,58%,100%{transform:translateY(0)}
+  30%{transform:translateY(-7px)}
+}
+.levelup__copy{min-width:0}
+.levelup__t{
+  margin:0 0 6px;font-family:var(--f-display);font-weight:700;
+  font-size:clamp(30px,4.4vw,52px);line-height:1;letter-spacing:-.03em;
+  background-image:var(--grad-btn);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:btnFlow 9s linear infinite;
+}
+.levelup__d{margin:0;color:var(--muted);font-size:clamp(16.5px,1.8vw,19px);line-height:1.5;max-width:52ch}
+
+@media (prefers-reduced-motion:reduce){
+  .levelup__ic,.levelup__t{animation:none}
+}
+
 /* Ниши. Раньше это были девять больших карточек со скачиванием
    презентаций; теперь просто перечисление — блок стал вчетверо ниже,
    а смысл тот же: мы работаем с любой отраслью. */
@@ -1125,6 +1162,7 @@ section[id]{scroll-margin-top:84px}
   .bens{grid-template-columns:1fr}
   .cta__in{grid-template-columns:1fr;gap:28px}
   .callbar{flex-direction:column;align-items:flex-start;gap:12px}
+  .levelup{flex-direction:column;align-items:flex-start;gap:16px}
   .sup__list{grid-template-columns:1fr}
   .nums{grid-template-columns:1fr}
   .ftr__in{flex-direction:column;align-items:flex-start;gap:8px}
