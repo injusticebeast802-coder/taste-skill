@@ -108,7 +108,10 @@
    затемнение: светлые карточки выворачиваются в почти чёрные, а текст
    и градиенты искажаются. Именно так блок с цифрами выглядел
    на телефоне совсем не так, как на компьютере. */
-:root{color-scheme:dark}
+/* only dark — не то же, что просто dark: слово only прямо запрещает
+   браузеру накладывать собственную тёмную тему поверх нашей. Без него
+   телефоны затемняли светлые заливки, и мятный превращался в болотный. */
+:root{color-scheme:only dark}
 
 *,*::before,*::after{box-sizing:border-box}
 
@@ -373,7 +376,7 @@ section[id]{scroll-margin-top:84px}
 .gains__row{display:flex;flex-direction:column;gap:6px}
 .gains__v{
   font-family:var(--f-display);font-weight:700;
-  font-size:clamp(34px,4.2vw,48px);line-height:1;letter-spacing:-.02em;
+  font-size:clamp(26px,2.8vw,34px);line-height:1;letter-spacing:-.02em;
   color:var(--accent-text);
 }
 .gains__k{color:#fff;font-size:17.5px;line-height:1.4;font-weight:500}
@@ -445,21 +448,20 @@ section[id]{scroll-margin-top:84px}
 .why__card:hover{transform:translateY(-3px);border-color:var(--line-2)}
 .why__ic{
   display:grid;place-items:center;width:46px;height:46px;margin-bottom:18px;
-  border-radius:14px;color:var(--ink);
-  background:var(--sky);
-  box-shadow:0 8px 22px rgba(0,0,0,.38);
+  border-radius:14px;color:var(--sky);
+  background:rgba(255,255,255,.07);border:1px solid var(--line-2);
 }
 /* У каждой карточки свой цвет плитки и вывода. */
-.why__card:nth-child(2) .why__ic{background:var(--mint)}
+.why__card:nth-child(2) .why__ic{color:var(--mint)}
 .why__card:nth-child(2) .why__v{color:var(--mint)}
-.why__card:nth-child(3) .why__ic{background:var(--lav)}
+.why__card:nth-child(3) .why__ic{color:var(--lav)}
 .why__card:nth-child(3) .why__v{color:var(--lav)}
-.why__card:nth-child(4) .why__ic{background:var(--blush)}
+.why__card:nth-child(4) .why__ic{color:var(--blush)}
 .why__card:nth-child(4) .why__v{color:var(--blush)}
 .why__ic .ic{width:24px;height:24px;stroke-width:1.9}
 .why__v{
   margin:0 0 8px;font-family:var(--f-display);font-weight:700;
-  font-size:clamp(22px,1.9vw,26px);line-height:1.15;letter-spacing:-.02em;
+  font-size:clamp(19px,1.6vw,22px);line-height:1.15;letter-spacing:-.02em;
   color:var(--accent-text);
 }
 .why__card .h3{font-size:18px;margin-bottom:10px;line-height:1.35}
@@ -486,7 +488,7 @@ section[id]{scroll-margin-top:84px}
 .fact{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:20px}
 .fact__num{
   margin:0 0 6px;font-family:var(--f-display);font-weight:700;
-  font-size:clamp(34px,4.4vw,46px);line-height:1;letter-spacing:-.02em;
+  font-size:clamp(26px,2.8vw,34px);line-height:1;letter-spacing:-.02em;
   color:var(--sky);
 }
 .fact__t{margin:0 0 10px;font-family:var(--f-display);font-weight:600;font-size:19px}
@@ -514,8 +516,8 @@ section[id]{scroll-margin-top:84px}
 .agent:hover{transform:translateY(-3px);border-color:var(--line-2)}
 .agent__ic{
   display:grid;place-items:center;width:52px;height:52px;margin-bottom:18px;
-  border-radius:15px;color:var(--ink);
-  box-shadow:0 8px 22px rgba(0,0,0,.34);
+  border-radius:15px;
+  background:rgba(255,255,255,.07);border:1px solid var(--line-2);
 }
 .agent__ic .ic{width:27px;height:27px;stroke-width:1.9}
 .agent__t{
@@ -524,13 +526,13 @@ section[id]{scroll-margin-top:84px}
 }
 .agent p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
 
-.agent--c1 .agent__ic{background:var(--sky)}
+.agent--c1 .agent__ic{color:var(--sky)}
 .agent--c1 .agent__t{color:#A6D6E6}
-.agent--c2 .agent__ic{background:var(--mint)}
+.agent--c2 .agent__ic{color:var(--mint)}
 .agent--c2 .agent__t{color:#81D8D0}
-.agent--c3 .agent__ic{background:var(--lav)}
+.agent--c3 .agent__ic{color:var(--lav)}
 .agent--c3 .agent__t{color:#C6B8E2}
-.agent--c6 .agent__ic{background:var(--blush)}
+.agent--c6 .agent__ic{color:var(--blush)}
 .agent--c6 .agent__t{color:#F0CCD2}
 
 /* 7. КЛЮЧЕВАЯ ТЕХНОЛОГИЯ — главный акцент страницы.
@@ -594,12 +596,12 @@ section[id]{scroll-margin-top:84px}
 }
 .rail__item--key .rail__n{color:var(--red-text)}
 .rail__item--key .rail__ic{
-  background-color:var(--lav);background-image:none;border-color:transparent;color:var(--ink);
+  background:rgba(255,255,255,.07);border-color:var(--line-2);color:var(--lav);
 }
 .rail__flag{
   display:inline-block;margin-top:16px;padding:7px 13px;
-  border-radius:10px;background:var(--blush);
-  font-size:13.5px;font-weight:700;letter-spacing:.03em;color:var(--ink);
+  border-radius:10px;background:rgba(240,204,210,.14);border:1px solid var(--blush);
+  font-size:13.5px;font-weight:700;letter-spacing:.03em;color:var(--blush);
 }
 
 /* Вывод под шагами: одна фраза, ради которой секция и существует. */
@@ -670,7 +672,7 @@ section[id]{scroll-margin-top:84px}
 }
 .feed__tag{
   padding:3px 9px;border-radius:8px;
-  background:var(--blush);color:var(--ink);
+  background:rgba(240,204,210,.16);border:1px solid var(--blush);color:var(--blush);
   font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
 }
 .feed__note{margin:16px 0 0;color:var(--muted-2);font-size:13px;line-height:1.45;max-width:80ch}
@@ -790,18 +792,17 @@ section[id]{scroll-margin-top:84px}
 }
 .ben__ic{
   display:grid;place-items:center;width:54px;height:54px;margin-bottom:20px;
-  border-radius:16px;color:var(--ink);
-  background:var(--sky);
-  box-shadow:0 10px 26px rgba(0,0,0,.42);
+  border-radius:16px;color:var(--sky);
+  background:rgba(255,255,255,.07);border:1px solid var(--line-2);
 }
-.ben:nth-child(2) .ben__ic{background:var(--mint)}
+.ben:nth-child(2) .ben__ic{color:var(--mint)}
 .ben:nth-child(2) .ben__v{color:var(--mint)}
-.ben:nth-child(3) .ben__ic{background:var(--lav)}
+.ben:nth-child(3) .ben__ic{color:var(--lav)}
 .ben:nth-child(3) .ben__v{color:var(--lav)}
 .ben__ic .ic{width:28px;height:28px;stroke-width:1.9}
 .ben__v{
   margin:0 0 6px;font-family:var(--f-display);font-weight:700;
-  font-size:clamp(32px,3.4vw,44px);line-height:1;letter-spacing:-.02em;
+  font-size:clamp(24px,2.4vw,31px);line-height:1;letter-spacing:-.02em;
   color:var(--accent-text);
 }
 .ben .h3{margin-bottom:12px;font-size:clamp(20px,1.6vw,23px)}
@@ -814,17 +815,11 @@ section[id]{scroll-margin-top:84px}
   border:1px solid var(--line-2);border-radius:var(--r-lg);padding:34px;
 }
 .price__label{margin:0 0 18px;font-size:16.5px;color:var(--muted);line-height:1.45}
-.price__save{margin:0 0 24px;display:flex;flex-direction:column;gap:6px}
-.price__save-v{
-  font-family:var(--f-display);font-weight:700;
-  font-size:clamp(40px,5.2vw,62px);line-height:1;letter-spacing:-.03em;
-  color:var(--green);
+.price__save{
+  margin:0 0 20px;font-size:clamp(18px,2vw,22px);line-height:1.45;color:#fff;
 }
-.price__save-k{font-size:19px;font-weight:500;color:#fff}
-.price__save-k b{
-  font-weight:800;color:var(--green);
-  letter-spacing:.06em;font-size:1.06em;
-}
+.price__save-v{font-weight:700;color:var(--mint);white-space:nowrap}
+
 .price__note{
   margin:0;padding-top:18px;border-top:1px solid var(--line-2);
   color:var(--muted);font-size:16.5px;line-height:1.55;
@@ -852,15 +847,39 @@ section[id]{scroll-margin-top:84px}
 /* Значки поддержки: цветные плитки, каждая под свой пункт. */
 .sup__ic{
   display:grid;place-items:center;width:48px;height:48px;margin-bottom:16px;
-  border-radius:14px;color:var(--ink);border:0;
-  box-shadow:0 8px 22px rgba(0,0,0,.34);
+  border-radius:14px;color:var(--sky);
+  background:rgba(255,255,255,.07);border:1px solid var(--line-2);
 }
 .sup__ic .ic{width:25px;height:25px;stroke-width:1.9}
-.sup__list li:nth-child(1) .sup__ic{background:var(--sky)}
-.sup__list li:nth-child(2) .sup__ic{background:var(--lav)}
-.sup__list li:nth-child(3) .sup__ic{background:var(--mint)}
+.sup__list li:nth-child(1) .sup__ic{color:var(--sky)}
+.sup__list li:nth-child(2) .sup__ic{color:var(--lav)}
+.sup__list li:nth-child(3) .sup__ic{color:var(--mint)}
 .sup__list .h3{font-size:18px;margin-bottom:7px;line-height:1.3}
 .sup__list p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.5}
+
+/* Фотография офиса. Пока её нет, показывается место под неё —
+   когда файл появится, блок office__ph заменяется на <img>. */
+.office{
+  position:relative;margin:0 0 22px;
+  border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);
+}
+.office img{
+  width:100%;height:clamp(220px,26vw,340px);
+  object-fit:cover;object-position:center 40%;display:block;
+}
+.office__ph{
+  height:clamp(200px,24vw,300px);
+  display:grid;place-content:center;justify-items:center;gap:12px;
+  background:var(--surface);color:var(--muted-2);
+  font-size:16px;letter-spacing:.02em;
+}
+.office__ph .ic{width:34px;height:34px;color:var(--line-2)}
+.office figcaption{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:30px 22px 16px;
+  background:linear-gradient(180deg,transparent,rgba(10,11,18,.92));
+  font-size:16.5px;font-weight:600;color:var(--text);
+}
 
 /* Площадки, на которых выходят публикации. Кружки-ссылки: адреса
    каналов подставляются в href, когда они появятся. */
@@ -919,7 +938,7 @@ section[id]{scroll-margin-top:84px}
 }
 .num__v{
   margin:0 0 10px;font-family:var(--f-display);font-weight:700;
-  font-size:clamp(38px,5.2vw,54px);line-height:1;letter-spacing:-.03em;
+  font-size:clamp(28px,3.2vw,38px);line-height:1;letter-spacing:-.03em;
   /* Светло-голубой на тёмной карточке — как у крупных цифр в других
      блоках. Читается и при принудительном затемнении браузера. */
   color:var(--accent-text);
@@ -974,7 +993,7 @@ section[id]{scroll-margin-top:84px}
 }
 .cta__v{
   font-family:var(--f-display);font-weight:700;
-  font-size:clamp(24px,2.4vw,30px);line-height:1.1;letter-spacing:-.02em;
+  font-size:clamp(20px,1.9vw,24px);line-height:1.1;letter-spacing:-.02em;
   color:var(--text);
 }
 .cta__facts li:first-child .cta__v{color:var(--red-text)}
@@ -1004,9 +1023,8 @@ section[id]{scroll-margin-top:84px}
 .levelup__t{color:var(--mint)}
 .levelup__ic{
   display:grid;place-items:center;flex:none;width:46px;height:46px;
-  border-radius:14px;color:var(--ink);
-  background-color:var(--mint);
-  box-shadow:0 10px 26px rgba(0,0,0,.34);
+  border-radius:14px;color:var(--mint);
+  background:rgba(129,216,208,.14);border:1px solid var(--mint);
   animation:levelUp 2.6s var(--ease) infinite;
 }
 .levelup__ic .ic{width:26px;height:26px;stroke-width:2.6}
