@@ -59,12 +59,13 @@
 }
 
 :root{
-  /* Фон и поверхности. Карточки сине-фиолетовые, текст на них белый. */
-  --bg:#0A0B12;
-  --surface:#171E3E;             /* ячейка */
-  --surface-2:#212A57;           /* ячейка светлее, для наведения */
-  --line:rgba(150,175,255,.22);
-  --line-2:rgba(150,175,255,.40);
+  /* Фон и поверхности нейтральные, без синевы: цвет на странице дают
+     только четыре фирменных пастельных оттенка из брендбука. */
+  --bg:#0A0A0C;
+  --surface:#1A1A1D;             /* ячейка */
+  --surface-2:#26262A;           /* ячейка светлее, для наведения */
+  --line:rgba(198,184,226,.20);
+  --line-2:rgba(198,184,226,.38);
 
   /* Четыре фирменных цвета. Розовый самый громкий, поэтому идёт
      точечно: в кнопках, флажке и одной-двух метках. */
@@ -89,8 +90,8 @@
   --red-soft:rgba(198,184,226,.16);
 
   --text:#FFFFFF;
-  --muted:#D7DEF5;               /* описания на тёмных ячейках */
-  --muted-2:#A5AFD0;
+  --muted:#DFDCE8;               /* описания на тёмных ячейках */
+  --muted-2:#A9A6B6;
 
   --r-lg:24px;
   --r-md:20px;
@@ -349,7 +350,7 @@ section[id]{scroll-margin-top:84px}
   display:flex;align-items:center;gap:16px;
   padding:20px 22px;border-radius:var(--r-lg);
   border:1px solid rgba(129,216,208,.42);
-  background:rgba(20,26,58,.92);border:1px solid rgba(129,216,208,.34);
+  background:rgba(28,28,32,.94);border:1px solid rgba(129,216,208,.34);
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
 .cycle__mark{flex:none;width:52px;height:52px}
@@ -364,9 +365,9 @@ section[id]{scroll-margin-top:84px}
 .hero__panel{
   /* Фон первого экрана сам синий, поэтому панель делаем графитовой:
      тёмное стекло с холодной каймой, чтобы она читалась поверх волн. */
-  background:linear-gradient(160deg,rgba(28,30,42,.86),rgba(16,17,26,.92));
+  background:linear-gradient(160deg,rgba(32,32,35,.86),rgba(16,16,18,.94));
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  border:1px solid rgba(150,175,255,.34);
+  border:1px solid rgba(198,184,226,.30);
   border-radius:var(--r-lg);
   padding:26px 24px;
   min-width:0;
@@ -385,7 +386,7 @@ section[id]{scroll-margin-top:84px}
 /* Отступы плотнее, чем на первом сайте: страница и так длинная. */
 .sec{padding:clamp(32px,3.4vw,42px) 0}
 /* Тонированная секция: тёмная подложка с фирменным налётом. */
-.sec--tint{background:#111531}
+.sec--tint{background:#121214}
 
 /* 3. Раньше / Сейчас */
 .vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
@@ -394,7 +395,7 @@ section[id]{scroll-margin-top:84px}
   border-radius:var(--r-md);padding:22px;
 }
 .vs__card--past{
-  background:linear-gradient(180deg,rgba(120,130,150,.10),rgba(18,20,28,.96));
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(21,21,23,.96));
   border-color:rgba(150,160,180,.22);
 }
 .vs__card--past .vs__lead,.vs__card--past .vs__note{color:#9AA3B5}
@@ -538,7 +539,7 @@ section[id]{scroll-margin-top:84px}
 /* 7. КЛЮЧЕВАЯ ТЕХНОЛОГИЯ — главный акцент страницы.
    Секция вынесена на собственную подложку с красным свечением,
    чтобы читатель не пролистал именно то, чем продукт отличается. */
-.tech{position:relative;overflow:hidden;background:#12162E}
+.tech{position:relative;overflow:hidden;background:#141416}
 .tech__glow{
   position:absolute;inset:0;pointer-events:none;
   background:
@@ -548,7 +549,7 @@ section[id]{scroll-margin-top:84px}
 .tech__in{position:relative}
 .tech::before,.tech::after{
   content:"";position:absolute;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(150,175,255,.55),transparent);
+  background:linear-gradient(90deg,transparent,rgba(198,184,226,.45),transparent);
 }
 .tech::before{top:0}
 .tech::after{bottom:0}
@@ -609,7 +610,7 @@ section[id]{scroll-margin-top:84px}
   display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
   gap:22px;margin-top:44px;padding:26px 30px;
   border-radius:var(--r-md);
-  background:rgba(10,14,26,.60);border:1px solid var(--line-2);
+  background:rgba(255,255,255,.05);border:1px solid var(--line-2);
 }
 .tech__claim{
   margin:0;font-family:var(--f-display);font-weight:500;
@@ -624,7 +625,7 @@ section[id]{scroll-margin-top:84px}
   padding:clamp(22px,2.6vw,28px);
   border-radius:var(--r-lg);
   border:1px solid rgba(129,216,208,.40);
-  background:rgba(20,26,58,.92);
+  background:rgba(28,28,32,.94);
   box-shadow:0 18px 50px rgba(0,0,0,.34);
 }
 .feed__head{margin-bottom:20px}
@@ -768,7 +769,7 @@ section[id]{scroll-margin-top:84px}
 
 /* 10. КЛЮЧЕВЫЕ ВЫГОДЫ — главный коммерческий блок.
    Собственная подложка, крупная кратность выгоды над заголовком. */
-.gains-sec{position:relative;overflow:hidden;background:#101838}
+.gains-sec{position:relative;overflow:hidden;background:#161618}
 .gains-sec__glow{
   position:absolute;inset:0;pointer-events:none;
   background:
@@ -884,7 +885,7 @@ section[id]{scroll-margin-top:84px}
 .office figcaption{
   position:absolute;left:0;right:0;bottom:0;
   padding:30px 22px 16px;
-  background:linear-gradient(180deg,transparent,rgba(10,11,18,.92));
+  background:linear-gradient(180deg,transparent,rgba(10,10,12,.94));
   font-size:16.5px;font-weight:600;color:var(--text);
 }
 
@@ -961,7 +962,7 @@ section[id]{scroll-margin-top:84px}
   padding:clamp(24px,3.2vw,38px) clamp(26px,4vw,52px);
   border-radius:var(--r-lg);
   border:1px solid var(--line-2);
-  background:#182449;
+  background:#1C1C1F;
   box-shadow:0 24px 60px rgba(0,0,0,.36);
 }
 /* Логотип с надписью — не вращаем: вместе со знаком поехали бы буквы. */
@@ -1221,12 +1222,12 @@ section[id]{scroll-margin-top:84px}
 
 .modal__ok{
   display:grid;place-items:center;width:74px;height:74px;margin:0 auto 24px;
-  border-radius:50%;background:#16A34A;color:#fff;
+  border-radius:50%;background:#3FB5AB;color:#fff;
   /* Два полупрозрачных кольца вместо жёсткой границы: круг мягко
      растворяется в белом фоне окна. */
-  box-shadow:0 0 0 9px rgba(22,163,74,.11),
-             0 0 0 19px rgba(22,163,74,.055),
-             0 12px 28px rgba(22,163,74,.26);
+  box-shadow:0 0 0 9px rgba(63,181,171,.12),
+             0 0 0 19px rgba(63,181,171,.06),
+             0 12px 28px rgba(63,181,171,.26);
   animation:okPop .42s var(--ease) both;
 }
 .modal__ok .ic{
@@ -1284,7 +1285,7 @@ section[id]{scroll-margin-top:84px}
   .nav{
     position:absolute;left:0;right:0;top:100%;
     flex-direction:column;align-items:stretch;gap:0;margin:0;
-    background:#111531;border-bottom:1px solid var(--line);
+    background:#121214;border-bottom:1px solid var(--line);
     padding:8px 20px 18px;
     display:none;
   }
