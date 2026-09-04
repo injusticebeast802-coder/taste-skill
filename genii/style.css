@@ -479,7 +479,7 @@ section[id]{scroll-margin-top:84px}
 }
 .solution__img img{
   width:100%;height:clamp(200px,20vw,268px);
-  object-fit:cover;object-position:center 45%;display:block;
+  object-fit:cover;object-position:center 42%;display:block;
 }
 
 .solution__facts{
@@ -865,18 +865,24 @@ section[id]{scroll-margin-top:84px}
 .sup__list .h3{font-size:18px;margin-bottom:7px;line-height:1.3}
 .sup__list p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.5}
 
-/* Фотография офиса. Пока её нет, показывается место под неё —
-   когда файл появится, блок office__ph заменяется на <img>. */
+/* Фотография офиса. Высоту блока задаёт заглушка, а снимок лежит
+   поверх неё и растягивается на ту же площадь. Поэтому блок выглядит
+   одинаково и с фотографией, и без неё: ничего не прыгает, когда файл
+   появляется на сервере.
+
+   object-position смещён вверх от середины: люди на снимке сидят ниже
+   центра кадра, и при обрезке по центру им срезало бы головы. */
 .office{
   position:relative;margin:0 0 22px;
   border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);
 }
-.office img{
-  width:100%;height:clamp(220px,26vw,340px);
-  object-fit:cover;object-position:center 40%;display:block;
+.office__img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;object-position:center 45%;display:block;
 }
 .office__ph{
-  height:clamp(200px,24vw,300px);
+  height:clamp(230px,32vw,430px);
   display:grid;place-content:center;justify-items:center;gap:12px;
   background:var(--surface);color:var(--muted-2);
   font-size:16px;letter-spacing:.02em;
