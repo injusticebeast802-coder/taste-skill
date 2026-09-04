@@ -838,9 +838,23 @@ section[id]{scroll-margin-top:84px}
 .inc li{display:flex;gap:13px;align-items:flex-start;color:var(--muted);font-size:17.5px;line-height:1.5}
 .inc .ic{width:22px;height:22px;color:var(--accent-text);margin-top:3px;stroke-width:2.5}
 
-/* 12. Поддержка. Три пункта в ряд и полоса с телефоном под ними:
-   фотографий офиса и карточки команды на этом сайте нет. */
+/* 12. Поддержка. Слева фотография офиса, справа три пункта, под ними
+   полоса с площадками и телефоном. Карточки управляющего партнёра,
+   как на первом сайте, здесь нет.
+
+   Рядом, а не друг под другом, они стоят из-за самой фотографии: она
+   показывается целым кадром, поэтому чем шире — тем выше. Во всю
+   строку снимок вырастал почти на весь экран ноутбука. В паре с
+   пунктами он занимает половину ширины, а пункты закрывают вторую
+   половину: пустоты по бокам не остаётся, и секция становится короче. */
 .sup{display:block}
+.sup__grid{
+  display:grid;grid-template-columns:1.12fr .88fr;
+  gap:clamp(22px,2.4vw,34px);align-items:start;
+}
+/* Внутри пары пункты идут столбиком: в три колонки на половине
+   ширины заголовки ломались бы на каждом слове. */
+.sup__grid .sup__list{grid-template-columns:1fr}
 /* Три пункта поддержки идут в ряд. */
 .sup__list{
   list-style:none;margin:0;padding:0;
@@ -870,14 +884,18 @@ section[id]{scroll-margin-top:84px}
    не фиксированным числом. При любой ширине экрана в кадре остаётся
    всё — и логотип на стене, и все люди.
 
-   Ширина ограничена: во всю строку в 1340 пикселей блок вырос бы почти
-   на весь экран ноутбука и перекрыл собой остальную секцию.
+   Ширину задаёт колонка сетки .sup__grid, поэтому отдельного
+   ограничения здесь нет.
 
    Заглушка и снимок лежат друг на друге и занимают одну и ту же
    площадь, поэтому блок выглядит одинаково и с фотографией, и без
    неё: вёрстка не прыгает, когда файл появляется на сервере. */
+/* margin по бокам нулевой не случайно: у элемента сетки «margin:auto»
+   отменяет растягивание по колонке, и блок, у которого всё содержимое
+   позиционировано абсолютно, схлопывается в ноль по ширине.
+   Центрируем его только там, где сетка распадается. */
 .office{
-  position:relative;margin:0 auto 22px;max-width:1000px;
+  position:relative;margin:0 0 22px;
   aspect-ratio:1536/1024;
   border-radius:var(--r-lg);overflow:hidden;
   border:1px solid var(--line);background:var(--surface);
@@ -1273,6 +1291,12 @@ section[id]{scroll-margin-top:84px}
    Адаптив. Точки: 1024, 768, 480
    ========================================================= */
 @media (max-width:1024px){
+  /* Места на две колонки уже не хватает: снимок уходит наверх,
+     пункты возвращаются в ряд под ним. Ширину снимка придерживаем,
+     иначе целый кадр опять вытянется на пол-экрана. */
+  .sup__grid{display:block}
+  .sup__grid .office{max-width:600px;margin:0 auto 20px}
+  .sup__grid .sup__list{grid-template-columns:repeat(3,1fr)}
   .nav{gap:18px}
   .nav a{font-size:14px}
   .hero__in{grid-template-columns:1fr .9fr}
@@ -1328,7 +1352,9 @@ section[id]{scroll-margin-top:84px}
   .cta__in{grid-template-columns:1fr;gap:28px}
   .cycle{flex-direction:column;align-items:flex-start;gap:12px}
   .chans{flex-direction:column;align-items:flex-start;gap:14px}
-  .sup__list{grid-template-columns:1fr}
+  /* На телефоне строка узкая: целый кадр помещается во всю ширину. */
+  .sup__grid .office{max-width:none}
+  .sup__list,.sup__grid .sup__list{grid-template-columns:1fr}
   .nums{grid-template-columns:1fr}
   .ftr__in{flex-direction:column;align-items:flex-start;gap:8px}
   .ftr__site{margin-right:0}
