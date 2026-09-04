@@ -581,12 +581,16 @@
   <div class="wrap sup">
     <h2 class="h2 reveal">Поддержка и сопровождение</h2>
 
-    <!-- Фотография офиса. Чтобы поставить её, положите файл
-         img/office.jpg и замените блок office__ph на строку:
-         <img src="img/office.jpg" alt="Офис «ГенИИ» в Москве"
-              width="1400" height="933" loading="lazy" decoding="async"> -->
+    <!-- Фотография офиса лежит в img/office.jpg. Если файла на сервере
+         нет, браузер сообщает об этом через onerror: картинка убирается
+         сама, и на её месте остаётся серая заглушка. Так страница не
+         показывает «сломанное изображение», пока файл не выложен. -->
     <figure class="office reveal">
-      <div class="office__ph">
+      <img class="office__img" src="img/office.jpg"
+           alt="Команда «ГенИИ» в московском офисе"
+           width="1536" height="1024" loading="lazy" decoding="async"
+           onerror="this.remove()">
+      <div class="office__ph" aria-hidden="true">
         <svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>
         <span>Место под фотографию офиса</span>
       </div>
