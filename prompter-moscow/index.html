@@ -48,7 +48,7 @@
 
      ПРАВИЛО: поменяли style.css, script.js или form.js — увеличьте
      номер здесь, в zayavka.html и в privacy.html. -->
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=8">
 
 <!-- Если JavaScript выключен, показываем весь контент сразу:
      без этого блоки с анимацией появления остались бы прозрачными. -->
@@ -106,7 +106,7 @@
       "serviceType": "Продвижение бизнеса в нейросетях и поисковых системах",
       "provider": { "@id": "https://prompter-ai.moscow/#org" },
       "areaServed": { "@type": "City", "name": "Москва" },
-      "description": "Автономная платформа готовит материалы, проверяет их и сама публикует на пяти площадках: Telegram, VK, Яндекс Дзен, Одноклассники, Max. Публикации выходят пять дней в неделю.",
+      "description": "Автономная платформа готовит материалы, проверяет их и сама публикует на шести площадках: Telegram, Instagram, VK, Яндекс Дзен, Одноклассники, Max. Публикации выходят пять дней в неделю.",
       "offers": {
         "@type": "Offer",
         "price": "29500",
@@ -163,6 +163,7 @@
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></symbol>
   <symbol id="i-certificate" viewBox="0 0 24 24"><path d="M12 2.5l7.5 3v5.2c0 4.6-3.1 8.2-7.5 10.3-4.4-2.1-7.5-5.7-7.5-10.3V5.5z"/><path d="M8.8 11.8l2.2 2.2 4.2-4.4"/></symbol>
+  <symbol id="i-tools" viewBox="0 0 24 24"><path d="M3 21h4l13-13a1.5 1.5 0 0 0-4-4L3 17v4"/><path d="M14.5 5.5l4 4"/><path d="M12 8l-5-5-4 4 5 5"/><path d="M7 8l-1.5 1.5"/><path d="M16 12l5 5-4 4-5-5"/><path d="M16 17l-1.5 1.5"/></symbol>
   <symbol id="i-car" viewBox="0 0 24 24"><path d="M4 16v-3.2L5.8 8A2 2 0 0 1 7.7 6.7h8.6A2 2 0 0 1 18.2 8L20 12.8V16"/><path d="M4 16h16v2.6h-2.8V16"/><path d="M6.8 18.6V16"/><circle cx="7.6" cy="13.2" r="1"/><circle cx="16.4" cy="13.2" r="1"/></symbol>
   <symbol id="i-toy" viewBox="0 0 24 24"><circle cx="12" cy="6.6" r="2.6"/><path d="M6.6 20.2v-4.4a5.4 5.4 0 0 1 10.8 0v4.4"/><path d="M6.6 17h10.8"/><path d="M4.4 13.4l2.4 1.4"/><path d="M19.6 13.4l-2.4 1.4"/></symbol>
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></symbol>
@@ -334,6 +335,9 @@
      две ячейки сверху, надпись посередине, две снизу. -->
 <section class="sec sec--tint" id="product">
   <div class="wrap">
+    <h2 class="h2 reveal">4 ваших ИИ-агента вместо digital-агентства</h2>
+    <p class="lead reveal">Каждый ИИ-агент закрывает роль, которую в агентстве занимает отдельный человек с отдельной зарплатой.</p>
+
     <div class="agents">
       <article class="agent agent--c1 reveal">
         <span class="agent__ic"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></span>
@@ -345,11 +349,6 @@
         <h3 class="agent__t">AI-маркетолог</h3>
         <p>изучает нишу, конкурентов и актуальные запросы пользователей в нейросетях, формирует контент-стратегию и определяет ключевые запросы для присутствия бренда в нейровыдаче.</p>
       </article>
-      <div class="agents__mid reveal">
-        <h2 class="h2">4 ваших ИИ-агента вместо digital-агентства</h2>
-        <p class="lead">Каждый ИИ-агент закрывает роль, которую в агентстве занимает отдельный человек с отдельной зарплатой.</p>
-      </div>
-
       <article class="agent agent--c2 reveal">
         <span class="agent__ic"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg></span>
         <h3 class="agent__t">AI СММ-менеджер</h3>
@@ -358,7 +357,7 @@
       <article class="agent agent--c6 reveal">
         <span class="agent__ic"><svg class="ic" aria-hidden="true"><use href="#i-palette"/></svg></span>
         <h3 class="agent__t">AI-дизайнер</h3>
-        <p>создаёт визуальные материалы, адаптированные к стилистике бренда и требованиям отечественных площадок.</p>
+        <p>создаёт визуальные материалы, адаптированные к стилистике бренда и требованиям каждой площадки.</p>
       </article>
     </div>
   </div>
@@ -416,7 +415,7 @@
 
     <ol class="steps">
       <li class="steps__item reveal"><span class="steps__n">01</span><div><h3 class="h3">Контент</h3><p>Платформа готовит материалы под реальные вопросы ваших клиентов, а не под абстрактные ключевые слова.</p></div></li>
-      <li class="steps__item reveal"><span class="steps__n">02</span><div><h3 class="h3">Автопубликация</h3><p>Публикации выходят 5 дней в неделю на пяти площадках без вашего участия.</p></div></li>
+      <li class="steps__item reveal"><span class="steps__n">02</span><div><h3 class="h3">Автопубликация</h3><p>Публикации выходят 5 дней в неделю на шести площадках без вашего участия.</p></div></li>
       <li class="steps__item reveal"><span class="steps__n">03</span><div><h3 class="h3">Индексация</h3><p>Поисковые системы и нейросети находят материалы и связывают их с вашей компанией.</p></div></li>
       <li class="steps__item reveal"><span class="steps__n">04</span><div><h3 class="h3">Присутствие</h3><p>Ваше название начинает появляться в ответах нейросетей по запросам вашей ниши.</p></div></li>
       <li class="steps__item reveal"><span class="steps__n">05</span><div><h3 class="h3">Доверие и продажи</h3><p>Клиент приходит уже подогретым: вас порекомендовала нейросеть, а не баннер.</p></div></li>
@@ -482,10 +481,16 @@
         <p>Магазины и бренды детских товаров. Родители всё чаще спрашивают совета у нейросетей: что безопаснее, что выбрать по возрасту, какому производителю можно верить. Кого назовёт нейросеть, к тому и пойдут.</p>
         <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
       </a>
-      <a class="niche niche--span2 niche--n8 reveal" href="presentations/prompter-auto.pptx" download="Промптер — авто и мото.pptx">
+      <a class="niche niche--n8 reveal" href="presentations/prompter-auto.pptx" download="Промптер — авто и мото.pptx">
         <svg class="ic ic--lg" aria-hidden="true"><use href="#i-car"/></svg>
         <h3 class="h3">Авто и мотоиндустрия</h3>
         <p>Дилеры, автосервисы, детейлинг, шиномонтаж, мотосалоны и всё, что связано с авто и мото. Клиент выбирает сервис по отзывам и рекомендациям, и первым делом спрашивает нейросеть.</p>
+        <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
+      </a>
+      <a class="niche niche--n9 reveal" href="presentations/prompter-construction.pptx" download="Промптер — строительство и ремонт.pptx">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-tools"/></svg>
+        <h3 class="h3">Строительство и ремонт</h3>
+        <p>Ремонтные бригады, отделочники, застройщики, поставщики материалов и всё, что связано со стройкой. Заказчик редко знает подрядчика заранее — он спрашивает совета, и нейросеть называет тех, о ком есть что рассказать.</p>
         <span class="niche__dl"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Презентация для ниши</span>
       </a>
 
@@ -556,8 +561,8 @@
         <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl--accent">Полный AI-цикл</b>: от идеи и текста до модерации и публикации</span></li>
         <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Публикации <b class="hl">5</b> дней в неделю</span></li>
         <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl">2</b> экспертные статьи в неделю</span></li>
-        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl--accent">Автопубликация</b> на <b class="hl">5</b> площадках: Telegram, VK, Яндекс Дзен, Одноклассники, Max</span></li>
-        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Для зарубежных площадок — готовый контент для самостоятельной публикации</span></li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl--accent">Автопубликация</b> на <b class="hl">6</b> площадках: Telegram, Instagram<sup class="fnref" title="См. сноску в конце страницы">*</sup>, VK, Яндекс Дзен, Одноклассники, Max</span></li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Для других площадок — готовый контент для самостоятельной публикации</span></li>
         <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Работа по законодательству РФ, договор и закрывающие документы</span></li>
       </ul>
     </div>
@@ -648,7 +653,7 @@
       <ul class="cta__facts">
         <li><span class="cta__v">29 500 ₽</span><span class="cta__k">в месяц, цена фиксированная</span></li>
         <li><span class="cta__v">5 дней</span><span class="cta__k">в неделю выходят публикации</span></li>
-        <li><span class="cta__v">Автопубликация</span><span class="cta__k">на 5 площадках: Telegram, VK, Дзен, Одноклассники, Max</span></li>
+        <li><span class="cta__v">Автопубликация</span><span class="cta__k">на 6 площадках: Telegram, Instagram<sup class="fnref" title="См. сноску в конце страницы">*</sup>, VK, Дзен, Одноклассники, Max</span></li>
       </ul>
     </div>
   </div>
@@ -665,6 +670,8 @@
     <a class="ftr__site" href="https://prompter-ai.moscow">prompter-ai.moscow</a>
     <a class="ftr__pp" href="privacy.html">Политика обработки персональных данных</a>
   </div>
+  <!-- Сноска обязательна при любом упоминании Instagram в России. -->
+  <p class="wrap ftr__note" id="fn-meta">* Instagram принадлежит компании Meta, признанной экстремистской организацией и запрещённой на территории Российской Федерации.</p>
 </footer>
 
 <button class="totop" id="totop" aria-label="Наверх" hidden>
@@ -768,11 +775,11 @@
   </div>
 </div>
 
-<script src="script.js?v=5"></script>
+<script src="script.js?v=8"></script>
 <!-- Логика формы вынесена отдельно: тот же файл подключает страница
      zayavka.html, на которую ведёт кнопка «Оставить заявку» из
      презентации. Правила проверки и адрес отправки едины для обеих. -->
-<script src="form.js?v=5"></script>
+<script src="form.js?v=8"></script>
 
 </body>
 </html>
