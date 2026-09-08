@@ -105,6 +105,7 @@ var SOURCE_LABELS = {
   'presentation-home': 'презентация · товары для дома',
   'presentation-kids': 'презентация · детские товары',
   'presentation-auto': 'презентация · авто и мото',
+  'presentation-construction': 'презентация · строительство и ремонт',
   site: 'сайт',
   email: 'письмо',
   telegram: 'телеграм'
