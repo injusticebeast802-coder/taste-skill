@@ -904,6 +904,17 @@ section[id]{scroll-margin-top:84px}
 .ftr__site:hover{color:var(--text)}
 .ftr__pp{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 .ftr__pp:hover{color:var(--text)}
+
+/* Сноска об Instagram. Обязательна по закону при любом упоминании,
+   поэтому набрана мелко и не спорит с остальным подвалом, но остаётся
+   читаемой: цвет тот же, что у прочих неглавных подписей. */
+.ftr__note{
+  margin:18px auto 0;color:var(--muted-2);font-size:13px;line-height:1.5;
+}
+/* Звёздочка рядом с названием площадки. Не ссылка: сноска стоит
+   в подвале и видна без перехода, а крохотная ссылка была бы
+   неудобной мишенью для пальца. */
+.fnref{color:var(--accent-text);font-weight:700}
 .ftr__c{margin:0;display:flex;align-items:center;gap:10px}
 .ftr__mark{width:24px;height:24px;flex:none;opacity:.9}
 
