@@ -465,17 +465,9 @@ section[id]{scroll-margin-top:84px}
 
 /* 6. Шесть ИИ-агентов. Ровная сетка плиток, у каждого агента свой
    цвет значка, чтобы блок читался как набор инструментов. */
-/* Агентов четыре, поэтому сетка два на два — как на макете.
-   Заголовок раздела стоит не сверху, а между рядами: две карточки,
-   надпись во всю ширину, ещё две карточки. */
+/* Агентов четыре, поэтому сетка два на два.
+   При трёх колонках последняя карточка оставалась одна в ряду. */
 .agents{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-.agents__mid{
-  grid-column:1 / -1;
-  text-align:center;
-  padding:clamp(16px,2.6vw,30px) 0 clamp(6px,1.4vw,14px);
-}
-.agents__mid .h2{margin:0 0 12px}
-.agents__mid .lead{margin:0 auto;max-width:58ch}
 .agent{
   position:relative;padding:26px 24px 24px;
   background:linear-gradient(165deg,rgba(61,107,255,.16),rgba(21,35,67,.94));
@@ -635,6 +627,7 @@ section[id]{scroll-margin-top:84px}
 .niche--n6 .h3{color:#A8C4F0}   /* товары для дома — пыльно-синий */
 .niche--n7 .h3{color:#9FD8B8}   /* детские товары — мягкий зелёный */
 .niche--n8 .h3{color:#8FB8E8}   /* авто и мото — стальной синий */
+.niche--n9 .h3{color:#B8B0E8}   /* строительство и ремонт — сине-сиреневый */
 .niche--wide .h3{color:var(--accent-text)}
 
 /* Карточка «Без ограничений по отраслям»: занимает всю строку и выделена
