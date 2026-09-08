@@ -388,9 +388,21 @@ section[id]{scroll-margin-top:84px}
 /* Тонированная секция: тёмная подложка с фирменным налётом. */
 .sec--tint{background:#121214}
 
+/* Подводка к блоку со знаком стоит вплотную к нему: это одна мысль,
+   а не два раздела, и большой отступ между ними читался как пропуск. */
+.lead--tight{margin-bottom:clamp(18px,2vw,26px)}
+
 /* 5. Решение */
-.solution{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,56px);align-items:center}
-.solution__copy .lead{margin-bottom:26px}
+/* Картинка с фактами шла впритык к блоку со знаком — граница карточки
+   упиралась в край снимка. Разводим их тем же отступом, каким
+   разделены остальные блоки внутри секций. */
+.solution{
+  /* Фактам отдана бо́льшая доля строки: в узких колонках их текст
+     рвался на обрывки по три слова. */
+  display:grid;grid-template-columns:.85fr 1.15fr;
+  gap:clamp(24px,3vw,40px);align-items:center;
+  margin-top:clamp(18px,2vw,26px);
+}
 
 /* Картинка нейронов со второго слайда презентации стоит справа от текста. */
 .solution__img{
