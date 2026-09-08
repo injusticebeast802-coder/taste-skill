@@ -501,10 +501,12 @@ section[id]{scroll-margin-top:84px}
    Заголовок раздела стоит не сверху, а между рядами: две карточки,
    надпись во всю ширину, ещё две карточки. */
 .agents{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+/* Заголовок секции: занимает всю строку сетки и стоит первым,
+   над карточками. */
 .agents__mid{
   grid-column:1 / -1;
   text-align:center;
-  padding:clamp(16px,2.6vw,30px) 0 clamp(6px,1.4vw,14px);
+  padding:0 0 clamp(8px,1.6vw,16px);
 }
 .agents__mid .h2{margin:0 0 12px}
 .agents__mid .lead{margin:0 auto;max-width:58ch}
