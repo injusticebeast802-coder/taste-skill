@@ -259,13 +259,6 @@ html{scroll-padding-top:84px}
   .btn--hero:hover::before{left:-60%}
 }
 
-.btn--ghost{
-  color:var(--text);
-  background:rgba(255,255,255,.05);
-  border-color:var(--line-2);
-}
-.btn--ghost:hover{background:rgba(255,255,255,.10)}
-
 .btn--ghost-dark{
   color:#13131B;background:#EFEFF5;border-color:#DDDDE8;
 }
@@ -282,7 +275,7 @@ html{scroll-padding-top:84px}
 .hdr__in{display:flex;align-items:center;gap:20px;height:72px}
 
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex:none}
-/* Логотип-знак. Файл лежит в assets/logo.png — чтобы заменить логотип
+/* Логотип-знак. Файл лежит в assets/mark.png — чтобы заменить логотип
    на всём сайте, достаточно подменить этот один файл. */
 .logo__mark{
   width:34px;height:34px;flex:none;
@@ -299,7 +292,6 @@ html{scroll-padding-top:84px}
 }
 .nav a:hover{color:var(--text)}
 
-.hdr__cta{flex:none;padding:11px 20px;font-size:15px}
 .burger{
   display:none;flex:none;
   width:42px;height:42px;border-radius:var(--r-sm);
@@ -335,14 +327,6 @@ html{scroll-padding-top:84px}
 }
 .hero__copy{min-width:0}
 
-.plate{
-  display:inline-flex;align-items:center;gap:8px;
-  margin:0 0 20px;padding:9px 17px;
-  border:1px solid var(--line-2);border-radius:var(--r-sm);
-  background:var(--accent-soft);
-  font-size:15px;font-weight:600;color:var(--accent-text);letter-spacing:.01em;
-}
-.plate__dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
 
 .hero__sub{color:var(--muted);font-size:clamp(18px,1.9vw,21px);max-width:52ch;margin:0 0 30px}
 .hero__actions{display:flex;flex-wrap:wrap;gap:12px}
@@ -573,13 +557,6 @@ html{scroll-padding-top:84px}
 
 /* Карточка авто/мото занимает две колонки, чтобы в ряду не оставалось
    пустой ячейки: обычных ниш восемь, а сетка трёхколоночная. */
-.niche--span2{
-  grid-column:span 2;
-  /* Карточка тянется по высоте соседней, поэтому содержимое
-     центрируем по вертикали, иначе снизу висит пустое поле. */
-  display:flex;flex-direction:column;justify-content:center;
-}
-.niche--span2 p{max-width:none}
 
 /* Цвет заголовка по отрасли: спокойная холодная гамма, без красного и жёлтого. */
 .niche--n1 .h3{color:var(--blush)}
@@ -679,6 +656,12 @@ html{scroll-padding-top:84px}
 /* Список идёт в две колонки: карточки с экономией рядом больше нет,
    и в одну колонку он оставлял бы половину строки пустой. */
 .price__inc .inc{grid-template-columns:1fr 1fr;gap:14px clamp(24px,3vw,44px)}
+/* На узком экране две колонки не помещаются: строки упирались в край
+   и растягивали страницу до 419 пикселей при ширине экрана 360 —
+   вся страница ездила вбок. Возвращаем один столбец. */
+@media (max-width:768px){
+  .price__inc .inc{grid-template-columns:1fr}
+}
 .price__inc .h2{margin-bottom:22px}
 .inc{list-style:none;margin:0;padding:0;display:grid;gap:12px}
 .inc li{display:flex;gap:13px;align-items:flex-start;color:var(--muted);font-size:17.5px;line-height:1.5}
@@ -731,11 +714,7 @@ html{scroll-padding-top:84px}
    всё — и логотип на стене, и все люди.
 
    Ширину задаёт колонка сетки .sup__grid, поэтому отдельного
-   ограничения здесь нет.
-
-   Заглушка и снимок лежат друг на друге и занимают одну и ту же
-   площадь, поэтому блок выглядит одинаково и с фотографией, и без
-   неё: вёрстка не прыгает, когда файл появляется на сервере. */
+   ограничения здесь нет. */
 /* margin по бокам нулевой не случайно: у элемента сетки «margin:auto»
    отменяет растягивание по колонке, и блок, у которого всё содержимое
    позиционировано абсолютно, схлопывается в ноль по ширине.
@@ -747,17 +726,10 @@ html{scroll-padding-top:84px}
   border:1px solid var(--line);background:var(--surface);
 }
 .office__img{
-  position:absolute;inset:0;z-index:1;
+  position:absolute;inset:0;
   width:100%;height:100%;
   object-fit:contain;display:block;
 }
-.office__ph{
-  position:absolute;inset:0;
-  display:grid;place-content:center;justify-items:center;gap:12px;
-  background:var(--surface);color:var(--muted-2);
-  font-size:16px;letter-spacing:.02em;
-}
-.office__ph .ic{width:34px;height:34px;color:var(--line-2)}
 .office figcaption{
   position:absolute;left:0;right:0;bottom:0;z-index:2;
   padding:30px 22px 16px;
@@ -1174,7 +1146,6 @@ html{scroll-padding-top:84px}
   .ftr__site,.ftr__pp,.ftr__phone{display:inline-flex;align-items:center;min-height:44px}
 
   .hdr__in{height:64px;gap:12px}
-  .hdr__cta{display:none}
   .burger{display:grid}
 
   .nav{
@@ -1197,7 +1168,6 @@ html{scroll-padding-top:84px}
   .agents{grid-template-columns:1fr}
   .tech__foot{flex-direction:column;align-items:flex-start}
   .niches{grid-template-columns:repeat(2,1fr)}
-  .niche--span2{grid-column:span 2}
   .bens{grid-template-columns:1fr}
   .price{grid-template-columns:1fr}
   .feed__fmt{grid-template-columns:1fr}
@@ -1221,12 +1191,15 @@ html{scroll-padding-top:84px}
 @media (max-width:480px){
   .wrap{padding:0 16px}
   .niches{grid-template-columns:1fr}
-  .niche--span2{grid-column:span 1}
   .hero__panel{padding:22px}
   .agent,.niche,.fact,.ben{padding:22px}
   .modal__win{padding:28px 20px}
   .hero__actions{flex-direction:column}
   .hero__actions .btn{width:100%}
+  /* У крупной кнопки поля по 44 пикселя с каждой стороны. На экране
+     в 320 пикселей она вместе с ними не влезала в колонку и торчала
+     за край страницы. Растягиваем на всю ширину и ужимаем поля. */
+  .btn--hero{width:100%;padding-left:20px;padding-right:20px}
   .totop{right:14px;bottom:14px}
 }
 
