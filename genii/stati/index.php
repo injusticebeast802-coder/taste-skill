@@ -2,7 +2,15 @@
 /* =========================================================
    Полезные статьи — список.
 
-   Страница собирается сама: она читает папку stati и берёт из
+   Файл лежит внутри папки stati и называется index.php, поэтому
+   адрес /stati/ отдаёт именно его — без правил переадресации.
+   Раньше страница лежала в корне под именем stati.php, а рядом была
+   папка stati с тем же именем. Apache видел папку, дописывал к
+   адресу косую черту, и все относительные ссылки съезжали на
+   уровень вниз: стили, шрифты и картинки переставали находиться,
+   страница открывалась голой разметкой.
+
+   Страница собирается сама: она читает свою папку и берёт из
    каждого файла название и дату. Чтобы добавить статью, достаточно
    положить туда один файл — правок здесь не нужно.
 
@@ -14,7 +22,7 @@
    хостинге и так работает — на нём принимаются заявки.
    ========================================================= */
 
-$DIR = __DIR__ . '/stati';
+$DIR = __DIR__;
 $articles = array();
 
 if (is_dir($DIR)) {
@@ -73,21 +81,21 @@ $count = count($articles);
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Полезные статьи — ГенИИ</title>
 <meta name="description" content="Статьи «ГенИИ» о продвижении бизнеса в нейровыдаче и поиске: как работает GEO, почему нейросети называют одни компании и не называют другие. Две статьи в неделю.">
-<link rel="canonical" href="https://genii-ai.ru/stati">
+<link rel="canonical" href="https://genii-ai.ru/stati/">
 <meta name="theme-color" content="#0A0A0C">
 <meta name="color-scheme" content="dark">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ГенИИ">
-<meta property="og:url" content="https://genii-ai.ru/stati">
+<meta property="og:url" content="https://genii-ai.ru/stati/">
 <meta property="og:title" content="Полезные статьи — ГенИИ">
 <meta property="og:description" content="О продвижении бизнеса в нейровыдаче и поиске. Две статьи в неделю.">
 <meta property="og:locale" content="ru_RU">
 <meta property="og:image" content="https://genii-ai.ru/assets/og.png?v=1">
 
-<link rel="icon" type="image/png" href="assets/favicon-64.png">
-<link rel="apple-touch-icon" href="assets/icon-180.png">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="icon" type="image/png" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" href="../assets/icon-180.png">
+<link rel="stylesheet" href="../style.css?v=1">
 <?php if ($count): ?>
 <script type="application/ld+json">
 <?php
@@ -114,11 +122,11 @@ $count = count($articles);
 
 <header class="hdr">
   <div class="wrap hdr__in">
-    <a class="logo" href="index.html" aria-label="ГенИИ, на главную">
-      <img class="logo__mark" src="assets/mark.png" alt="" width="34" height="34">
+    <a class="logo" href="../index.html" aria-label="ГенИИ, на главную">
+      <img class="logo__mark" src="../assets/mark.png" alt="" width="34" height="34">
       <span class="logo__txt">Ген<b>ИИ</b></span>
     </a>
-    <a class="arts__back arts__back--hdr" href="index.html">На главную</a>
+    <a class="arts__back arts__back--hdr" href="../index.html">На главную</a>
   </div>
 </header>
 
@@ -130,7 +138,7 @@ $count = count($articles);
   <ul class="arts__list">
 <?php foreach ($articles as $a): ?>
     <li class="arts__item">
-      <a class="arts__link" href="stati/<?= e(substr($a['file'], 0, -5)) ?>">
+      <a class="arts__link" href="<?= e(substr($a['file'], 0, -5)) ?>">
         <span class="arts__t"><?= e($a['title']) ?></span>
 <?php if ($a['date'] !== ''): ?>
         <time class="arts__date" datetime="<?= e($a['date']) ?>"><?= e(ruDate($a['date'])) ?></time>
@@ -150,23 +158,23 @@ $count = count($articles);
   </div>
 <?php endif; ?>
 
-  <a class="arts__back" href="index.html">Вернуться на главную</a>
+  <a class="arts__back" href="../index.html">Вернуться на главную</a>
 </main>
 
 <footer class="ftr">
   <div class="wrap ftr__in">
     <p class="ftr__c">
-      <img class="ftr__mark" src="assets/mark.png" alt="" width="24" height="24">
+      <img class="ftr__mark" src="../assets/mark.png" alt="" width="24" height="24">
       © <span id="year">2026</span> ГенИИ
     </p>
     <a class="ftr__phone" href="tel:+79067587777">+7 906 758-77-77</a>
     <a class="ftr__mail" href="mailto:geniiai@mail.ru">geniiai@mail.ru</a>
     <a class="ftr__site" href="https://genii-ai.ru">genii-ai.ru</a>
     <p class="ftr__place">Moscow, Skolkovo</p>
-    <a class="ftr__pp" href="privacy.html">Политика обработки персональных данных</a>
+    <a class="ftr__pp" href="../privacy.html">Политика обработки персональных данных</a>
   </div>
 </footer>
 
-<script src="script.js?v=1"></script>
+<script src="../script.js?v=1"></script>
 </body>
 </html>

@@ -30,6 +30,12 @@
 
 Options -Indexes
 
+# Какой файл отдавать, когда запросили папку. Раздел статей лежит в
+# папке stati, и её открывает index.php. На части хостингов в списке
+# по умолчанию только index.html — тогда адрес /stati/ отдавал бы
+# ошибку, поэтому список задаём явно.
+DirectoryIndex index.html index.php
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
@@ -60,11 +66,6 @@ Options -Indexes
   # Собирается на лету, чтобы новые статьи попадали в неё сами.
   # Для поисковиков адрес остаётся прежним — /sitemap.xml.
   RewriteRule ^sitemap\.xml$ sitemap.php [L]
-
-  # ---------- Раздел статей ----------
-  # Список статей собирается на сервере, поэтому это .php, а правило
-  # чистых адресов ниже ищет только .html и до него бы не добралось.
-  RewriteRule ^stati/?$ stati.php [L]
 
   # ---------- Адреса без .html ----------
   # Было cleanUrls на Vercel: /privacy вместо /privacy.html
