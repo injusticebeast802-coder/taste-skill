@@ -70,6 +70,9 @@ find "$DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
 echo "Раскладываю файлы..."
 cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
+# Раздел статей: страница со списком и папка с самими статьями.
+cp "$SRC/stati.php" "$SRC/sitemap.php" "$DIR/"
+cp -r "$SRC/stati" "$DIR/"
 cp "$SRC/robots.txt" "$SRC/sitemap.xml" "$DIR/"
 cp -r "$SRC/assets" "$SRC/img" "$SRC/fonts" "$DIR/"
 cp "$SRC/hosting-ru/lead.php" "$DIR/"
