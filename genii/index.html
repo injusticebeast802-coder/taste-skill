@@ -61,6 +61,7 @@
       "image": "https://genii-ai.ru/assets/og.png",
       "description": "«ГенИИ» — технология полного цикла GEO- и SEO-продвижения: создаёт тексты, изображения и видео и сама публикует их на шести площадках.",
       "telephone": "+7-906-758-77-77",
+      "email": "geniiai@mail.ru",
       "areaServed": [
         { "@type": "City", "name": "Москва" },
         { "@type": "AdministrativeArea", "name": "Московская область" }
@@ -69,6 +70,7 @@
         "@type": "ContactPoint",
         "contactType": "sales",
         "telephone": "+7-906-758-77-77",
+        "email": "geniiai@mail.ru",
         "areaServed": "RU",
         "availableLanguage": "Russian"
       }
@@ -130,6 +132,7 @@
   <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14h3v5H5.5A1.5 1.5 0 0 1 4 17.5V14z"/><path d="M20 14h-3v5h1.5a1.5 1.5 0 0 0 1.5-1.5V14z"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-4.5L4 9"/><path d="M4 5v4h4"/><path d="M4 13a8 8 0 0 0 14 4.5L20 15"/><path d="M20 19v-4h-4"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 7.5l7.1 5a1.6 1.6 0 0 0 1.8 0l7.1-5"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/></symbol>
   <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></symbol>
   <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h13"/><path d="M12 6l6 6-6 6"/></symbol>
@@ -456,8 +459,8 @@
       <h2 class="h2 h2--sm">Что входит в подписку</h2>
       <ul class="inc">
         <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl--accent">Полный AI-цикл</b>: от идеи и текста до модерации и публикации</span></li>
-        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Публикации <b class="hl">5</b> дней в неделю</span></li>
-        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl">2</b> экспертные статьи в неделю</span></li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl">5</b> постов в неделю на всех площадках — продвигают вас в GEO- и SEO-выдаче</span></li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl">2</b> статьи в неделю — делают вас заметнее в SEO через Яндекс Дзен и ВК</span></li>
         <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b class="hl--accent">Автопубликация</b> на <b class="hl">6</b> площадках: Telegram, VK, Яндекс Дзен, Одноклассники, Max, Instagram*</span></li>
         <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Для зарубежных площадок — готовый контент для самостоятельной публикации</span></li>
         <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Работа по законодательству РФ, договор и закрывающие документы</span></li>
@@ -467,7 +470,7 @@
 </section>
 
 <!-- 13. ПОДДЕРЖКА И КОНТАКТЫ -->
-<section class="sec sec--tint" id="contacts">
+<section class="sec sec--tint" id="support">
   <div class="wrap sup">
     <h2 class="h2 reveal">Поддержка и сопровождение</h2>
 
@@ -510,24 +513,34 @@
     </ul>
     </div>
 
-    <!-- Площадки, на которых выходят публикации. Адреса каналов
-         подставляются в href, когда они появятся. -->
-    <div class="chans reveal">
+    <!-- Пункт меню «Контакты» ведёт сюда, а не на заголовок секции:
+         под ним сразу телефон и почта. Раньше якорь стоял на всей
+         секции, и кнопка приводила к «Поддержке и сопровождению»,
+         от которой до контактов ещё полтора экрана. -->
+    <div class="chans reveal" id="contacts">
       <p class="chans__t">Наши площадки</p>
+      <!-- У значков нет href, пока не появились адреса каналов:
+           с пустой ссылкой «#» нажатие уносило страницу наверх.
+           Чтобы включить, достаточно дописать href каждому. -->
       <ul class="chans__list">
-        <li><a class="chan" href="#" aria-label="Telegram"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-tg"/></svg></a></li>
-        <li><a class="chan" href="#" aria-label="ВКонтакте"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-vk"/></svg></a></li>
-        <li><a class="chan" href="#" aria-label="Яндекс Дзен"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-dzen"/></svg></a></li>
-        <li><a class="chan" href="#" aria-label="Одноклассники"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-ok"/></svg></a></li>
-        <li><a class="chan" href="#" aria-label="Max"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-max"/></svg></a></li>
+        <li><a class="chan" aria-label="Telegram"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-tg"/></svg></a></li>
+        <li><a class="chan" aria-label="ВКонтакте"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-vk"/></svg></a></li>
+        <li><a class="chan" aria-label="Яндекс Дзен"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-dzen"/></svg></a></li>
+        <li><a class="chan" aria-label="Одноклассники"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-ok"/></svg></a></li>
+        <li><a class="chan" aria-label="Max"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-max"/></svg></a></li>
       </ul>
     </div>
 
     <div class="callbar reveal">
       <p class="callbar__t">Позвоните — расскажем, как ваша ниша выглядит в ответах нейросетей</p>
-      <a class="callbar__phone" href="tel:+79067587777">
-        <svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>+7 906 758-77-77
-      </a>
+      <div class="callbar__ways">
+        <a class="callbar__phone" href="tel:+79067587777">
+          <svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>+7 906 758-77-77
+        </a>
+        <a class="callbar__mail" href="mailto:geniiai@mail.ru">
+          <svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg>geniiai@mail.ru
+        </a>
+      </div>
     </div>
 
     <div class="nums" id="nums">
@@ -579,7 +592,9 @@
       © <span id="year">2026</span> ГенИИ
     </p>
     <a class="ftr__phone" href="tel:+79067587777">+7 906 758-77-77</a>
+    <a class="ftr__mail" href="mailto:geniiai@mail.ru">geniiai@mail.ru</a>
     <a class="ftr__site" href="https://genii-ai.ru">genii-ai.ru</a>
+    <p class="ftr__place">Moscow, Skolkovo</p>
     <a class="ftr__pp" href="privacy.html">Политика обработки персональных данных</a>
   </div>
 </footer>

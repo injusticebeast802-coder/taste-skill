@@ -153,7 +153,12 @@ a{color:inherit}
 #top-sentinel{position:absolute;top:0;left:0;width:1px;height:1px}
 
 /* Липкая шапка перекрывает заголовок секции при переходе по якорю. */
-section[id]{scroll-margin-top:84px}
+/* Отступ под липкой шапкой при переходе по ссылкам меню.
+   Раньше правило висело на section[id] и работало только для секций.
+   Якорь solution переехал на div внутри секции — и пункт «Технология»
+   уводил страницу ровно под шапку, заголовок оказывался за ней.
+   scroll-padding у страницы действует на любую цель перехода. */
+html{scroll-padding-top:84px}
 
 .wrap{width:100%;max-width:var(--wrap);margin:0 auto;padding:0 clamp(20px,3.2vw,48px)}
 
@@ -777,7 +782,10 @@ section[id]{scroll-margin-top:84px}
   display:block;line-height:0;border-radius:14px;
   transition:transform .18s var(--ease),box-shadow .18s var(--ease);
 }
-.chan:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.40)}
+/* Приподнимается и даёт курсор-палец только настоящая ссылка:
+   пока адреса канала нет, значок не притворяется кликабельным. */
+.chan[href]{cursor:pointer}
+.chan[href]:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.40)}
 .chan:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 /* Значок рисуется целиком, со своими фирменными цветами. */
 .chan__ic{width:56px;height:56px;display:block}
@@ -801,6 +809,16 @@ section[id]{scroll-margin-top:84px}
 }
 .callbar__phone .ic{width:26px;height:26px;color:var(--mint)}
 .callbar__phone:hover{color:var(--mint)}
+/* Телефон и почта идут столбиком справа: почта строкой мельче,
+   чтобы телефон остался главным способом связи. */
+.callbar__ways{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.callbar__mail{
+  display:inline-flex;align-items:center;gap:9px;
+  color:var(--muted);text-decoration:none;font-size:16.5px;
+  transition:color .18s var(--ease);
+}
+.callbar__mail .ic{width:19px;height:19px;color:var(--sky)}
+.callbar__mail:hover{color:var(--text)}
 
 /* 13. Счётчики: светлые карточки на тёмном фоне */
 .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
@@ -914,7 +932,10 @@ section[id]{scroll-margin-top:84px}
 .ftr__in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 26px;color:var(--muted);font-size:15.5px}
 .ftr__phone{color:var(--text);text-decoration:none;font-weight:600}
 .ftr__phone:hover{color:var(--mint)}
-.ftr__site{margin-right:auto;color:var(--muted);text-decoration:none}
+.ftr__site{color:var(--muted);text-decoration:none}
+.ftr__mail{color:var(--muted);text-decoration:none}
+.ftr__mail:hover{color:var(--text)}
+.ftr__place{margin:0;margin-right:auto;color:var(--muted-2)}
 .ftr__site:hover{color:var(--text)}
 .ftr__pp{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 .ftr__pp:hover{color:var(--text)}
@@ -1180,6 +1201,9 @@ section[id]{scroll-margin-top:84px}
   .price{grid-template-columns:1fr}
   .feed__fmt{grid-template-columns:1fr}
   .callbar{flex-direction:column;align-items:flex-start;gap:12px}
+  /* Полоса встала столбиком — почта должна встать под телефон
+     по левому краю, а не уехать вправо. */
+  .callbar__ways{align-items:flex-start}
   .brand__in{flex-direction:column;text-align:center}
   .levelup{flex-wrap:wrap}
   .cta__in{grid-template-columns:1fr;gap:28px}
@@ -1190,7 +1214,7 @@ section[id]{scroll-margin-top:84px}
   .sup__list,.sup__grid .sup__list{grid-template-columns:1fr}
   .nums{grid-template-columns:1fr}
   .ftr__in{flex-direction:column;align-items:flex-start;gap:8px}
-  .ftr__site{margin-right:0}
+  .ftr__place{margin-right:0}
 }
 
 @media (max-width:480px){
