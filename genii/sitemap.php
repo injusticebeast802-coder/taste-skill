@@ -17,7 +17,7 @@ $DIR  = __DIR__ . '/stati';
 $urls = array(
   array('loc' => $SITE . '/',      'freq' => 'monthly', 'pri' => '1.0',
         'mod' => date('Y-m-d', @filemtime(__DIR__ . '/index.html') ?: time())),
-  array('loc' => $SITE . '/stati', 'freq' => 'weekly',  'pri' => '0.8', 'mod' => date('Y-m-d')),
+  array('loc' => $SITE . '/stati/', 'freq' => 'weekly', 'pri' => '0.8', 'mod' => date('Y-m-d')),
 );
 
 $newest = '';
