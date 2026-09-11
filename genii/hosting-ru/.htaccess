@@ -56,6 +56,16 @@ Options -Indexes
   # рабочий код формы.
   RewriteRule ^api/lead/?$ lead.php [L]
 
+  # ---------- Карта сайта ----------
+  # Собирается на лету, чтобы новые статьи попадали в неё сами.
+  # Для поисковиков адрес остаётся прежним — /sitemap.xml.
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+  # ---------- Раздел статей ----------
+  # Список статей собирается на сервере, поэтому это .php, а правило
+  # чистых адресов ниже ищет только .html и до него бы не добралось.
+  RewriteRule ^stati/?$ stati.php [L]
+
   # ---------- Адреса без .html ----------
   # Было cleanUrls на Vercel: /privacy вместо /privacy.html
   RewriteCond %{REQUEST_FILENAME} !-f
