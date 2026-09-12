@@ -384,7 +384,9 @@ html{scroll-padding-top:84px}
 /* 2а. Бесплатная проверка. Полоса между первым экраном и текстом:
    единственное место на странице, где предлагают что-то бесплатно,
    поэтому она обведена тиффани и стоит особняком. */
-.check-sec{padding-top:0}
+/* Плашка стоит внутри секции, между текстом и блоком со знаком,
+   поэтому отступы задаёт сама, а не секция. */
+.check-wrap{margin:clamp(20px,2.6vw,32px) auto clamp(4px,1vw,10px)}
 .check{
   display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
   gap:22px clamp(24px,3vw,40px);
