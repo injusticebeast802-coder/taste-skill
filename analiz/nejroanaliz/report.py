@@ -103,6 +103,15 @@ def build(company, site, ai_results, search_results):
         if r.get('mentioned'):
             e['named'] += 1
 
+    # Нейросеть, не ответившая ни разу, в engines не попадает вовсе —
+    # и на картинке её просто нет. Клиент видит «0 из 12» вместо
+    # «0 из 24» и не понимает, почему счёт вдвое меньше обещанного.
+    # Считаем отказы отдельно и показываем их наравне с ответами.
+    otkazy = {}
+    for r in ai_results:
+        if r.get('error'):
+            otkazy[r['engine']] = otkazy.get(r['engine'], 0) + 1
+
     positions = [r['position'] for r in named if r.get('position')]
 
     s_ok = [r for r in search_results if not r.get('error')]
@@ -116,6 +125,7 @@ def build(company, site, ai_results, search_results):
         'ai_total': len(ok),
         'ai_named': len(named),
         'ai_by_engine': engines,
+        'ai_otkazy': otkazy,
         'ai_best_position': min(positions) if positions else None,
         'search_total': len(s_ok),
         'search_found': len(s_found),
@@ -389,10 +399,19 @@ def draw_png(data, path, brand='genii'):
     # По нейросетям отдельно
     d.text((PAD, y), 'По нейросетям', font=f_h2, fill=TEXT)
     y += 40
-    if data['ai_by_engine']:
+    otkazy = data.get('ai_otkazy') or {}
+    if data['ai_by_engine'] or otkazy:
         for name, e in data['ai_by_engine'].items():
             d.text((PAD, y), '%s — назвали в %d из %d ответов' % (name, e['named'], e['total']),
                    font=f_t, fill=MUTED if not e['named'] else TEXT)
+            y += 32
+        for name, n in otkazy.items():
+            # Нейросеть, ответившая хотя бы на часть вопросов, уже
+            # показана строкой выше — там про отказы говорить незачем.
+            if name in data['ai_by_engine']:
+                continue
+            d.text((PAD, y), '%s — не ответил, проверка шла без него' % name,
+                   font=f_t, fill=b['warn'])
             y += 32
     else:
         d.text((PAD, y), 'Ответов нет', font=f_t, fill=MUTED)
