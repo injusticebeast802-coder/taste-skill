@@ -109,6 +109,7 @@ def analyze(raw_inn, cfg, progress=None):
 
     # --- сайт ---
     site = ''
+    search_broken = ''
     if cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
         say('Ищу сайт компании…')
         try:
@@ -116,9 +117,10 @@ def analyze(raw_inn, cfg, progress=None):
                                            cfg['yandex_folder_id'], cfg['yandex_search_key'])
         except Exception as e:
             site = ''
-            say('Поиск Яндекса не ответил: %s' % str(e)[:200])
-            say('Проверьте yandex_search_key и роль search-api.webSearch.user. '
-                'Мест в выдаче в отчёте не будет.')
+            search_broken = str(e)[:400]
+            say('Поиск Яндекса не работает:\n%s' % search_broken)
+            say('Мест в выдаче в отчёте не будет. Упоминания в нейросетях '
+                'считаются как обычно.')
         if site:
             # Домен — ещё одно написание бренда: flowwow.com даёт
             # «flowwow», и его нейросети называют чаще реестрового имени.
@@ -126,7 +128,7 @@ def analyze(raw_inn, cfg, progress=None):
             if len(word) > 3 and word not in ('www', 'shop', 'site'):
                 c['names'].append(word)
             say('Сайт: %s' % site)
-        else:
+        elif not search_broken:
             say('Сайт не нашли — дальше проверяю по названию.')
 
     # --- вопросы нейросетям ---
@@ -180,7 +182,7 @@ def analyze(raw_inn, cfg, progress=None):
 
     # --- обычный поиск ---
     search_results = []
-    if cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
+    if cfg.get('yandex_folder_id') and cfg.get('yandex_search_key') and not search_broken:
         say('Смотрю выдачу Яндекса…')
         for q in queries.search_queries(c, limit=int(cfg.get('search_queries', 5))):
             item = {'query': q, 'position': None, 'url': '', 'error': ''}
@@ -194,6 +196,7 @@ def analyze(raw_inn, cfg, progress=None):
             time.sleep(float(cfg.get('pause', 0.4)))
 
     data = report.build(c, site, ai_results, search_results)
+    data['search_broken'] = search_broken
 
     out_dir = cfg.get('out_dir', 'otchety')
     os.makedirs(out_dir, exist_ok=True)
@@ -211,7 +214,9 @@ def as_text(data):
         '%s' % (c.get('full_name') or c.get('name')),
         ((('ИНН %s · ' % c['inn']) if c.get('inn') else '')
          + '%s · %s' % (c.get('city') or 'город не указан', c.get('industry') or '—')),
-        'Сайт: %s' % (data['site'] or 'не нашли, проверяли по названию'),
+        ('Сайт: %s' % data['site']) if data['site'] else
+        ('Сайт: не проверял — поиск Яндекса недоступен' if data.get('search_broken')
+         else 'Сайт: не нашли, проверяли по названию'),
         '',
         head + '.',
         'Нейросети назвали компанию в %d ответах из %d.' % (data['ai_named'], data['ai_total']),
@@ -220,6 +225,8 @@ def as_text(data):
         lines.append('Лучшее место в списке нейросети — %d-е.' % data['ai_best_position'])
     if data['search_best']:
         lines.append('В поиске Яндекса лучшее место — %d-е.' % data['search_best'])
+    elif data.get('search_broken'):
+        lines.append('Место в поиске Яндекса не смотрел: поиск недоступен.')
     else:
         lines.append('В поиске Яндекса в первой двадцатке не нашли.')
     if data['rivals']:
