@@ -72,7 +72,7 @@ Options -Indexes
   Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
 
   # Ответ формы не кэшируем никогда.
-  <FilesMatch "^lead\.php$">
+  <FilesMatch "^(lead|tg)\.php$">
     Header always set Cache-Control "no-store"
   </FilesMatch>
 </IfModule>
