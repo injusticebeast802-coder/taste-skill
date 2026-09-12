@@ -79,6 +79,34 @@ def _request_token(auth_key, scope, verify, timeout, now):
     return tok
 
 
+def modeli(auth_key, scope='GIGACHAT_API_PERS', verify=True, url='', timeout=30):
+    """Какие модели доступны этому ключу.
+
+    Нужна, чтобы не гадать по названиям из рекламы: у Сбера выпуск
+    зовётся «Ultra 3.5», а в запросе модель называется иначе, и
+    выяснять это подбором — терять по минуте на попытку. Сервер
+    отдаёт точный список.
+    """
+    chat = (url or '').strip() or CHAT
+    spisok = chat.replace('/chat/completions', '/models')
+    tok = _get_token(auth_key, scope, verify)
+
+    try:
+        r = requests.get(spisok,
+                         headers={'Authorization': 'Bearer ' + tok,
+                                  'Accept': 'application/json'},
+                         timeout=timeout, verify=verify)
+    except requests.exceptions.RequestException as e:
+        raise AIError('GigaChat: не достучались до %s. (%s)' % (spisok, str(e)[:150]))
+
+    if r.status_code != 200:
+        raise AIError('GigaChat не отдал список моделей, ошибка %d: %s'
+                      % (r.status_code, r.text[:200]))
+
+    data = (r.json() or {}).get('data') or []
+    return [m.get('id', '') for m in data if m.get('id')]
+
+
 def _sprosit(url, tok, model, question, verify, timeout):
     return requests.post(
         url,
