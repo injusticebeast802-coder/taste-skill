@@ -199,7 +199,10 @@ HELP = (
     'Flowwow, доставка цветов, Москва\n\n'
     'Название пишите так, как компания сама себя называет, а не как '
     'в реестре: нейросети знают Flowwow, а не «ООО ФЛАУВАУ».\n\n'
-    'Проверка занимает одну-две минуты.'
+    'Проверка занимает одну-две минуты.\n\n'
+    'Команда «нейросети» — спрошу YandexGPT и GigaChat, кто из них '
+    'сейчас отвечает. Пригодится, если счёт ответов вдруг стал вдвое '
+    'меньше обычного.'
 )
 
 
@@ -208,6 +211,14 @@ def handle(cfg, chat_id, text):
 
     if text in ('/start', '/help', 'помощь'):
         send(cfg, chat_id, HELP)
+        return
+
+    if text.lower() in ('/seti', 'нейросети', 'сети', 'проверка'):
+        send(cfg, chat_id, 'Спрашиваю каждую нейросеть, минутку…')
+        try:
+            send(cfg, chat_id, runner.zhivy_li(cfg))
+        except Exception as e:
+            send(cfg, chat_id, 'Не получилось спросить: %s' % e)
         return
 
     if not any(ch.isdigit() for ch in text):

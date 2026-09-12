@@ -153,14 +153,7 @@ def analyze(raw_inn, cfg, progress=None):
     _narrow, _wide = queries.subjects_for(c)
     say('Спрашиваю про: %s' % ', '.join(_narrow + _wide))
 
-    engines = []
-    if cfg.get('yandex_api_key') and cfg.get('yandex_folder_id'):
-        engines.append(('YandexGPT', lambda q: ai_yandex.ask(
-            q, cfg['yandex_folder_id'], cfg['yandex_api_key'], cfg.get('yandex_model', 'yandexgpt-lite'))))
-    if cfg.get('gigachat_auth_key'):
-        engines.append(('GigaChat', lambda q: ai_gigachat.ask(
-            q, cfg['gigachat_auth_key'], cfg.get('gigachat_scope', 'GIGACHAT_API_PERS'),
-            verify=cfg.get('gigachat_verify', True))))
+    engines = nejroseti(cfg)
     if not engines:
         raise RunError('Не заданы ключи ни одной нейросети. Загляните в config.ini.')
 
@@ -221,6 +214,46 @@ def analyze(raw_inn, cfg, progress=None):
     data['png'] = pngs['genii']          # для старых вызовов
     data['pngs'] = pngs
     return data
+
+
+def nejroseti(cfg):
+    """Какие нейросети заведены ключами. Список пар: имя и как спросить."""
+    out = []
+    if cfg.get('yandex_api_key') and cfg.get('yandex_folder_id'):
+        out.append(('YandexGPT', lambda q: ai_yandex.ask(
+            q, cfg['yandex_folder_id'], cfg['yandex_api_key'],
+            cfg.get('yandex_model', 'yandexgpt-lite'))))
+    if cfg.get('gigachat_auth_key'):
+        out.append(('GigaChat', lambda q: ai_gigachat.ask(
+            q, cfg['gigachat_auth_key'], cfg.get('gigachat_scope', 'GIGACHAT_API_PERS'),
+            verify=cfg.get('gigachat_verify', True))))
+    return out
+
+
+def zhivy_li(cfg):
+    """Задаёт каждой нейросети один пустяковый вопрос и говорит, кто
+    ответил. Нужна, чтобы не гадать после проверки, почему счёт вдвое
+    меньше: молчащую нейросеть видно сразу и отдельно от результата.
+    """
+    seti = nejroseti(cfg)
+    if not seti:
+        return 'Ни одна нейросеть не заведена ключами. Загляните в config.ini.'
+
+    lines = []
+    for name, ask in seti:
+        try:
+            otvet = (ask('Назови два города России. Коротко.') or '').strip()
+            if otvet:
+                lines.append('%s — отвечает. Сказал: %s' % (name, otvet[:80]))
+            else:
+                lines.append('%s — ответил пустотой. Ключ принят, но ответа нет.' % name)
+        except Exception as e:
+            lines.append('%s — не отвечает.\n%s' % (name, str(e)[:300]))
+
+    if len(seti) == 1:
+        lines.append('Вторая нейросеть не заведена ключами — проверка идёт '
+                     'по одной, и ответов будет вдвое меньше.')
+    return '\n\n'.join(lines)
 
 
 def as_text(data):
