@@ -21,6 +21,14 @@ import traceback
 
 import requests
 
+# Вывод в utf-8: на Windows консоль по умолчанию в cp866, и русские
+# сообщения превращались бы в мусор или роняли программу.
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from nejroanaliz import run as runner  # noqa: E402
 

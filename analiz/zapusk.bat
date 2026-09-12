@@ -1,26 +1,42 @@
 @echo off
 chcp 65001 >nul
-rem ==========================================================
-rem  Запуск бота на Windows. Положите этот файл рядом с bot.py
-rem  и запускайте двойным щелчком.
-rem ==========================================================
+set PYTHONUTF8=1
+set PYTHONIOENCODING=utf-8
 cd /d "%~dp0"
 
-where python >nul 2>nul
-if errorlevel 1 (
-  echo Не найден Python. Установите его с python.org,
-  echo при установке отметьте галочку "Add Python to PATH".
+rem ---- ishchem python ----
+rem Skobki obyazatelny: bez nih cmd razbiraet && na verhnem urovne
+rem i proverka ne srabatyvaet.
+set PY=
+python --version >nul 2>nul && set PY=python
+if not defined PY ( py --version >nul 2>nul && set PY=py )
+if not defined PY ( python3 --version >nul 2>nul && set PY=python3 )
+
+if not defined PY (
+  echo.
+  echo   Python ne nayden.
+  echo   Ustanovite: https://www.python.org/downloads/
+  echo   Pri ustanovke otmette galochku "Add Python to PATH",
+  echo   potom zapustite etot fayl snova.
+  echo.
   pause
-  exit /b
+  exit /b 1
 )
 
-if not exist config.ini (
-  echo Нет файла config.ini. Скопируйте config.example.ini
-  echo в config.ini и впишите свои ключи.
+if not exist "config.ini" (
+  echo.
+  echo   Net fayla config.ini
+  echo   Skopiruyte config.example.ini v config.ini
+  echo   i vpishite v nego klyuchi.
+  echo.
   pause
-  exit /b
+  exit /b 1
 )
 
-python -m pip install -q -r requirements.txt
-python bot.py
+echo Ustanovka bibliotek...
+%PY% -m pip install -q -r requirements.txt
+echo.
+
+%PY% bot.py
+echo.
 pause
