@@ -57,7 +57,7 @@ if (!hash_equals(TG_RELAY_KEY, $klyuch)) {
 /* Только те три команды, которыми пользуется программа. Открывать
    весь Телеграм наружу незачем: с полным доступом чужой человек
    сможет и переписку бота вычитать, и рассылку с него сделать. */
-$mozhno = array('getUpdates', 'sendMessage', 'sendPhoto', 'proverka');
+$mozhno = array('getUpdates', 'sendMessage', 'sendPhoto', 'getMe', 'proverka');
 $metod  = isset($_GET['m']) ? $_GET['m'] : '';
 if (!in_array($metod, $mozhno, true)) {
     otkaz(404, 'Команда не разрешена: ' . $metod);

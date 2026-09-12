@@ -16,7 +16,10 @@
        TG_RELAY_KEY тот же пароль, что в config.ini программы
    ========================================================= */
 
-const MOZHNO = ['getUpdates', 'sendMessage', 'sendPhoto'];
+/* getMe только называет имя бота и ничего не меняет. Нужен, чтобы
+   программа при запуске сказала, за кого её принимает телеграм: без
+   этого перепутанный токен выглядит как полная тишина. */
+const MOZHNO = ['getUpdates', 'sendMessage', 'sendPhoto', 'getMe'];
 
 export default {
   async fetch(request, env) {

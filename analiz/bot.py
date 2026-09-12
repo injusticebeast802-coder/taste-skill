@@ -211,7 +211,34 @@ def main():
     cfg = load_config()
     print('Бот запущен. Остановить — Ctrl+C.')
 
+    # Показываем, каким путём пошли и за какого бота нас принимает
+    # телеграм. Пустое окно раньше означало и «связи нет», и «связь
+    # есть, сообщений нет» — различить было нельзя.
+    relay = (cfg.get('telegram_api') or '').strip()
+    if relay:
+        try:
+            from urllib.parse import urlparse
+            print('Иду через посредника: %s' % (urlparse(relay).netloc or relay))
+        except Exception:
+            print('Иду через посредника.')
+    else:
+        print('Иду прямо в телеграм, api.telegram.org.')
+
+    try:
+        kto = api(cfg, 'getMe')
+        if kto.get('ok'):
+            im = kto['result']
+            print('Бот: @%s (%s). Пишите ему в телеграме.'
+                  % (im.get('username', '?'), im.get('first_name', '')))
+        else:
+            print('Телеграм не признал бота: %s' % kto.get('description', kto))
+            print('Обычно это не тот токен. У посредника токен свой —')
+            print('проверьте TG_TOKEN в его настройках.')
+    except Exception as e:
+        print('Не удалось спросить, кто мы: %s' % e)
+
     offset = 0
+    bylo_svyazi = False   # печатаем про связь один раз, а не каждый круг
     beda = 0          # сколько раз подряд не достучались до телеграма
 
     # Сколько секунд держать линию в ожидании сообщения. Напрямую
@@ -282,6 +309,10 @@ def main():
         if beda:
             print('Связь с телеграмом восстановлена.')
             beda = 0
+
+        if not bylo_svyazi:
+            bylo_svyazi = True
+            print('Связь есть, жду сообщений. Отправьте боту ИНН.')
 
         for upd in r.get('result', []):
             offset = upd['update_id'] + 1
