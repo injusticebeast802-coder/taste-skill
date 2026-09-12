@@ -12,34 +12,40 @@ class RunError(Exception):
 
 
 def parse_request(raw):
-    """Разбирает присланное: ИНН, а за ним — необязательные уточнения.
+    """Разбирает присланное. ИНН не обязателен.
 
-        7707083893
-        7707083893 Flowwow
-        7707083893 Flowwow, доставка цветов
+        7707083893                            только ИНН
+        7707083893 Flowwow                    ИНН и бренд
+        7707083893 Flowwow, доставка цветов   ИНН, бренд, род занятий
+        Flowwow, доставка цветов, Москва      без ИНН
 
-    Уточнения нужны, потому что в реестре компания записана
-    по-русски — «ФЛАУВАУ», — а нейросети и поиск знают бренд
-    латиницей: Flowwow. Совпадений по реестровому имени не будет
-    никогда, и проверка покажет ноль на пустом месте.
+    Два источника дополняют друг друга и потому разрешены оба.
+    ИНН даёт то, чего нет в заявке с сайта: город и официальное имя.
+    Заявка даёт то, чего нет в ИНН: бренд, под которым компанию знает
+    рынок, и род занятий человеческими словами. В реестре «ООО
+    ФЛАУВАУ» и код ОКВЭД, а спрашивать нейросеть надо про Flowwow и
+    доставку цветов.
     """
     text = str(raw or '').strip()
+
+    # ИНН — только если сообщение с цифр и начинается.
     digits = ''
-    for ch in text:
-        if ch.isdigit():
-            digits += ch
-        elif digits:
-            break
+    i = 0
+    while i < len(text) and text[i].isdigit():
+        digits += text[i]
+        i += 1
+    if digits and len(digits) not in (10, 12):
+        # Цифры есть, но на ИНН не похоже: пусть будут частью названия.
+        digits, i = '', 0
 
-    tail = text[text.find(digits) + len(digits):].strip(' ,;:-') if digits else text
+    tail = text[i:].strip(' ,;:-')
+    parts = [p.strip() for p in tail.split(',')] if tail else []
+    parts = [p for p in parts if p]
 
-    brand, kind = '', ''
-    if tail:
-        parts = [p.strip() for p in tail.split(',', 1)]
-        brand = parts[0]
-        if len(parts) > 1:
-            kind = parts[1]
-    return digits, brand, kind
+    brand = parts[0] if len(parts) > 0 else ''
+    kind = parts[1] if len(parts) > 1 else ''
+    city = parts[2] if len(parts) > 2 else ''
+    return digits, brand, kind, city
 
 
 def analyze(raw_inn, cfg, progress=None):
@@ -53,28 +59,43 @@ def analyze(raw_inn, cfg, progress=None):
             except Exception:
                 pass
 
-    digits, brand, kind_override = parse_request(raw_inn)
-    problem = inn_mod.explain(digits)
-    if problem:
-        raise RunError(problem)
+    digits, brand, kind_override, city_override = parse_request(raw_inn)
 
-    say('Ищу компанию в справочнике…')
-    try:
-        c = company_mod.lookup(digits, cfg['dadata_token'])
-    except company_mod.CompanyError as e:
-        raise RunError(str(e))
-    except Exception as e:
-        # Сюда попадают обрывы связи и таймауты. Показывать человеку
-        # внутренности питона незачем: ему нужно понять, что делать.
-        raise RunError('Не получилось связаться со справочником DaData.\n'
-                       'Проверьте интернет и ключ dadata_token.\n\n%s' % e)
-    c['inn'] = digits
+    if digits:
+        problem = inn_mod.explain(digits)
+        if problem:
+            raise RunError(problem)
+
+        say('Ищу компанию в справочнике…')
+        try:
+            c = company_mod.lookup(digits, cfg['dadata_token'])
+        except company_mod.CompanyError as e:
+            raise RunError(str(e))
+        except Exception as e:
+            # Сюда попадают обрывы связи и таймауты. Показывать человеку
+            # внутренности питона незачем: ему нужно понять, что делать.
+            raise RunError('Не получилось связаться со справочником DaData.\n'
+                           'Проверьте интернет и ключ dadata_token.\n\n%s' % e)
+        c['inn'] = digits
+    else:
+        # Без ИНН работаем по тому, что прислали. Справочник не
+        # спрашиваем: по названию он отдаёт десятки однофамильцев,
+        # и выбирать за менеджера, который из них клиент, нельзя.
+        if not brand or not kind_override:
+            raise RunError('Без ИНН нужны название и род занятий через запятую:\n'
+                           'Flowwow, доставка цветов, Москва\n\n'
+                           'Или пришлите ИНН — тогда достаточно одних цифр.')
+        c = {'name': brand, 'full_name': brand, 'inn': '', 'okved': '',
+             'kind': kind_override, 'industry': kind_override,
+             'city': city_override, 'status': 'ACTIVE'}
 
     if brand:
         c['brand'] = brand
     if kind_override:
         c['industry'] = kind_override
         c['kind'] = kind_override
+    if city_override:
+        c['city'] = city_override
 
     # Все написания, под которыми компанию могут назвать.
     c['names'] = [n for n in (c.get('brand'), c.get('name')) if n]
@@ -109,8 +130,11 @@ def analyze(raw_inn, cfg, progress=None):
                        'а по нему тему запроса не составить.\n\n'
                        'Пришлите так: %s Название, чем занимается\n'
                        'Например: %s Flowwow, доставка цветов'
-                       % (c.get('okved') or '—', digits, digits))
+                       % (c.get('okved') or '—', digits or 'ИНН', digits or 'ИНН'))
 
+    if not c.get('city'):
+        say('Город неизвестен — спрашиваю без него, по всей стране. '
+            'Город можно дописать третьим через запятую.')
     say('Спрашиваю про: %s' % qs[0])
 
     engines = []
@@ -179,7 +203,8 @@ def as_text(data):
     head = report.verdict(data)[0]
     lines = [
         '%s' % (c.get('full_name') or c.get('name')),
-        'ИНН %s · %s · %s' % (c.get('inn', ''), c.get('city') or '—', c.get('industry') or '—'),
+        ((('ИНН %s · ' % c['inn']) if c.get('inn') else '')
+         + '%s · %s' % (c.get('city') or 'город не указан', c.get('industry') or '—')),
         'Сайт: %s' % (data['site'] or 'не нашли, проверяли по названию'),
         '',
         head + '.',
