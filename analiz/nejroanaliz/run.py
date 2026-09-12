@@ -232,6 +232,40 @@ def nejroseti(cfg):
     return out
 
 
+def spisok_modelej(cfg):
+    """Список моделей GigaChat, доступных нашему ключу.
+
+    Название модели в запросе и название выпуска в рекламе — разные
+    вещи: у Сбера выпуск зовётся «Ultra 3.5», а модель в примере
+    подписана иначе. Подбирать наугад дорого, сервер скажет точно.
+    """
+    if not cfg.get('gigachat_auth_key'):
+        return 'Ключ GigaChat не заведён — спрашивать не у кого.'
+
+    try:
+        spisok = ai_gigachat.modeli(
+            cfg['gigachat_auth_key'],
+            cfg.get('gigachat_scope', 'GIGACHAT_API_PERS'),
+            verify=cfg.get('gigachat_verify', True),
+            url=cfg.get('gigachat_url') or '')
+    except Exception as e:
+        return 'Не вышло спросить список: %s' % str(e)[:400]
+
+    if not spisok:
+        return 'Сервер ответил, но список моделей пуст.'
+
+    seychas = cfg.get('gigachat_model') or 'GigaChat'
+    lines = ['Модели, доступные вашему ключу:', '']
+    for m in spisok:
+        lines.append(('> %s  — стоит сейчас' % m) if m == seychas else ('  %s' % m))
+
+    if seychas not in spisok:
+        lines.append('')
+        lines.append('Внимание: в config.ini стоит «%s», а в списке её нет. '
+                     'Впишите в gigachat_model название из списка.' % seychas)
+    return '\n'.join(lines)
+
+
 def zhivy_li(cfg):
     """Задаёт каждой нейросети один пустяковый вопрос и говорит, кто
     ответил. Нужна, чтобы не гадать после проверки, почему счёт вдвое

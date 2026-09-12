@@ -202,7 +202,9 @@ HELP = (
     'Проверка занимает одну-две минуты.\n\n'
     'Команда «нейросети» — спрошу YandexGPT и GigaChat, кто из них '
     'сейчас отвечает. Пригодится, если счёт ответов вдруг стал вдвое '
-    'меньше обычного.'
+    'меньше обычного.\n\n'
+    'Команда «модели» — покажу, какие модели GigaChat доступны вашему '
+    'ключу и как они точно называются.'
 )
 
 
@@ -211,6 +213,14 @@ def handle(cfg, chat_id, text):
 
     if text in ('/start', '/help', 'помощь'):
         send(cfg, chat_id, HELP)
+        return
+
+    if text.lower() in ('/modeli', 'модели', 'модель'):
+        send(cfg, chat_id, 'Спрашиваю GigaChat, какие модели вам доступны…')
+        try:
+            send(cfg, chat_id, runner.spisok_modelej(cfg))
+        except Exception as e:
+            send(cfg, chat_id, 'Не получилось: %s' % e)
         return
 
     if text.lower() in ('/seti', 'нейросети', 'сети', 'проверка'):
