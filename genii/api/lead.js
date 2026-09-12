@@ -95,6 +95,7 @@ function clean(value, maxLen) {
 var SOURCE_LABELS = {
   zayavka: 'страница заявки',
   site: 'сайт',
+  analiz: 'бесплатный анализ',
   email: 'письмо',
   telegram: 'телеграм'
 };
@@ -140,7 +141,11 @@ async function sendMail(fields, when) {
 
   var html =
     '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111">' +
-    '<h2 style="margin:0 0 16px">Новая заявка с сайта genii-ai.ru</h2>' +
+    '<h2 style="margin:0 0 16px">' +
+    (String(fields.source || '').toLowerCase() === 'analiz'
+      ? 'Заявка на бесплатный анализ · genii-ai.ru'
+      : 'Новая заявка с сайта genii-ai.ru') +
+    '</h2>' +
     '<table cellpadding="6" style="border-collapse:collapse">' +
     rows.map(function (r) {
       return '<tr>' +
@@ -163,7 +168,8 @@ async function sendMail(fields, when) {
         from: from,
         to: to.split(',').map(function (a) { return a.trim(); }).filter(Boolean),
         reply_to: fields.email,
-        subject: 'Заявка с genii-ai.ru: ' + fields.name + ', ' + fields.company,
+        subject: (String(fields.source || '').toLowerCase() === 'analiz' ? 'Бесплатный анализ' : 'Заявка') +
+                 ' с genii-ai.ru: ' + fields.name + ', ' + fields.company,
         text: text,
         html: html
       })
@@ -238,8 +244,14 @@ module.exports = async function handler(req, res) {
 
   var stamp = moscowTime();
 
+  /* Запрос на бесплатный анализ идёт тем же сообщением, но с другой
+     первой строкой: в общем чате их видно сразу, не вчитываясь. */
+  var head = String(source).toLowerCase() === 'analiz'
+    ? '🎁 Заявка на БЕСПЛАТНЫЙ АНАЛИЗ · genii-ai.ru'
+    : '🆕 Новая заявка · genii-ai.ru';
+
   var text =
-    '🆕 Новая заявка · genii-ai.ru\n' +
+    head + '\n' +
     '👤 Имя: ' + name + '\n' +
     '📞 Телефон: ' + phone + '\n' +
     '📧 Почта: ' + email + '\n' +

@@ -381,6 +381,32 @@ html{scroll-padding-top:84px}
    а не два раздела, и большой отступ между ними читался как пропуск. */
 .lead--tight{margin-bottom:clamp(18px,2vw,26px)}
 
+/* 2а. Бесплатная проверка. Полоса между первым экраном и текстом:
+   единственное место на странице, где предлагают что-то бесплатно,
+   поэтому она обведена тиффани и стоит особняком. */
+.check-sec{padding-top:0}
+.check{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:22px clamp(24px,3vw,40px);
+  padding:clamp(24px,3vw,34px) clamp(24px,3.4vw,40px);
+  border-radius:var(--r-lg);
+  background:var(--surface);
+  border:1px solid rgba(129,216,208,.40);
+  box-shadow:0 18px 50px rgba(0,0,0,.34);
+}
+.check__copy{max-width:62ch}
+.check__kicker{
+  margin:0 0 10px;font-size:13px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--mint);
+}
+.check__h{margin:0 0 10px;font-size:clamp(22px,2.6vw,30px)}
+.check__d{margin:0;color:var(--muted);font-size:17px;line-height:1.55}
+/* Надпись на кнопке длинная. У всех кнопок сайта перенос запрещён,
+   и на узком экране она вылезала за края плашки. Здесь перенос
+   разрешаем: на широком экране места хватает и строка всё равно
+   остаётся одной. */
+.check__btn{flex:none;white-space:normal;text-align:center}
+
 /* 5. Решение */
 /* Картинка с фактами шла впритык к блоку со знаком — граница карточки
    упиралась в край снимка. Разводим их тем же отступом, каким
@@ -1171,6 +1197,8 @@ html{scroll-padding-top:84px}
   .bens{grid-template-columns:1fr}
   .price{grid-template-columns:1fr}
   .feed__fmt{grid-template-columns:1fr}
+  .check{flex-direction:column;align-items:stretch}
+  .check__btn{width:100%}
   .callbar{flex-direction:column;align-items:flex-start;gap:12px}
   /* Полоса встала столбиком — почта должна встать под телефон
      по левому краю, а не уехать вправо. */
