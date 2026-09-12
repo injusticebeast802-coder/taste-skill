@@ -77,6 +77,9 @@ cp -r "$SRC/stati" "$DIR/"
 cp "$SRC/robots.txt" "$SRC/sitemap.xml" "$DIR/"
 cp -r "$SRC/assets" "$SRC/img" "$SRC/fonts" "$DIR/"
 cp "$SRC/hosting-ru/lead.php" "$DIR/"
+# Посредник для программы проверки по ИНН: работает, только если в
+# config.php заполнен TG_RELAY_KEY. Без него файл отвечает отказом.
+cp "$SRC/hosting-ru/tg.php" "$DIR/"
 cp "$SRC/hosting-ru/.htaccess" "$DIR/"
 
 if [ -f "$TMP/config.keep" ]; then
