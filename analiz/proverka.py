@@ -30,8 +30,12 @@ def main():
         return 1
 
     cfg = load_config()
+    # Склеиваем все части: командная строка режет ввод по пробелам,
+    # и «9702020445 Flowwow, доставка цветов» приходило четырьмя
+    # кусками, а бралcя только первый.
+    request = ' '.join(sys.argv[1:]).strip()
     try:
-        data = runner.analyze(sys.argv[1], cfg, progress=lambda m: print(m))
+        data = runner.analyze(request, cfg, progress=lambda m: print(m))
     except runner.RunError as e:
         print('\n%s' % e)
         return 1

@@ -10,6 +10,15 @@ import uuid
 
 import requests
 
+# Когда проверка сертификата снята намеренно (gigachat_verify = no),
+# urllib3 предупреждает об этом на каждом обращении. На 24 вопросах
+# это сорок строк, за которыми не видно самой проверки.
+try:
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except Exception:
+    pass
+
 OAUTH = 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth'
 CHAT = 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions'
 

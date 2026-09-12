@@ -77,10 +77,9 @@ def find_site(names, city, folder_id, api_key):
         return ''
 
     query = ('%s %s официальный сайт' % (names[0], city)).strip()
-    try:
-        docs = raw_search(query, folder_id, api_key)
-    except SearchError:
-        return ''
+    # Ошибку не глотаем: «сайт не нашли» и «поиск не работает» —
+    # разные вещи, и вторую надо чинить, а не принимать за ответ.
+    docs = raw_search(query, folder_id, api_key)
 
     fallback = ''
     for d in docs[:10]:
