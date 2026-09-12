@@ -218,12 +218,19 @@ def main():
     # телеграм спокойно держит полминуты. Через посредника на хостинге
     # столько нельзя: у PHP там свой предел на время работы, и запрос
     # оборвался бы на середине.
-    dozhidanie = 20 if (cfg.get('telegram_api') or '').strip() else 30
+    cherez_sajt = bool((cfg.get('telegram_api') or '').strip())
+    dozhidanie = 20 if cherez_sajt else 30
+
+    # Сколько всего ждать ответа. Через посредника дольше: сайт сперва
+    # сам дозванивается до телеграма, и дозвон бывает долгим. Если
+    # бросить трубку раньше, чем он ответит, мы решим, что связи нет,
+    # хотя она как раз налаживалась.
+    terpenie = 90 if cherez_sajt else dozhidanie + 30
     while True:
         try:
             r = requests.get(tg_url(cfg, 'getUpdates'),
                              params={'offset': offset, 'timeout': dozhidanie},
-                             proxies=tg_proxy(cfg), timeout=dozhidanie + 30).json()
+                             proxies=tg_proxy(cfg), timeout=terpenie).json()
         except Exception as e:
             # Печатаем по-человечески и один раз. Раньше сюда каждые
             # пять секунд валилась строка urllib3 на три строки, и в
@@ -231,6 +238,22 @@ def main():
             beda += 1
             if beda == 1:
                 print('')
+                # Молчать может и наш собственный сайт-посредник:
+                # тогда советовать VPN бессмысленно, дело не в нём.
+                nash_sajt = cherez_sajt and 'api.telegram.org' not in str(e)
+                if nash_sajt:
+                    print('Сайт-посредник не ответил вовремя.')
+                    print('Связь с сайтом есть, но он не успел сходить')
+                    print('в телеграм и вернуть ответ.')
+                    print('')
+                    print('Откройте в браузере адрес из строки telegram_api,')
+                    print('заменив в конце m=... на m=proverka — страница')
+                    print('покажет, достаёт ли хостинг до телеграма.')
+                    print('')
+                    print('Полный текст ошибки: %s' % e)
+                    print('Продолжаю пробовать, каждые 15 секунд…')
+                    time.sleep(15)
+                    continue
                 print('Телеграм не отвечает.')
                 if 'imeout' in str(e) or 'onnect' in str(e):
                     print('Обычно это блокировка у провайдера: сайт и заявки')
