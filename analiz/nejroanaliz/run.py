@@ -198,11 +198,20 @@ def analyze(raw_inn, cfg, progress=None):
     data = report.build(c, site, ai_results, search_results)
     data['search_broken'] = search_broken
 
+    # Рисуем сразу две картинки — в цветах «ГенИИ» и «Промптера».
+    # Заявки приходят с двух сайтов, и менеджер отправляет клиенту ту,
+    # на сайте которого тот оставил заявку. Проверка одна и та же,
+    # цифры в обеих одинаковые, спрашивать у менеджера нечего.
     out_dir = cfg.get('out_dir', 'otchety')
     os.makedirs(out_dir, exist_ok=True)
-    png = os.path.join(out_dir, 'otchet-%s-%s.png' % (digits, time.strftime('%Y%m%d-%H%M')))
-    report.draw_png(data, png)
-    data['png'] = png
+    stamp = time.strftime('%Y%m%d-%H%M')
+    pngs = {}
+    for brand in ('genii', 'prompter'):
+        path = os.path.join(out_dir, 'otchet-%s-%s-%s.png' % (digits, stamp, brand))
+        report.draw_png(data, path, brand=brand)
+        pngs[brand] = path
+    data['png'] = pngs['genii']          # для старых вызовов
+    data['pngs'] = pngs
     return data
 
 

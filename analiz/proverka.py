@@ -47,7 +47,12 @@ def main():
         return 1
 
     print('\n' + runner.as_text(data))
-    print('\nКартинка: %s' % os.path.abspath(data['png']))
+    pngs = data.get('pngs') or {'genii': data['png']}
+    print('\nКартинка для заявки с genii-ai.ru:')
+    print('  %s' % os.path.abspath(pngs['genii']))
+    if pngs.get('prompter'):
+        print('Картинка для заявки с prompter-ai.moscow:')
+        print('  %s' % os.path.abspath(pngs['prompter']))
     return 0
 
 
