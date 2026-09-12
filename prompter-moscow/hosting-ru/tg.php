@@ -75,8 +75,11 @@ if (!defined('TG_TOKEN') || TG_TOKEN === '' || TG_TOKEN === '...') {
    бросить, поэтому пробуем по очереди и заново разрешаем имя каждый
    раз: curl берёт следующий адрес из списка.
 
-   Только IPv4: на хостингах шестая версия часто объявлена, но наружу
-   не работает, и попытка по ней съедает всё отведённое время. */
+   Семейство адресов не навязываем. Раньше здесь стояло «только
+   IPv4» — и это была ошибка: у этого хостинга живёт как раз шестая
+   версия, по ней и уходят заявки с форм. Запрет ровно её и отрезал,
+   оставив мёртвый адрес четвёртой. Пусть curl выбирает сам, как
+   выбирает форма заявок. */
 function otpravit($url, $post_telo, $post_tip, $popytok = 3, $svyaz = 25, $vsego = 150) {
     $posledn = '';
     for ($i = 1; $i <= $popytok; $i++) {
@@ -85,9 +88,6 @@ function otpravit($url, $post_telo, $post_tip, $popytok = 3, $svyaz = 25, $vsego
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $svyaz);
         curl_setopt($ch, CURLOPT_TIMEOUT, $vsego);
         curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-        if (defined('CURL_IPRESOLVE_V4')) {
-            curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        }
         if ($post_telo !== null) {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $post_telo);
