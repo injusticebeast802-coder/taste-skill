@@ -135,6 +135,7 @@ async function sendMail(fields, when) {
     ['Компания', fields.company],
     ['Род деятельности', fields.field],
     ['ЛПР', fields.dm],
+    ['ИНН', fields.inn || '—'],
     ['Источник', sourceLabel(fields.source)],
     ['Время', when]
   ];
@@ -232,6 +233,9 @@ module.exports = async function handler(req, res) {
   var dm = clean(body.dm, 10).toLowerCase();
   // Источник заявки: необязательное поле, на проверку не влияет.
   var source = clean(body.source, 40);
+  // ИНН приходит только с бесплатного анализа и только цифрами.
+  var innRaw = String(body.inn || '').replace(/\D/g, '');
+  var inn = (innRaw.length === 10 || innRaw.length === 12) ? innRaw : '';
 
   var digits = phone.replace(/\D/g, '');
 
@@ -256,6 +260,7 @@ module.exports = async function handler(req, res) {
     '📞 Телефон: ' + phone + '\n' +
     '📧 Почта: ' + email + '\n' +
     '🏢 Компания: ' + company + '\n' +
+    (inn ? '🔢 ИНН: ' + inn + '\n' : '') +
     '📦 Род деятельности: ' + field + '\n' +
     '👔 ЛПР: ' + dm + '\n' +
     '📍 Источник: ' + sourceLabel(source) + '\n' +
@@ -281,7 +286,8 @@ module.exports = async function handler(req, res) {
     // Телеграм принял заявку. Дублируем письмом, если почта настроена;
     // её сбой не должен превращать принятую заявку в ошибку для клиента.
     var mailed = await sendMail(
-      { name: name, phone: phone, email: email, company: company, field: field, dm: dm, source: source },
+      { name: name, phone: phone, email: email, company: company, field: field,
+        inn: inn, dm: dm, source: source },
       stamp
     );
 
