@@ -92,16 +92,70 @@ def topic_of(text):
     return ''
 
 
-def shapes_for(industry, kind):
-    """Подбирает, как спрашивают про этот род занятий."""
-    topic = topic_of(industry) or topic_of(kind)
-    if topic and topic in SHAPES:
-        return list(SHAPES[topic])
+def _narrow_subjects(phrase):
+    """Из «строительство деревянных домов и бань» делает три запроса:
+    саму фразу, «строительство деревянных домов» и «строительство бань».
 
-    # Тема не узнана — спрашиваем теми же словами, что прислали.
-    # Формулировка выйдет казённой, но запрос осмысленным.
-    base = (industry or kind or '').strip().lower()
-    return [base] if len(base) >= 3 else []
+    Клиент ищет что-то одно, а не оба сразу, и нейросеть по длинной
+    фразе с «и» отвечает про что-нибудь одно наугад. Общее слово
+    берём первое: после него в русском идёт родительный падеж, и
+    «строительство бань» остаётся грамотным без склонения.
+    """
+    p = ' '.join((phrase or '').split())
+    if not p:
+        return []
+    out = [p]
+
+    words = p.split(' ')
+    if len(words) < 3:
+        return out
+    head, rest = words[0], ' '.join(words[1:])
+    parts = [x.strip(' ,') for x in rest.split(' и ')]
+    parts = [x for x in parts if len(x) >= 4]
+    if len(parts) >= 2:
+        for x in parts:
+            q = '%s %s' % (head, x)
+            if q not in out:
+                out.append(q)
+    return out
+
+
+def subjects_for(company):
+    """Два набора запросов: чем компания занимается на самом деле и
+    рынок вообще.
+
+    Менеджер вписывает в заявку слова клиента — «строительство
+    деревянных домов и бань». Раньше мы по слову «строит» брали общую
+    заготовку «строительство дома», а узкие слова выбрасывали: в
+    ответе оказывались домостроительные комбинаты, и выходило, что
+    компанию никто не называет. Теперь слова из заявки идут первыми и
+    занимают большую часть вопросов, а общая заготовка остаётся
+    второй — по ней видно, знают ли компанию на широком рынке.
+
+    Из реестра слова берём иначе. «Строительство жилых и нежилых
+    зданий» — это язык ОКВЭД, клиент так не спрашивает, и резать эту
+    фразу пополам нельзя: получится «строительство жилых». Там
+    спрашиваем общими словами, а саму строчку ОКВЭД берём, только
+    если тему не узнали совсем.
+    """
+    industry, kind = company.get('industry'), company.get('kind')
+    own = ' '.join((kind or industry or '').split()).lower().strip(' .,;')
+
+    topic = topic_of(industry) or topic_of(kind)
+    wide = list(SHAPES.get(topic, [])) if topic else []
+
+    if len(own) < 3:
+        return [], wide
+
+    if company.get('kind_from_lead'):
+        narrow = _narrow_subjects(own)
+    elif topic:
+        narrow = []
+    else:
+        narrow = [own]
+
+    wide = [w for w in wide if w not in narrow]
+    return narrow, wide
 
 
 # Приписка к каждому вопросу. Без неё нейросеть часто отвечает
@@ -112,35 +166,45 @@ ASK_TAIL = ' Ответь списком: пять конкретных комп
 
 
 def build(company, limit=12):
-    """Возвращает список запросов вида «стоматология в Москве»."""
+    """Возвращает список запросов вида «строительство бань, Москва»."""
     city = (company.get('city') or '').strip()
-    shapes = shapes_for(company.get('industry'), company.get('kind'))
-    if not shapes:
+    narrow, wide = subjects_for(company)
+    if not narrow and not wide:
         return []
 
-    with_city = []
-    for sh in shapes:
-        with_city.append('%s, %s' % (sh, city) if city else sh)
+    def ask(subjects, want):
+        """Сначала первый вопрос ко всем темам, потом второй ко всем:
+        так каждая тема успевает прозвучать, даже если вопросов мало."""
+        out = []
+        for pattern in PATTERNS:
+            for sub in subjects:
+                q = pattern % ('%s, %s' % (sub, city) if city else sub)
+                if q not in out:
+                    out.append(q)
+                if len(out) >= want:
+                    return out
+        return out
 
-    out = []
-    for i, pattern in enumerate(PATTERNS):
-        for j, subject in enumerate(with_city):
-            if (i + j) % 2 == 0 or len(with_city) == 1:
-                out.append(pattern % subject)
-    # Порядок: сначала самые обычные вопросы
-    seen, uniq = set(), []
-    for q in out:
-        if q not in seen:
-            seen.add(q)
-            uniq.append(q)
-    return uniq[:limit]
+    if not narrow:
+        return ask(wide, limit)[:limit]
+
+    # Две трети вопросов — про то, чем компания занимается на самом
+    # деле, треть — про рынок вообще.
+    n_narrow = limit if not wide else max(1, int(round(limit * 0.7)))
+    out = ask(narrow, n_narrow)
+    left = limit - len(out)
+    if left > 0 and wide:
+        out += [q for q in ask(wide, left) if q not in out][:left]
+    return out[:limit]
 
 
 def search_queries(company, limit=6):
     """Запросы для обычного поиска: там пишут не вопросами, а коротко."""
     city = (company.get('city') or '').strip()
-    shapes = shapes_for(company.get('industry'), company.get('kind'))
+    narrow, wide = subjects_for(company)
     out = []
-    for sh in shapes:
-        out.append('%s %s' % (sh, city) if city else sh)
+    for sub in narrow + wide:
+        q = '%s %s' % (sub, city) if city else sub
+        if q not in out:
+            out.append(q)
     return out[:limit]

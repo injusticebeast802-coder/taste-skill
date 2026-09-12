@@ -87,13 +87,18 @@ def analyze(raw_inn, cfg, progress=None):
                            'Или пришлите ИНН — тогда достаточно одних цифр.')
         c = {'name': brand, 'full_name': brand, 'inn': '', 'okved': '',
              'kind': kind_override, 'industry': kind_override,
+             'kind_from_lead': True,
              'city': city_override, 'status': 'ACTIVE'}
 
     if brand:
         c['brand'] = brand
     if kind_override:
+        # Пометка важна для составления вопросов. Слова из заявки —
+        # это слова клиента, ими и надо спрашивать. Строчка ОКВЭД из
+        # реестра — казённая, её в вопрос ставить нельзя.
         c['industry'] = kind_override
         c['kind'] = kind_override
+        c['kind_from_lead'] = True
     if city_override:
         c['city'] = city_override
 
@@ -143,7 +148,10 @@ def analyze(raw_inn, cfg, progress=None):
     if not c.get('city'):
         say('Город неизвестен — спрашиваю без него, по всей стране. '
             'Город можно дописать третьим через запятую.')
-    say('Спрашиваю про: %s' % qs[0])
+    # Показываем все темы, а не первый вопрос: так сразу видно, если
+    # узкие слова из заявки потерялись и спрашиваем не о том.
+    _narrow, _wide = queries.subjects_for(c)
+    say('Спрашиваю про: %s' % ', '.join(_narrow + _wide))
 
     engines = []
     if cfg.get('yandex_api_key') and cfg.get('yandex_folder_id'):
