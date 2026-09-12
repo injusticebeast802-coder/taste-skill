@@ -154,7 +154,15 @@ def handle(cfg, chat_id, text):
 
     try:
         data = runner.analyze(text, cfg, progress=progress)
-        send_photo(cfg, chat_id, data['png'], runner.as_text(data))
+        # Две картинки: одна и та же проверка в оформлении двух наших
+        # сайтов. Менеджер пересылает клиенту ту, на сайте которого
+        # тот оставил заявку.
+        pngs = data.get('pngs') or {'genii': data['png']}
+        send_photo(cfg, chat_id, pngs['genii'],
+                   runner.as_text(data) + '\n\n↑ для заявки с genii-ai.ru')
+        if pngs.get('prompter'):
+            send_photo(cfg, chat_id, pngs['prompter'],
+                       'То же самое для заявки с prompter-ai.moscow')
     except runner.RunError as e:
         send(cfg, chat_id, str(e))
     except Exception as e:
