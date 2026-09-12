@@ -57,26 +57,41 @@ def raw_search(query, folder_id, api_key, timeout=20):
     return out
 
 
-def find_site(company_name, city, folder_id, api_key):
+def find_site(names, city, folder_id, api_key):
     """Ищет официальный сайт компании по названию.
 
     Берём первую ссылку, которая не ведёт на справочник или соцсеть:
     там компания тоже есть, но это не её сайт.
+
+    names — все известные написания. Требовать совпадения названия в
+    заголовке нельзя: в реестре «ФЛАУВАУ», а на сайте написано
+    Flowwow, и настоящий сайт отбраковывался. Поэтому имя проверяем,
+    но если ни одна ссылка не подошла — берём первую подходящую
+    не-справочную: по запросу с названием и словами «официальный
+    сайт» она почти всегда и есть искомая.
     """
-    query = ('%s %s официальный сайт' % (company_name, city)).strip()
+    if isinstance(names, str):
+        names = [names]
+    names = [n for n in names if n]
+    if not names:
+        return ''
+
+    query = ('%s %s официальный сайт' % (names[0], city)).strip()
     try:
         docs = raw_search(query, folder_id, api_key)
     except SearchError:
         return ''
 
+    fallback = ''
     for d in docs[:10]:
         host = matching.domain_of(d['url'])
         if not host or any(bad in host for bad in AGGREGATORS):
             continue
-        # Название должно встречаться в заголовке — иначе это чужой сайт
-        if matching.mentioned(d['title'] + ' ' + d['text'], company_name):
+        if not fallback:
+            fallback = host
+        if matching.mentioned_any(d['title'] + ' ' + d['text'], names):
             return host
-    return ''
+    return fallback
 
 
 # Справочники, соцсети и агрегаторы: компания там есть почти всегда,
@@ -90,7 +105,7 @@ AGGREGATORS = (
 )
 
 
-def position_of(query, site, company_name, folder_id, api_key):
+def position_of(query, site, names, folder_id, api_key):
     """На каком месте компания по этому запросу.
 
     Если известен сайт — ищем его домен. Если нет — ищем упоминание
@@ -105,6 +120,6 @@ def position_of(query, site, company_name, folder_id, api_key):
             if matching.domain_of(d['url']) == site:
                 return i, d['url']
         else:
-            if matching.mentioned(d['title'] + ' ' + d['text'], company_name):
+            if matching.mentioned_any(d['title'] + ' ' + d['text'], names):
                 return i, d['url']
     return None, ''

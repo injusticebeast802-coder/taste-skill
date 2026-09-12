@@ -25,6 +25,29 @@ def mentioned(text, name):
     return n in fold(text)
 
 
+def mentioned_any(text, names):
+    """То же, но по нескольким именам сразу.
+
+    В реестре компания записана по-русски — «ФЛАУВАУ», — а бренд
+    известен латиницей, Flowwow. Нейросеть и поиск называют бренд,
+    а не запись из реестра, поэтому ищем все известные написания.
+    """
+    t = fold(text)
+    for name in names:
+        n = fold(name)
+        if len(n) >= 3 and n in t:
+            return True
+    return False
+
+
+def position_any(text, names):
+    """Каким по счёту названо любое из написаний."""
+    for name in names:
+        if mentioned(text, name):
+            return position(text, name)
+    return None
+
+
 def position(text, name):
     """Каким по счёту названо в перечислении.
 
