@@ -200,12 +200,23 @@ if ($metod === 'proverka') {
     exit;
 }
 
-$url = 'https://api.telegram.org/bot' . TG_TOKEN . '/' . $metod;
+/* Куда обращаться. Обычно прямо в Телеграм. Но если до него с
+   хостинга хода нет — а это видно по m=proverka, — в config.php
+   вписывают адрес работника Cloudflare, и дальше идём через него:
+   у работника токен свой, наш сюда не подставляется. */
+$cherez_rabotnika = defined('TG_WORKER') && TG_WORKER !== '';
+
+if ($cherez_rabotnika) {
+    $url = TG_WORKER . (strpos(TG_WORKER, '?') === false ? '?' : '&')
+         . 'k=' . rawurlencode(TG_RELAY_KEY) . '&m=' . rawurlencode($metod);
+} else {
+    $url = 'https://api.telegram.org/bot' . TG_TOKEN . '/' . $metod;
+}
 
 $parametry = $_GET;
 unset($parametry['k'], $parametry['m']);
 if ($parametry) {
-    $url .= '?' . http_build_query($parametry);
+    $url .= (strpos($url, '?') === false ? '?' : '&') . http_build_query($parametry);
 }
 
 $telo = null;
@@ -249,7 +260,9 @@ $popytok = ($metod === 'getUpdates') ? 1 : 3;
 $r = otpravit($url, $telo, $tip, $popytok);
 
 if (!$r['ok']) {
-    otkaz(502, 'Хостинг не достучался до Телеграма за ' . $popytok . ' поп.: ' . $r['oshibka']
+    otkaz(502, 'Хостинг не достучался до '
+             . ($cherez_rabotnika ? 'работника Cloudflare' : 'Телеграма')
+             . ' за ' . $popytok . ' поп.: ' . $r['oshibka']
              . '. Откройте этот же адрес с m=proverka вместо m=' . $metod
              . ' — покажет, какие адреса Телеграма отсюда отвечают.');
 }
