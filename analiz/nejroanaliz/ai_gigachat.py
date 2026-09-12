@@ -26,6 +26,20 @@ def _get_token(auth_key, scope, verify, timeout=30):
     if _token['value'] and _token['until'] > now + 60:
         return _token['value']
 
+    try:
+        return _request_token(auth_key, scope, verify, timeout, now)
+    except requests.exceptions.SSLError as e:
+        raise AIError('GigaChat: не сошёлся сертификат сервера. Сбер подписывает '
+                      'свой сервер российским сертификатом, которого нет в Windows. '
+                      'Поставьте в config.ini строку gigachat_verify = no '
+                      'или установите сертификат с gu.ru. (%s)' % str(e)[:120])
+    except requests.exceptions.RequestException as e:
+        raise AIError('GigaChat недоступен: сервер ngw.devices.sberbank.ru не ответил. '
+                      'Обычно это или сертификат — тогда поможет gigachat_verify = no, — '
+                      'или блокировка порта 9443 у провайдера. (%s)' % str(e)[:120])
+
+
+def _request_token(auth_key, scope, verify, timeout, now):
     r = requests.post(
         OAUTH,
         headers={'Authorization': 'Basic ' + auth_key,

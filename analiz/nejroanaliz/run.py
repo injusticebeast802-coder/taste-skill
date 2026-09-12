@@ -11,6 +11,37 @@ class RunError(Exception):
     pass
 
 
+def parse_request(raw):
+    """Разбирает присланное: ИНН, а за ним — необязательные уточнения.
+
+        7707083893
+        7707083893 Flowwow
+        7707083893 Flowwow, доставка цветов
+
+    Уточнения нужны, потому что в реестре компания записана
+    по-русски — «ФЛАУВАУ», — а нейросети и поиск знают бренд
+    латиницей: Flowwow. Совпадений по реестровому имени не будет
+    никогда, и проверка покажет ноль на пустом месте.
+    """
+    text = str(raw or '').strip()
+    digits = ''
+    for ch in text:
+        if ch.isdigit():
+            digits += ch
+        elif digits:
+            break
+
+    tail = text[text.find(digits) + len(digits):].strip(' ,;:-') if digits else text
+
+    brand, kind = '', ''
+    if tail:
+        parts = [p.strip() for p in tail.split(',', 1)]
+        brand = parts[0]
+        if len(parts) > 1:
+            kind = parts[1]
+    return digits, brand, kind
+
+
 def analyze(raw_inn, cfg, progress=None):
     """Собирает отчёт. progress — функция, которой шлём строки о ходе:
     проверка занимает минуту-две, и без них бот кажется зависшим."""
@@ -22,7 +53,7 @@ def analyze(raw_inn, cfg, progress=None):
             except Exception:
                 pass
 
-    digits = inn_mod.normalize(raw_inn)
+    digits, brand, kind_override = parse_request(raw_inn)
     problem = inn_mod.explain(digits)
     if problem:
         raise RunError(problem)
@@ -39,21 +70,48 @@ def analyze(raw_inn, cfg, progress=None):
                        'Проверьте интернет и ключ dadata_token.\n\n%s' % e)
     c['inn'] = digits
 
+    if brand:
+        c['brand'] = brand
+    if kind_override:
+        c['industry'] = kind_override
+        c['kind'] = kind_override
+
+    # Все написания, под которыми компанию могут назвать.
+    c['names'] = [n for n in (c.get('brand'), c.get('name')) if n]
+
     if c.get('status') and c['status'] != 'ACTIVE':
         say('Внимание: по справочнику компания не действующая.')
+
+    say('Компания: %s · %s · %s' % (c.get('full_name') or c.get('name'),
+                                    c.get('city') or 'город не указан',
+                                    c.get('industry') or 'род занятий не определён'))
 
     # --- сайт ---
     site = ''
     if cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
         say('Ищу сайт компании…')
-        site = search_yandex.find_site(c['name'], c.get('city', ''),
+        site = search_yandex.find_site(c['names'], c.get('city', ''),
                                        cfg['yandex_folder_id'], cfg['yandex_search_key'])
+        if site:
+            # Домен — ещё одно написание бренда: flowwow.com даёт
+            # «flowwow», и его нейросети называют чаще реестрового имени.
+            word = site.split('.')[0]
+            if len(word) > 3 and word not in ('www', 'shop', 'site'):
+                c['names'].append(word)
+            say('Сайт: %s' % site)
+        else:
+            say('Сайт не нашли — дальше проверяю по названию.')
 
     # --- вопросы нейросетям ---
     qs = queries.build(c, limit=int(cfg.get('questions', 12)))
     if not qs:
-        raise RunError('Не смог понять род занятий компании — по ОКВЭД %s ничего не подобралось. '
-                       'Проверьте вручную.' % c.get('okved'))
+        raise RunError('Не понял род занятий компании: в справочнике ОКВЭД %s, '
+                       'а по нему тему запроса не составить.\n\n'
+                       'Пришлите так: %s Название, чем занимается\n'
+                       'Например: %s Flowwow, доставка цветов'
+                       % (c.get('okved') or '—', digits, digits))
+
+    say('Спрашиваю про: %s' % qs[0])
 
     engines = []
     if cfg.get('yandex_api_key') and cfg.get('yandex_folder_id'):
@@ -77,10 +135,10 @@ def analyze(raw_inn, cfg, progress=None):
                     'position': None, 'error': ''}
             try:
                 item['answer'] = ask(q)
-                item['mentioned'] = matching.mentioned(item['answer'], c['name'])
+                item['mentioned'] = matching.mentioned_any(item['answer'], c['names'])
                 if not item['mentioned'] and site:
                     item['mentioned'] = matching.domain_of(site) in item['answer'].lower()
-                item['position'] = matching.position(item['answer'], c['name'])
+                item['position'] = matching.position_any(item['answer'], c['names'])
             except Exception as e:
                 item['error'] = str(e)
             ai_results.append(item)
@@ -98,7 +156,7 @@ def analyze(raw_inn, cfg, progress=None):
             item = {'query': q, 'position': None, 'url': '', 'error': ''}
             try:
                 pos, url = search_yandex.position_of(
-                    q, site, c['name'], cfg['yandex_folder_id'], cfg['yandex_search_key'])
+                    q, site, c['names'], cfg['yandex_folder_id'], cfg['yandex_search_key'])
                 item['position'], item['url'] = pos, url
             except Exception as e:
                 item['error'] = str(e)
@@ -136,9 +194,22 @@ def as_text(data):
     if data['rivals']:
         lines.append('Чаще называют: ' + ', '.join(n for n, _ in data['rivals'][:3]) + '.')
 
-    errs = [r['error'] for r in data['ai_results'] if r.get('error')]
-    if errs:
+    # По каждой нейросети отдельно: если одна не ответила совсем,
+    # общее число «0 из 12» вводит в заблуждение — кажется, что
+    # спросили дважды, а спросили один раз.
+    if data['ai_by_engine']:
         lines.append('')
-        lines.append('Часть вопросов не прошла (%d из %d): %s' % (
-            len(errs), len(data['ai_results']), errs[0][:120]))
+        for name, e in data['ai_by_engine'].items():
+            lines.append('%s: назвали в %d из %d ответов.' % (name, e['named'], e['total']))
+
+    failed = {}
+    for r in data['ai_results']:
+        if r.get('error'):
+            failed.setdefault(r['engine'], [0, r['error']])
+            failed[r['engine']][0] += 1
+    for name, (n, err) in failed.items():
+        lines.append('')
+        lines.append('%s не ответил на %d вопросов.' % (name, n))
+        lines.append(err[:400])
+
     return '\n'.join(lines)

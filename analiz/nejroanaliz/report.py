@@ -75,11 +75,38 @@ def build(company, site, ai_results, search_results):
         'search_best': min(s_positions) if s_positions else None,
         'ai_results': ai_results,
         'search_results': search_results,
-        'rivals': _rivals(ai_results, company.get('name', '')),
+        'rivals': _rivals(ai_results, company.get('names') or [company.get('name', '')]),
     }
 
 
-def _rivals(ai_results, own_name):
+# Слова, по которым видно, что в нумерованной строке не название
+# компании, а совет или пояснение. Без этого в «кого называют вместо
+# вас» попадали «Рекомендации друзей и знакомых» и «Вы можете
+# использовать поисковые системы».
+NOT_A_NAME = (
+    'вы ', 'вам ', 'ваш', 'если ', 'можно ', 'можете', 'стоит ', 'нужно ',
+    'рекоменд', 'поиск', 'отзыв', 'уточн', 'обратит', 'посмотр', 'спрос',
+    'департамент', 'министерств', 'портал', 'справочник', 'каталог',
+    'официальный сайт', 'сайт ', 'приложени', 'сервис', 'карт',
+)
+
+
+def _looks_like_name(cand):
+    """Название компании — короткое и без глаголов.
+
+    Нейросеть в нумерованных списках даёт и советы, и пояснения:
+    отличаем по длине и по словам-приметам.
+    """
+    c = cand.strip()
+    if len(c) < 3 or len(c) > 42:
+        return False
+    if len(c.split()) > 4:
+        return False
+    low = c.lower()
+    return not any(w in low for w in NOT_A_NAME)
+
+
+def _rivals(ai_results, own_names):
     """Кого нейросети называют вместо компании.
 
     Берём строки нумерованных списков: в них нейросеть и перечисляет
@@ -97,8 +124,10 @@ def _rivals(ai_results, own_name):
             m = re.match(r'^\s*\d+[.)]\s*([^—–:\n]{3,60})', line)
             if not m:
                 continue
-            cand = m.group(1).strip(' *«»"\'.')
-            if len(cand) < 3 or matching.mentioned(cand, own_name):
+            cand = m.group(1).strip(' *«»"\'.,')
+            if not _looks_like_name(cand):
+                continue
+            if matching.mentioned_any(cand, own_names):
                 continue
             key = matching.fold(cand)
             if key:
