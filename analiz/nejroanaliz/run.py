@@ -226,7 +226,9 @@ def nejroseti(cfg):
     if cfg.get('gigachat_auth_key'):
         out.append(('GigaChat', lambda q: ai_gigachat.ask(
             q, cfg['gigachat_auth_key'], cfg.get('gigachat_scope', 'GIGACHAT_API_PERS'),
-            verify=cfg.get('gigachat_verify', True))))
+            verify=cfg.get('gigachat_verify', True),
+            model=cfg.get('gigachat_model') or 'GigaChat',
+            url=cfg.get('gigachat_url') or '')))
     return out
 
 

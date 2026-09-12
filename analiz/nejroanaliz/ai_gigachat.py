@@ -20,6 +20,11 @@ except Exception:
     pass
 
 OAUTH = 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth'
+
+# Обычный адрес. У Сбера их несколько: старый — gigachat.devices…,
+# новый, для моделей третьего поколения, — api.giga.chat. Путь у них
+# разный (у старого есть /api/), поэтому в config.ini задаётся весь
+# адрес целиком, а не кусок: гадать, куда подставлять /api/, не надо.
 CHAT = 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions'
 
 
@@ -74,10 +79,9 @@ def _request_token(auth_key, scope, verify, timeout, now):
     return tok
 
 
-def ask(question, auth_key, scope='GIGACHAT_API_PERS', verify=True, model='GigaChat', timeout=90):
-    tok = _get_token(auth_key, scope, verify)
-    r = requests.post(
-        CHAT,
+def _sprosit(url, tok, model, question, verify, timeout):
+    return requests.post(
+        url,
         headers={'Authorization': 'Bearer ' + tok,
                  'Content-Type': 'application/json',
                  'Accept': 'application/json'},
@@ -86,17 +90,33 @@ def ask(question, auth_key, scope='GIGACHAT_API_PERS', verify=True, model='GigaC
               'temperature': 0.2, 'max_tokens': 1200},
         timeout=timeout, verify=verify,
     )
-    if r.status_code == 401:
-        # Пропуск мог протухнуть раньше срока — пробуем ещё раз, один
-        _token['value'] = ''
-        tok = _get_token(auth_key, scope, verify)
-        r = requests.post(
-            CHAT,
-            headers={'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json'},
-            json={'model': model, 'messages': [{'role': 'user', 'content': question}],
-                  'temperature': 0.2, 'max_tokens': 1200},
-            timeout=timeout, verify=verify,
-        )
+
+
+def ask(question, auth_key, scope='GIGACHAT_API_PERS', verify=True,
+        model='GigaChat', timeout=90, url=''):
+    chat = (url or '').strip() or CHAT
+    tok = _get_token(auth_key, scope, verify)
+
+    try:
+        r = _sprosit(chat, tok, model, question, verify, timeout)
+        if r.status_code == 401:
+            # Пропуск мог протухнуть раньше срока — пробуем ещё раз, один
+            _token['value'] = ''
+            tok = _get_token(auth_key, scope, verify)
+            r = _sprosit(chat, tok, model, question, verify, timeout)
+    except requests.exceptions.RequestException as e:
+        raise AIError('GigaChat: не достучались до %s. (%s)' % (chat, str(e)[:150]))
+
+    if r.status_code == 404:
+        raise AIError('GigaChat не знает такого адреса или модели (404). '
+                      'Адрес: %s, модель: %s. Проверьте строки gigachat_url и '
+                      'gigachat_model в config.ini.' % (chat, model))
+    if r.status_code == 403:
+        raise AIError('GigaChat отказал в доступе к модели «%s» (403). Модели '
+                      'третьего поколения выдают не всем: Ultra в бесплатном '
+                      'режиме доступна только физическим лицам. Уберите строку '
+                      'gigachat_model, чтобы вернуться к обычной модели. (%s)'
+                      % (model, r.text[:150]))
     if r.status_code != 200:
         raise AIError('GigaChat ответил ошибкой %d: %s' % (r.status_code, r.text[:200]))
 
