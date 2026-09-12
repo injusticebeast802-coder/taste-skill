@@ -66,6 +66,7 @@ def build(company, site, ai_results, search_results):
     return {
         'company': company,
         'site': site,
+        'search_broken': '',
         'ai_total': len(ok),
         'ai_named': len(named),
         'ai_by_engine': engines,
@@ -226,7 +227,8 @@ def draw_png(data, path):
          'ответов нейросетей, где вас назвали', MINT),
         (('%d-е' % data['ai_best_position']) if data['ai_best_position'] else '—',
          'лучшее место в списке нейросети', SKY),
-        (('%d-е' % data['search_best']) if data['search_best'] else 'нет в топ-20',
+        (('%d-е' % data['search_best']) if data['search_best']
+         else ('не смотрели' if data.get('search_broken') else 'нет в топ-20'),
          'лучшее место в поиске Яндекса', LAV),
     ]
     cw = (W - PAD * 2 - 24 * 2) // 3
