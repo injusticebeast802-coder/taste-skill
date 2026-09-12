@@ -49,7 +49,9 @@ if errorlevel 1 (
 set INN=
 set /p INN=Vvedite INN i nazhmite Enter: 
 echo.
-%PY% proverka.py %INN%
+rem Kavychki obyazatelny: bez nih do programmy doezzhaet tolko
+rem pervoe slovo, a nazvanie i rod zanyatiy teryayutsya.
+%PY% proverka.py "%INN%"
 echo.
 pause
 popd

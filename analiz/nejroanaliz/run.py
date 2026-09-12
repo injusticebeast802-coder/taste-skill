@@ -111,8 +111,14 @@ def analyze(raw_inn, cfg, progress=None):
     site = ''
     if cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
         say('Ищу сайт компании…')
-        site = search_yandex.find_site(c['names'], c.get('city', ''),
-                                       cfg['yandex_folder_id'], cfg['yandex_search_key'])
+        try:
+            site = search_yandex.find_site(c['names'], c.get('city', ''),
+                                           cfg['yandex_folder_id'], cfg['yandex_search_key'])
+        except Exception as e:
+            site = ''
+            say('Поиск Яндекса не ответил: %s' % str(e)[:200])
+            say('Проверьте yandex_search_key и роль search-api.webSearch.user. '
+                'Мест в выдаче в отчёте не будет.')
         if site:
             # Домен — ещё одно написание бренда: flowwow.com даёт
             # «flowwow», и его нейросети называют чаще реестрового имени.
