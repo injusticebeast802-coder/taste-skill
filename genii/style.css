@@ -998,6 +998,10 @@ html{scroll-padding-top:84px}
 
 .frm{display:grid;gap:18px}
 .frm__f{display:grid;gap:8px}
+/* display:grid у .frm__f перебивает встроенное правило браузера для
+   атрибута hidden, и спрятанное поле оставалось на виду. То же самое
+   уже было сделано для окна и кнопки «наверх». */
+.frm__f[hidden]{display:none}
 .frm__l{font-size:15px;font-weight:600;color:#333749}
 .frm__i{
   width:100%;padding:13px 15px;
@@ -1007,6 +1011,9 @@ html{scroll-padding-top:84px}
   transition:border-color .18s var(--ease),box-shadow .18s var(--ease);
 }
 .frm__i::placeholder{color:#8E93A8}
+/* Пометка «если знаете» у необязательного поля: мельче и бледнее
+   подписи, чтобы не читалась как часть названия поля. */
+.frm__opt{font-weight:400;font-size:13.5px;color:#8E93A8;margin-left:6px}
 .frm__i:focus{outline:none;border-color:var(--accent-ink);box-shadow:0 0 0 3px rgba(81,64,160,.18)}
 
 /* Автозаполнение. Браузер закрашивает подставленное поле своим фоном,

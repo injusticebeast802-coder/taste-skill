@@ -32,6 +32,8 @@
   var fEmail = document.getElementById('f-email');
   var fCompany = document.getElementById('f-company');
   var fField = document.getElementById('f-field');
+  var fInn = document.getElementById('f-inn');
+  var fInnWrap = document.getElementById('f-inn-wrap');
   var fHoney = document.getElementById('f-website');
   var fAgree1 = document.getElementById('f-agree1');
   var fAgree2 = document.getElementById('f-agree2');
@@ -85,6 +87,14 @@
     if (form) form.setAttribute('data-source', src || defSource);
     if (modalTitle) modalTitle.textContent = ttl || defTitle;
     if (modalSub) modalSub.textContent = sub || defSub;
+
+    // ИНН нужен только бесплатному анализу: по нему проверка узнаёт
+    // город и отличает клиента от десятка однофамильцев в реестре.
+    // В обычной заявке поле лишнее и только удлиняет форму.
+    if (fInnWrap) {
+      fInnWrap.hidden = !(opener && opener.getAttribute('data-form-inn'));
+      if (fInnWrap.hidden && fInn) fInn.value = '';
+    }
 
     lastFocused = document.activeElement;
     modal.hidden = false;
@@ -298,6 +308,35 @@
     return ok;
   }
 
+  /* Проверка ИНН по контрольным цифрам, а не по длине.
+
+     Опечатка в одной цифре даёт существующий на вид, но чужой номер,
+     и разбор уйдёт по другой компании. Поле необязательное: пустое
+     считается заполненным верно, ошибку показываем только тому, кто
+     начал вводить. */
+  function innValid(raw) {
+    var d = String(raw || '').replace(/\D/g, '');
+    function sum(weights) {
+      var t = 0;
+      for (var i = 0; i < weights.length; i++) t += Number(d[i]) * weights[i];
+      return t % 11 % 10;
+    }
+    if (d.length === 10) return sum([2, 4, 10, 3, 5, 9, 4, 6, 8]) === Number(d[9]);
+    if (d.length === 12) {
+      return sum([7, 2, 4, 10, 3, 5, 9, 4, 6, 8]) === Number(d[10]) &&
+             sum([3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8]) === Number(d[11]);
+    }
+    return false;
+  }
+
+  function validInn() {
+    if (!fInn || !fInnWrap || fInnWrap.hidden) return true;
+    var raw = fInn.value.trim();
+    var ok = raw === '' || innValid(raw);
+    setError(fInn, 'inn', !ok);
+    return ok;
+  }
+
   function validAgree() {
     var ok = fAgree1.checked && fAgree2.checked;
     var msg = form.querySelector('[data-err="agree"]');
@@ -324,6 +363,15 @@
     fEmail.addEventListener('blur', onBlur(fEmail, validEmail));
     fCompany.addEventListener('blur', onBlur(fCompany, validCompany));
     fField.addEventListener('blur', onBlur(fField, validField));
+    if (fInn) {
+      // В ИНН только цифры: люди вставляют его из документов вместе
+      // с пробелами и подписью «ИНН».
+      fInn.addEventListener('input', function () {
+        var clean = fInn.value.replace(/\D/g, '').slice(0, 12);
+        if (clean !== fInn.value) fInn.value = clean;
+      });
+      fInn.addEventListener('blur', onBlur(fInn, validInn));
+    }
     fAgree1.addEventListener('change', validAgree);
     fAgree2.addEventListener('change', validAgree);
 
@@ -358,10 +406,11 @@
       var okEmail = validEmail();
       var okCompany = validCompany();
       var okField = validField();
+      var okInn = validInn();
       var okDm = validDm();
       var okAgree = validAgree();
 
-      if (!(okName && okPhone && okEmail && okCompany && okField && okDm && okAgree)) {
+      if (!(okName && okPhone && okEmail && okCompany && okField && okInn && okDm && okAgree)) {
         var firstBad = form.querySelector('.is-bad');
         if (firstBad && firstBad.focus) firstBad.focus();
         return;
@@ -378,6 +427,7 @@
         email: fEmail.value.trim(),
         company: fCompany.value.trim(),
         field: fField.value.trim(),
+        inn: (fInn && fInnWrap && !fInnWrap.hidden) ? fInn.value.trim() : '',
         dm: dmValue(),
         source: leadSource()
       })

@@ -263,6 +263,7 @@
       <button class="btn btn--red btn--hero check__btn"
               data-open-form
               data-form-source="analiz"
+              data-form-inn="yes"
               data-form-title="Бесплатный анализ нейровыдачи"
               data-form-sub="Заполните форму — проверим вашу нишу и пришлём разбор.">
         <span class="btn__label">Получить бесплатный анализ</span>
@@ -662,6 +663,19 @@
           <label class="frm__l" for="f-company">Название компании</label>
           <input class="frm__i" id="f-company" name="company" type="text" autocomplete="organization" maxlength="80" required>
           <p class="frm__e" data-err="company" hidden>Укажите название компании</p>
+        </div>
+
+        <!-- ИНН показывается только у бесплатного анализа: кнопка
+             открывает окно с признаком data-form-inn. По ИНН проверка
+             берёт город и убеждается, что компания та самая — по
+             одному названию в реестре находятся десятки однофамильцев.
+             Поле необязательное: требовать его у бесплатного
+             предложения значит терять тех, кто номер наизусть не
+             помнит. -->
+        <div class="frm__f" id="f-inn-wrap" hidden>
+          <label class="frm__l" for="f-inn">ИНН компании <span class="frm__opt">если знаете</span></label>
+          <input class="frm__i" id="f-inn" name="inn" type="text" inputmode="numeric" autocomplete="off" placeholder="10 или 12 цифр">
+          <p class="frm__e" data-err="inn" hidden>Проверьте ИНН: в нём 10 цифр у компании или 12 у ИП</p>
         </div>
 
         <div class="frm__f">

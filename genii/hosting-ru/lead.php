@@ -400,6 +400,7 @@ $mailed = sendMail(
     'Почта'            => $emailPretty,
     'Компания'         => $company,
     'Род деятельности' => $fieldOf,
+    'ИНН'              => ($inn !== '' ? $inn : '—'),
     'ЛПР'              => $dm,
     'Источник'         => $sourcePretty,
     'Время'            => $stamp,
