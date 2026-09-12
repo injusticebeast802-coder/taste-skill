@@ -88,7 +88,10 @@ def load_config(path=''):
         if isinstance(v, str) and set(v.strip()) == {'.'}:
             cfg[k] = ''
 
-    missing = [k for k in ('telegram_token', 'dadata_token') if not cfg.get(k)]
+    # Токен нужен только при прямом обращении: если ходим через
+    # посредника на хостинге, токен лежит там, а не здесь.
+    nuzhno = ['dadata_token'] if cfg.get('telegram_api') else ['telegram_token', 'dadata_token']
+    missing = [k for k in nuzhno if not cfg.get(k)]
     if missing:
         print('В файле настроек не заполнено: %s' % ', '.join(missing))
         sys.exit(2)
@@ -99,9 +102,24 @@ def load_config(path=''):
 
 
 def api(cfg, method, **params):
-    r = requests.post(API % (cfg['telegram_token'], method), data=params,
+    r = requests.post(tg_url(cfg, method), data=params,
                       proxies=tg_proxy(cfg), timeout=60)
     return r.json()
+
+
+def tg_url(cfg, method):
+    """Адрес, по которому обращаемся к телеграму.
+
+    Обычно это api.telegram.org. Если он с этого компьютера закрыт,
+    в config.ini вписывают telegram_api — адрес файла tg.php на нашем
+    же хостинге. Хостинг до телеграма достаёт (заявки с форм туда
+    уходят), и получается: программа -> свой сайт -> телеграм. Токен
+    при этом лежит на хостинге, на компьютер менеджера не попадает.
+    """
+    relay = (cfg.get('telegram_api') or '').strip()
+    if relay:
+        return '%s%sm=%s' % (relay, '&' if '?' in relay else '?', method)
+    return API % (cfg['telegram_token'], method)
 
 
 def tg_proxy(cfg):
@@ -125,7 +143,7 @@ def send(cfg, chat_id, text):
 
 def send_photo(cfg, chat_id, path, caption):
     with open(path, 'rb') as f:
-        r = requests.post(API % (cfg['telegram_token'], 'sendPhoto'),
+        r = requests.post(tg_url(cfg, 'sendPhoto'),
                           data={'chat_id': chat_id, 'caption': caption[:1024]},
                           files={'photo': f}, proxies=tg_proxy(cfg), timeout=180)
     return r.json()
@@ -195,11 +213,17 @@ def main():
 
     offset = 0
     beda = 0          # сколько раз подряд не достучались до телеграма
+
+    # Сколько секунд держать линию в ожидании сообщения. Напрямую
+    # телеграм спокойно держит полминуты. Через посредника на хостинге
+    # столько нельзя: у PHP там свой предел на время работы, и запрос
+    # оборвался бы на середине.
+    dozhidanie = 20 if (cfg.get('telegram_api') or '').strip() else 30
     while True:
         try:
-            r = requests.get(API % (cfg['telegram_token'], 'getUpdates'),
-                             params={'offset': offset, 'timeout': 30},
-                             proxies=tg_proxy(cfg), timeout=60).json()
+            r = requests.get(tg_url(cfg, 'getUpdates'),
+                             params={'offset': offset, 'timeout': dozhidanie},
+                             proxies=tg_proxy(cfg), timeout=dozhidanie + 30).json()
         except Exception as e:
             # Печатаем по-человечески и один раз. Раньше сюда каждые
             # пять секунд валилась строка urllib3 на три строки, и в
@@ -213,9 +237,12 @@ def main():
                     print('работают, а api.telegram.org с этого компьютера нет.')
                     print('')
                     print('Что делать — одно из двух:')
-                    print('  1. Включить VPN на этом компьютере.')
-                    print('  2. Вписать в config.ini строку telegram_proxy')
-                    print('     с адресом прокси. Пример в config.example.ini.')
+                    print('  1. Ходить в телеграм через свой сайт: строка')
+                    print('     telegram_api в config.ini. Пример в')
+                    print('     config.example.ini, файл tg.php уже на хостинге.')
+                    print('  2. Включить VPN на этом компьютере. MTProto-прокси')
+                    print('     (TG WS Proxy и такие же) не подойдёт: он возит')
+                    print('     не то, чем ходит бот.')
                 print('')
                 print('Полный текст ошибки: %s' % e)
                 print('Продолжаю пробовать, каждые 15 секунд…')

@@ -82,8 +82,8 @@ DirectoryIndex index.html index.php
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
 
-  # Ответ формы не кэшируем никогда.
-  <FilesMatch "^lead\.php$">
+  # Ответ формы и посредника не кэшируем никогда.
+  <FilesMatch "^(lead|tg)\.php$">
     Header always set Cache-Control "no-store"
   </FilesMatch>
 </IfModule>
