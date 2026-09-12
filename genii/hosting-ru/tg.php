@@ -21,6 +21,14 @@
    менеджера не попадает вовсе.
    ========================================================= */
 
+/* Снимаем ограничение по времени первой же строкой. getUpdates висит
+   на линии, пока не придёт сообщение, да и самопроверка перебирает
+   адреса по очереди — в стандартные 30 секунд PHP это не влезает.
+   Раньше строка стояла ниже самопроверки, и ту обрывало до первой
+   напечатанной буквы: страница просто не открывалась. */
+@set_time_limit(0);
+ignore_user_abort(true);
+
 require_once __DIR__ . '/config.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -69,7 +77,7 @@ if (!defined('TG_TOKEN') || TG_TOKEN === '' || TG_TOKEN === '...') {
 
    Только IPv4: на хостингах шестая версия часто объявлена, но наружу
    не работает, и попытка по ней съедает всё отведённое время. */
-function otpravit($url, $post_telo, $post_tip, $popytok = 3, $svyaz = 8, $vsego = 120) {
+function otpravit($url, $post_telo, $post_tip, $popytok = 3, $svyaz = 25, $vsego = 150) {
     $posledn = '';
     for ($i = 1; $i <= $popytok; $i++) {
         $ch = curl_init($url);
@@ -109,23 +117,37 @@ function otpravit($url, $post_telo, $post_tip, $popytok = 3, $svyaz = 8, $vsego 
 if ($metod === 'proverka') {
     header('Content-Type: text/plain; charset=utf-8');
 
-    echo "Проверка связи с Телеграмом с этого хостинга\n";
-    echo str_repeat('=', 44) . "\n\n";
+    /* Печатаем по ходу дела, а не в конце. Проверка идёт долго: на
+       каждый закрытый адрес уходит несколько секунд ожидания. Если
+       копить ответ в буфере, человек всё это время смотрит в пустое
+       окно и решает, что страница не открылась. */
+    @ini_set('output_buffering', 'off');
+    @ini_set('zlib.output_compression', 'off');
+    while (ob_get_level() > 0) { ob_end_flush(); }
+    ob_implicit_flush(true);
+
+    function stroka($t) { echo $t . "\n"; @flush(); }
+
+    stroka('Проверка связи с Телеграмом с этого хостинга');
+    stroka(str_repeat('=', 44));
+    stroka('');
 
     $adresa = @gethostbynamel('api.telegram.org');
     if (!$adresa) {
-        echo "Имя api.telegram.org не разрешается в адрес.\n";
-        echo "Это уже не блокировка, а настройки DNS у хостинга.\n";
+        stroka('Имя api.telegram.org не разрешается в адрес.');
+        stroka('Это уже не блокировка, а настройки DNS у хостинга.');
         exit;
     }
-    echo "Адреса api.telegram.org: " . implode(', ', $adresa) . "\n\n";
+    stroka('Адреса api.telegram.org: ' . implode(', ', $adresa));
+    stroka('');
+    stroka('Пробуем каждый по отдельности, на каждый до 12 секунд:');
 
+    $zhivye = 0;
     foreach ($adresa as $ip) {
         $t = microtime(true);
         $ch = curl_init('https://api.telegram.org/bot' . TG_TOKEN . '/getMe');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
         curl_setopt($ch, CURLOPT_RESOLVE, array('api.telegram.org:443:' . $ip));
         $r = curl_exec($ch);
         $err = curl_error($ch);
@@ -133,24 +155,48 @@ if ($metod === 'proverka') {
         $sek = round(microtime(true) - $t, 1);
 
         if ($r === false) {
-            echo sprintf("  %-16s НЕ ОТВЕЧАЕТ (%s сек): %s\n", $ip, $sek, $err);
+            stroka(sprintf('  %-16s НЕ ОТВЕЧАЕТ за %s сек: %s', $ip, $sek, $err));
         } else {
-            $ok = (strpos($r, '"ok":true') !== false) ? 'работает' : 'ответил, но с отказом';
-            echo sprintf("  %-16s %s (%s сек)\n", $ip, $ok, $sek);
+            $zhivye++;
+            $ok = (strpos($r, '"ok":true') !== false)
+                ? 'работает' : 'ответил, но Телеграм отказал (проверьте токен)';
+            stroka(sprintf('  %-16s %s, за %s сек', $ip, $ok, $sek));
         }
     }
 
-    echo "\nОбычная отправка, как её делает посредник:\n";
-    $r = otpravit('https://api.telegram.org/bot' . TG_TOKEN . '/getMe', null, '');
-    if ($r['ok']) {
-        echo "  получилось с попытки " . $r['popytka'] . ", адрес " . $r['ip'] . "\n";
-    } else {
-        echo "  не получилось за " . $r['popytka'] . " попытки: " . $r['oshibka'] . "\n";
-    }
+    /* Отправка ровно как у формы заявок: без отдельного срока на
+       подключение, всего 15 секунд. Форма работает, посредник нет —
+       значит разница именно в этих настройках, и её надо увидеть. */
+    stroka('');
+    stroka('Так отправляет форма заявок (15 секунд на всё):');
+    $t = microtime(true);
+    $ch = curl_init('https://api.telegram.org/bot' . TG_TOKEN . '/getMe');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    $r = curl_exec($ch);
+    $err = curl_error($ch);
+    $ip = curl_getinfo($ch, CURLINFO_PRIMARY_IP);
+    curl_close($ch);
+    $sek = round(microtime(true) - $t, 1);
+    stroka($r === false
+        ? sprintf('  не вышло за %s сек: %s', $sek, $err)
+        : sprintf('  получилось за %s сек, адрес %s', $sek, $ip));
 
-    echo "\nЕсли хотя бы один адрес работает — посредник справится.\n";
-    echo "Если ни один — с этого хостинга до Телеграма хода нет,\n";
-    echo "и заявки с форм уходят через какой-то другой путь.\n";
+    stroka('');
+    stroka('Так отправляет посредник (3 попытки, по 25 секунд):');
+    $t = microtime(true);
+    $r = otpravit('https://api.telegram.org/bot' . TG_TOKEN . '/getMe', null, '');
+    $sek = round(microtime(true) - $t, 1);
+    stroka($r['ok']
+        ? sprintf('  получилось с попытки %d за %s сек, адрес %s',
+                  $r['popytka'], $sek, $r['ip'])
+        : sprintf('  не вышло за %s сек: %s', $sek, $r['oshibka']));
+
+    stroka('');
+    stroka('Итог: живых адресов ' . $zhivye . ' из ' . count($adresa) . '.');
+    stroka('Если хоть один живой, а посредник не справился — дело в сроках,');
+    stroka('поправлю. Если живых нет, а форма заявок при этом работает —');
+    stroka('значит заявки уходят каким-то другим путём, буду искать каким.');
     exit;
 }
 
@@ -161,12 +207,6 @@ unset($parametry['k'], $parametry['m']);
 if ($parametry) {
     $url .= '?' . http_build_query($parametry);
 }
-
-/* getUpdates висит на линии, пока не придёт сообщение. Стандартные
-   30 секунд PHP на такое не рассчитаны, поэтому снимаем ограничение
-   и просим не обрывать работу, если программа отключилась. */
-@set_time_limit(0);
-ignore_user_abort(true);
 
 $telo = null;
 $tip  = '';
