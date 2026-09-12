@@ -179,6 +179,7 @@ $emailPretty = prettyEmail($email);
 function sourceLabel($value) {
   if ($value === '') return 'сайт';
   $known = array(
+    'analiz'       => 'бесплатный анализ',
     'presentation' => 'презентация',
     /* Отраслевые презентации: у каждой своя кнопка со своей меткой,
        чтобы в заявке было видно, какую именно показывали клиенту. */
@@ -199,6 +200,12 @@ function sourceLabel($value) {
   return isset($known[$key]) ? $known[$key] : $value;
 }
 $sourcePretty = sourceLabel($source);
+
+// ИНН приходит только с бесплатного анализа и только цифрами:
+// всё остальное отсекаем, строка попадает в текст сообщения.
+$innRaw   = preg_replace('/\D/', '', (string) field($body, 'inn'));
+$inn      = (strlen($innRaw) === 10 || strlen($innRaw) === 12) ? $innRaw : '';
+$isAnaliz = (strtolower($source) === 'analiz');
 
 /* ---------- читаемый вид кириллического адреса ----------
    Поле с типом email заставляет браузер переписывать нелатинский домен
@@ -316,11 +323,12 @@ function postJson($url, $payload, $headers = array()) {
 
 /* ---------- Телеграм ---------- */
 $text =
-  "🆕 Новая заявка\n" .
+  ($isAnaliz ? "🎁 Заявка на БЕСПЛАТНЫЙ АНАЛИЗ\n" : "🆕 Новая заявка\n") .
   "👤 Имя: $name\n" .
   "📞 Телефон: $phone\n" .
   "📧 Почта: $emailPretty\n" .
   "🏢 Компания: $company\n" .
+  ($inn !== '' ? "🔢 ИНН: $inn\n" : '') .
   "📦 Род деятельности: $fieldOf\n" .
   "👔 ЛПР: $dm\n" .
   "📍 Источник: $sourcePretty\n" .
@@ -353,7 +361,7 @@ function sendMail($rows, $name, $company, $replyTo) {
   if (!defined('MAIL_FROM') || !MAIL_FROM) return null;
 
   $html = '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111">'
-        . '<h2 style="margin:0 0 16px">Новая заявка с сайта</h2>'
+        . '<h2 style="margin:0 0 16px">' . ($isAnaliz ? 'Заявка на бесплатный анализ' : 'Новая заявка с сайта') . '</h2>'
         . '<table cellpadding="6" style="border-collapse:collapse">';
   $plain = array();
   foreach ($rows as $label => $value) {
@@ -378,7 +386,7 @@ function sendMail($rows, $name, $company, $replyTo) {
       'from'     => MAIL_FROM,
       'to'       => $to,
       'reply_to' => $replyTo,
-      'subject'  => 'Заявка с сайта: ' . $name . ', ' . $company,
+      'subject'  => ($isAnaliz ? 'Бесплатный анализ' : 'Заявка') . ' с сайта: ' . $name . ', ' . $company,
       'text'     => implode("\n", $plain),
       'html'     => $html,
     ),
@@ -402,6 +410,7 @@ $mailed = sendMail(
     'Телефон'          => $phone,
     'Почта'            => $emailPretty,
     'Компания'         => $company,
+    'ИНН'              => ($inn !== '' ? $inn : '—'),
     'Род деятельности' => $fieldOf,
     'ЛПР'              => $dm,
     'Источник'         => $sourcePretty,

@@ -436,6 +436,34 @@ section[id]{scroll-margin-top:84px}
 .why__card .h3{font-size:18px;margin-bottom:10px;line-height:1.35}
 .why__d{margin:0;color:var(--muted);font-size:16px;line-height:1.55}
 
+/* 2а. Бесплатная проверка. Полоса между первым экраном и текстом:
+   единственное место на странице, где предлагают что-то бесплатно,
+   поэтому она обведена тиффани и стоит особняком. */
+/* Плашка стоит внутри секции, после полосы-вывода, поэтому отступы
+   задаёт сама, а не секция. */
+.check-wrap{margin:clamp(22px,2.8vw,34px) auto 0}
+.check{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:22px clamp(24px,3vw,40px);
+  padding:clamp(24px,3vw,34px) clamp(24px,3.4vw,40px);
+  border-radius:var(--r-lg);
+  background:var(--surface);
+  border:1px solid var(--line-2);
+  box-shadow:0 18px 50px rgba(0,0,0,.34);
+}
+.check__copy{max-width:62ch}
+.check__kicker{
+  margin:0 0 10px;font-size:13px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text);
+}
+.check__h{margin:0 0 10px;font-size:clamp(22px,2.6vw,30px)}
+.check__d{margin:0;color:var(--muted);font-size:17px;line-height:1.55}
+/* Надпись на кнопке длинная. У всех кнопок сайта перенос запрещён,
+   и на узком экране она вылезала за края плашки. Здесь перенос
+   разрешаем: на широком экране места хватает и строка всё равно
+   остаётся одной. */
+.check__btn{flex:none;white-space:normal;text-align:center}
+
 /* 5. Решение */
 .solution{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,56px);align-items:center}
 .solution__copy .lead{margin-bottom:26px}
@@ -780,6 +808,10 @@ section[id]{scroll-margin-top:84px}
    Слева фото команды и три пункта под ним, справа карточка партнёра. */
 .sup{display:block}
 .sup__grid{display:grid;grid-template-columns:1.25fr .75fr;gap:clamp(28px,4vw,52px);align-items:start}
+/* Колонка сетки по умолчанию не уже своего содержимого, и на экране
+   в 320 пикселей фотография офиса вылезала за край страницы вместе
+   с колонкой. min-width:0 разрешает колонке сжиматься. */
+.sup__grid > *{min-width:0}
 
 .sup__photo{
   position:relative;margin:0 0 20px;
@@ -975,6 +1007,9 @@ section[id]{scroll-margin-top:84px}
 
 .frm{display:grid;gap:18px}
 .frm__f{display:grid;gap:8px}
+/* display:grid у .frm__f перебивает встроенное правило браузера для
+   атрибута hidden, и спрятанное поле оставалось на виду. */
+.frm__f[hidden]{display:none}
 .frm__l{font-size:15px;font-weight:600;color:#333749}
 .frm__i{
   width:100%;padding:13px 15px;
@@ -984,6 +1019,9 @@ section[id]{scroll-margin-top:84px}
   transition:border-color .18s var(--ease),box-shadow .18s var(--ease);
 }
 .frm__i::placeholder{color:#8E93A8}
+/* Пометка «если знаете» у необязательного поля: мельче и бледнее
+   подписи, чтобы не читалась как часть названия поля. */
+.frm__opt{font-weight:400;font-size:13.5px;color:#8E93A8;margin-left:6px}
 .frm__i:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(61,107,255,.16)}
 
 /* Автозаполнение. Браузер закрашивает подставленное поле своим фоном,
@@ -1173,6 +1211,10 @@ section[id]{scroll-margin-top:84px}
   .agents{grid-template-columns:1fr}
   .pbadge{flex-direction:column;align-items:flex-start;gap:12px;padding:16px}
   .rail{grid-template-columns:1fr}
+  /* Плашка бесплатной проверки: на узком экране кнопка встаёт под
+     текстом во всю ширину, иначе вылезала за край. */
+  .check{flex-direction:column;align-items:stretch}
+  .check__btn{width:100%}
   .tech__foot{flex-direction:column;align-items:flex-start}
   .how{grid-template-columns:1fr}
   .niches{grid-template-columns:repeat(2,1fr)}
@@ -1189,6 +1231,10 @@ section[id]{scroll-margin-top:84px}
 
 @media (max-width:480px){
   .wrap{padding:0 16px}
+  /* У крупной кнопки поля по 44 пикселя с каждой стороны. На экране
+     в 320 пикселей она вместе с ними не влезала в колонку и торчала
+     за край страницы. Растягиваем на всю ширину и ужимаем поля. */
+  .btn--hero{width:100%;padding-left:20px;padding-right:20px}
   /* На узком экране подпись занимала две строки и закрывала половину
      фотографии. Уменьшаем её и поджимаем отступы. */
   .sup__photo figcaption{font-size:14.5px;padding:26px 16px 14px}

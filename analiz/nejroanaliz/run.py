@@ -166,7 +166,7 @@ def analyze(raw_inn, cfg, progress=None):
             item = {'engine': name, 'query': q, 'answer': '', 'mentioned': False,
                     'position': None, 'error': ''}
             try:
-                item['answer'] = ask(q)
+                item['answer'] = ask(q + queries.ASK_TAIL)
                 item['mentioned'] = matching.mentioned_any(item['answer'], c['names'])
                 if not item['mentioned'] and site:
                     item['mentioned'] = matching.domain_of(site) in item['answer'].lower()

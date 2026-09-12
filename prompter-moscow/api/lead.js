@@ -94,6 +94,7 @@ function clean(value, maxLen) {
    человеческий язык, незнакомые показываем как есть — они уже
    очищены функцией clean. */
 var SOURCE_LABELS = {
+  analiz: 'бесплатный анализ',
   presentation: 'презентация',
   // Отраслевые презентации: у каждой своя кнопка со своей меткой,
   // чтобы в заявке было видно, какую именно показывали клиенту.
@@ -146,13 +147,18 @@ async function sendMail(fields, when) {
     ['Компания', fields.company],
     ['Род деятельности', fields.field],
     ['ЛПР', fields.dm],
+    ['ИНН', fields.inn || '—'],
     ['Источник', sourceLabel(fields.source)],
     ['Время', when]
   ];
 
   var html =
     '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111">' +
-    '<h2 style="margin:0 0 16px">Новая заявка с сайта</h2>' +
+    '<h2 style="margin:0 0 16px">' +
+    (String(fields.source || '').toLowerCase() === 'analiz'
+      ? 'Заявка на бесплатный анализ'
+      : 'Новая заявка с сайта') +
+    '</h2>' +
     '<table cellpadding="6" style="border-collapse:collapse">' +
     rows.map(function (r) {
       return '<tr>' +
@@ -175,7 +181,8 @@ async function sendMail(fields, when) {
         from: from,
         to: to.split(',').map(function (a) { return a.trim(); }).filter(Boolean),
         reply_to: fields.email,
-        subject: 'Заявка с сайта: ' + fields.name + ', ' + fields.company,
+        subject: (String(fields.source || '').toLowerCase() === 'analiz' ? 'Бесплатный анализ' : 'Заявка') +
+                 ' с сайта: ' + fields.name + ', ' + fields.company,
         text: text,
         html: html
       })
@@ -238,6 +245,10 @@ module.exports = async function handler(req, res) {
   var dm = clean(body.dm, 10).toLowerCase();
   // Источник заявки: необязательное поле, на проверку не влияет.
   var source = clean(body.source, 40);
+  // ИНН приходит только с бесплатного анализа и только цифрами.
+  var innRaw = String(body.inn || '').replace(/\D/g, '');
+  var inn = (innRaw.length === 10 || innRaw.length === 12) ? innRaw : '';
+  var isAnaliz = String(source).toLowerCase() === 'analiz';
 
   var digits = phone.replace(/\D/g, '');
 
@@ -251,11 +262,12 @@ module.exports = async function handler(req, res) {
   var stamp = moscowTime();
 
   var text =
-    '🆕 Новая заявка\n' +
+    (isAnaliz ? '🎁 Заявка на БЕСПЛАТНЫЙ АНАЛИЗ\n' : '🆕 Новая заявка\n') +
     '👤 Имя: ' + name + '\n' +
     '📞 Телефон: ' + phone + '\n' +
     '📧 Почта: ' + email + '\n' +
     '🏢 Компания: ' + company + '\n' +
+    (inn ? '🔢 ИНН: ' + inn + '\n' : '') +
     '📦 Род деятельности: ' + field + '\n' +
     '👔 ЛПР: ' + dm + '\n' +
     '📍 Источник: ' + sourceLabel(source) + '\n' +
@@ -281,7 +293,8 @@ module.exports = async function handler(req, res) {
     // Телеграм принял заявку. Дублируем письмом, если почта настроена;
     // её сбой не должен превращать принятую заявку в ошибку для клиента.
     var mailed = await sendMail(
-      { name: name, phone: phone, email: email, company: company, field: field, dm: dm, source: source },
+      { name: name, phone: phone, email: email, company: company, field: field,
+        inn: inn, dm: dm, source: source },
       stamp
     );
 

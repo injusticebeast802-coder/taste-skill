@@ -262,10 +262,49 @@ def draw_png(data, path):
             d.text((PAD, y), '· %s — в %d ответах' % (name[:60], n), font=f_t, fill=MUTED)
             y += 34
 
-    y += 18
+    # --- Что будет с нами ---
+    # Ради этого блока отчёт и показывают клиенту: одни цифры «как
+    # сейчас» ничего не продают. Обещаний в числах здесь нет —
+    # называем только то, что и так написано на сайте: публикации
+    # пять дней в неделю на шести площадках и результат на третьем
+    # месяце.
+    y += 16
+    box_top = y
+    d.rounded_rectangle([PAD, y, W - PAD, y + 196], radius=20,
+                        fill=CARD, outline=(58, 110, 106))
+    d.text((PAD + 24, y + 22), 'Где вы будете с «ГенИИ»', font=f_h2, fill=MINT)
+
+    # Полоска: сколько ответов сейчас и куда идём
+    bar_x, bar_w = PAD + 24, W - PAD * 2 - 48
+    bar_y = y + 76
+    share = (data['ai_named'] / data['ai_total']) if data['ai_total'] else 0
+    d.rounded_rectangle([bar_x, bar_y, bar_x + bar_w, bar_y + 16], radius=8, fill=(42, 42, 48))
+    if share > 0:
+        d.rounded_rectangle([bar_x, bar_y, bar_x + max(16, int(bar_w * share)), bar_y + 16],
+                            radius=8, fill=BLUSH)
+    d.text((bar_x, bar_y + 26), 'сейчас — %d из %d ответов' % (data['ai_named'], data['ai_total']),
+           font=f_xs, fill=BLUSH)
+
+    goal_x = bar_x + int(bar_w * 0.8)
+    d.line([goal_x, bar_y - 10, goal_x, bar_y + 26], fill=MINT, width=3)
+    goal_label = 'цель'
+    gw = d.textlength(goal_label, font=f_xs)
+    d.text((min(goal_x + 10, bar_x + bar_w - gw), bar_y - 12), goal_label, font=f_xs, fill=MINT)
+
+    for i, line in enumerate(_wrap(
+            d,
+            'Публикации пять дней в неделю на шести площадках. Нейросети начинают '
+            'опираться на них, отвечая на запросы клиентов. Результат обычно виден '
+            'на третьем месяце работы.',
+            f_xs, bar_w)[:3]):
+        d.text((bar_x, bar_y + 54 + i * 22), line, font=f_xs, fill=MUTED)
+
+    y = box_top + 196 + 26
+
     d.text((PAD, y), 'genii-ai.ru · +7 906 758-77-77', font=f_xs, fill=MUTED)
     y += 26
 
-    img = img.crop((0, 0, W, min(H, y + PAD - 10)))
+    y += 26
+    img = img.crop((0, 0, W, min(H, y + PAD - 20)))
     img.save(path, 'PNG')
     return path

@@ -258,6 +258,30 @@
 
     <p class="verdict reveal">Уже недостаточно быть на первой странице. Нужно быть тем, кого <b>называет нейросеть</b>.</p>
   </div>
+
+  <!-- Бесплатная проверка
+     Отдельная кнопка со своей пометкой: заявка уходит тому же боту,
+     но помечается как запрос на бесплатный анализ, а не как обычная
+     заявка. Название источника подставляется из data-form-source,
+     заголовок и подпись окна — из data-form-title и data-form-sub. -->
+  <div class="wrap check-wrap">
+    <div class="check reveal">
+      <div class="check__copy">
+        <p class="check__kicker">Бесплатно</p>
+        <h2 class="h2 check__h">Проверьте ваш бизнес в нейровыдаче</h2>
+        <p class="check__d">Посмотрим, называют ли нейросети вашу компанию по запросам вашей ниши — и кого называют вместо вас. Пришлём разбор с наглядной картинкой. Без обязательств.</p>
+      </div>
+      <button class="btn btn--grad btn--hero check__btn"
+              data-open-form
+              data-form-source="analiz"
+              data-form-inn="yes"
+              data-form-title="Бесплатный анализ нейровыдачи"
+              data-form-sub="Заполните форму — проверим вашу нишу и пришлём разбор.">
+        <span class="btn__label">Получить бесплатный анализ</span>
+        <svg class="ic btn__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+    </div>
+  </div>
 </section>
 
 <!-- 4. ПОЧЕМУ ЭТО ВАЖНО -->
@@ -691,7 +715,7 @@
       <h2 class="modal__t" id="modal-t">Оставить заявку</h2>
       <p class="modal__sub">Заполните форму, и специалист свяжется с вами в ближайшее время.</p>
 
-      <form class="frm" id="frm" novalidate>
+      <form class="frm" id="frm" data-source="site" novalidate>
         <div class="frm__f">
           <label class="frm__l" for="f-name">Ваше имя</label>
           <input class="frm__i" id="f-name" name="name" type="text" autocomplete="name" maxlength="60" required>
@@ -714,6 +738,19 @@
           <label class="frm__l" for="f-company">Название компании</label>
           <input class="frm__i" id="f-company" name="company" type="text" autocomplete="organization" maxlength="80" required>
           <p class="frm__e" data-err="company" hidden>Укажите название компании</p>
+        </div>
+
+        <!-- ИНН показывается только у бесплатного анализа: кнопка
+             открывает окно с признаком data-form-inn. По ИНН проверка
+             берёт город и убеждается, что компания та самая — по
+             одному названию в реестре находятся десятки однофамильцев.
+             Поле необязательное: требовать его у бесплатного
+             предложения значит терять тех, кто номер наизусть не
+             помнит. -->
+        <div class="frm__f" id="f-inn-wrap" hidden>
+          <label class="frm__l" for="f-inn">ИНН компании <span class="frm__opt">если знаете</span></label>
+          <input class="frm__i" id="f-inn" name="inn" type="text" inputmode="numeric" autocomplete="off" placeholder="10 или 12 цифр">
+          <p class="frm__e" data-err="inn" hidden>Проверьте ИНН: в нём 10 цифр у компании или 12 у ИП</p>
         </div>
 
         <div class="frm__f">
