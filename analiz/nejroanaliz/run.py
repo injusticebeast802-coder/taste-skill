@@ -28,7 +28,15 @@ def analyze(raw_inn, cfg, progress=None):
         raise RunError(problem)
 
     say('Ищу компанию в справочнике…')
-    c = company_mod.lookup(digits, cfg['dadata_token'])
+    try:
+        c = company_mod.lookup(digits, cfg['dadata_token'])
+    except company_mod.CompanyError as e:
+        raise RunError(str(e))
+    except Exception as e:
+        # Сюда попадают обрывы связи и таймауты. Показывать человеку
+        # внутренности питона незачем: ему нужно понять, что делать.
+        raise RunError('Не получилось связаться со справочником DaData.\n'
+                       'Проверьте интернет и ключ dadata_token.\n\n%s' % e)
     c['inn'] = digits
 
     if c.get('status') and c['status'] != 'ACTIVE':
