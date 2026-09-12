@@ -192,11 +192,45 @@ if ($metod === 'proverka') {
                   $r['popytka'], $sek, $r['ip'])
         : sprintf('  не вышло за %s сек: %s', $sek, $r['oshibka']));
 
+    /* Если заведён работник Cloudflare, главное — дойти до него, а не
+       до Телеграма: до Телеграма пойдёт уже он сам. Проверяем ту
+       дорогу, которой на самом деле пользуемся. */
+    if (defined('TG_WORKER') && TG_WORKER !== '') {
+        stroka('');
+        stroka('Работник Cloudflare заведён, проверяю дорогу до него:');
+        $t = microtime(true);
+        $ch = curl_init(TG_WORKER . (strpos(TG_WORKER, '?') === false ? '?' : '&')
+                        . 'k=' . rawurlencode(TG_RELAY_KEY) . '&m=getMe');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 25);
+        $r = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+        $sek = round(microtime(true) - $t, 1);
+
+        if ($r === false) {
+            stroka('  не дошли за ' . $sek . ' сек: ' . $err);
+            stroka('  Значит и до работника с хостинга хода нет.');
+        } elseif (strpos($r, '"ok":true') !== false) {
+            stroka('  дошли за ' . $sek . ' сек, работник ответил про бота.');
+            stroka('  Дорога рабочая: сайт -> работник -> телеграм.');
+        } else {
+            stroka('  дошли за ' . $sek . ' сек, но работник отказал:');
+            stroka('  ' . substr($r, 0, 200));
+            stroka('  Чаще всего это разные пароли тут и у работника.');
+        }
+    }
+
     stroka('');
     stroka('Итог: живых адресов ' . $zhivye . ' из ' . count($adresa) . '.');
-    stroka('Если хоть один живой, а посредник не справился — дело в сроках,');
-    stroka('поправлю. Если живых нет, а форма заявок при этом работает —');
-    stroka('значит заявки уходят каким-то другим путём, буду искать каким.');
+    if (defined('TG_WORKER') && TG_WORKER !== '') {
+        stroka('Ноль живых — это нормально, когда заведён работник: до');
+        stroka('телеграма ходит он, а нам достаточно дойти до него.');
+    } else {
+        stroka('Если живых нет — заведите работника Cloudflare и впишите');
+        stroka('его адрес в TG_WORKER в config.php. Как — в файле');
+        stroka('cloudflare/KAK-NASTROIT.md из архива программы.');
+    }
     exit;
 }
 

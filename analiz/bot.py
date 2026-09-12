@@ -141,12 +141,40 @@ def send(cfg, chat_id, text):
     return api(cfg, 'sendMessage', chat_id=chat_id, text=text, disable_web_page_preview=True)
 
 
-def send_photo(cfg, chat_id, path, caption):
-    with open(path, 'rb') as f:
-        r = requests.post(tg_url(cfg, 'sendPhoto'),
-                          data={'chat_id': chat_id, 'caption': caption[:1024]},
-                          files={'photo': f}, proxies=tg_proxy(cfg), timeout=180)
-    return r.json()
+def send_photo(cfg, chat_id, path, caption, popytok=3):
+    """Отправка картинки отчёта.
+
+    Пробуем несколько раз: файл весит около сотни килобайт, и на
+    таких посылках провайдер иногда рвёт соединение на полпути. Текст
+    при этом проходит — рвётся именно длинная передача. Повтор часто
+    выручает, а если не выручает, дорогу надо менять: пускать картинку
+    через свой сайт, а не напрямую (строка telegram_api в config.ini).
+    """
+    posledn = None
+    for i in range(1, popytok + 1):
+        try:
+            with open(path, 'rb') as f:
+                r = requests.post(tg_url(cfg, 'sendPhoto'),
+                                  data={'chat_id': chat_id, 'caption': caption[:1024]},
+                                  files={'photo': f}, proxies=tg_proxy(cfg), timeout=180)
+            return r.json()
+        except requests.exceptions.RequestException as e:
+            posledn = e
+            if i < popytok:
+                print('Картинка не ушла (попытка %d из %d), пробую снова…'
+                      % (i, popytok))
+                time.sleep(3)
+
+    raise RuntimeError(
+        'Картинка не уходит: %s\n\n'
+        'Текст доходит, а файл обрывается на полпути — так ведёт себя '
+        'провайдер на длинных посылках.\n'
+        'Лечится сменой дороги: в config.ini поставьте адрес своего '
+        'сайта вместо адреса работника,\n'
+        'а на хостинге в config.php впишите TG_WORKER с адресом '
+        'работника. Тогда картинка пойдёт\n'
+        'через сайт, который не блокируется. Подробно — в '
+        'cloudflare/KAK-NASTROIT.md.' % posledn)
 
 
 def allowed(cfg, chat_id):
