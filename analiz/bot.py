@@ -63,7 +63,10 @@ def load_config(path=''):
             print('')
             print('Скопируйте config.example.ini, назовите копию config.ini')
             print('и впишите в неё ключи.')
-            sys.exit(1)
+            # Код 2 — «неправильно настроено». Окно запуска по нему
+            # понимает, что перезапускать бесполезно: без ключей он
+            # упадёт точно так же и через десять секунд, и через час.
+            sys.exit(2)
         if name != 'config.ini':
             print('Файл настроек называется «%s», а должен «config.ini».' % name)
             print('Читаю его как есть, но лучше переименовать.')
@@ -88,7 +91,7 @@ def load_config(path=''):
     missing = [k for k in ('telegram_token', 'dadata_token') if not cfg.get(k)]
     if missing:
         print('В файле настроек не заполнено: %s' % ', '.join(missing))
-        sys.exit(1)
+        sys.exit(2)
 
     cfg['out_dir'] = cfg.get('out_dir') or os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 'otchety')
@@ -96,8 +99,24 @@ def load_config(path=''):
 
 
 def api(cfg, method, **params):
-    r = requests.post(API % (cfg['telegram_token'], method), data=params, timeout=60)
+    r = requests.post(API % (cfg['telegram_token'], method), data=params,
+                      proxies=tg_proxy(cfg), timeout=60)
     return r.json()
+
+
+def tg_proxy(cfg):
+    """Прокси для телеграма — и только для него.
+
+    api.telegram.org у российских провайдеров закрыт, и программа
+    висит на таймауте подключения. Яндекс, GigaChat и DaData при этом
+    открыты и работают напрямую, поэтому гнать их через тот же прокси
+    нельзя: будет медленнее, а Яндекс ещё и отвечает отказом на запрос
+    из-за границы. Так что подменяем адрес ровно у трёх вызовов.
+    """
+    url = (cfg.get('telegram_proxy') or '').strip()
+    if not url:
+        return None
+    return {'http': url, 'https': url}
 
 
 def send(cfg, chat_id, text):
@@ -108,7 +127,7 @@ def send_photo(cfg, chat_id, path, caption):
     with open(path, 'rb') as f:
         r = requests.post(API % (cfg['telegram_token'], 'sendPhoto'),
                           data={'chat_id': chat_id, 'caption': caption[:1024]},
-                          files={'photo': f}, timeout=180)
+                          files={'photo': f}, proxies=tg_proxy(cfg), timeout=180)
     return r.json()
 
 
@@ -175,19 +194,44 @@ def main():
     print('Бот запущен. Остановить — Ctrl+C.')
 
     offset = 0
+    beda = 0          # сколько раз подряд не достучались до телеграма
     while True:
         try:
             r = requests.get(API % (cfg['telegram_token'], 'getUpdates'),
-                             params={'offset': offset, 'timeout': 30}, timeout=60).json()
+                             params={'offset': offset, 'timeout': 30},
+                             proxies=tg_proxy(cfg), timeout=60).json()
         except Exception as e:
-            print('Телеграм недоступен: %s' % e)
-            time.sleep(5)
+            # Печатаем по-человечески и один раз. Раньше сюда каждые
+            # пять секунд валилась строка urllib3 на три строки, и в
+            # окне было не видно ничего, кроме неё.
+            beda += 1
+            if beda == 1:
+                print('')
+                print('Телеграм не отвечает.')
+                if 'imeout' in str(e) or 'onnect' in str(e):
+                    print('Обычно это блокировка у провайдера: сайт и заявки')
+                    print('работают, а api.telegram.org с этого компьютера нет.')
+                    print('')
+                    print('Что делать — одно из двух:')
+                    print('  1. Включить VPN на этом компьютере.')
+                    print('  2. Вписать в config.ini строку telegram_proxy')
+                    print('     с адресом прокси. Пример в config.example.ini.')
+                print('')
+                print('Полный текст ошибки: %s' % e)
+                print('Продолжаю пробовать, каждые 15 секунд…')
+            elif beda % 20 == 0:
+                print('Всё ещё нет связи с телеграмом (попыток: %d).' % beda)
+            time.sleep(15)
             continue
 
         if not r.get('ok'):
             print('Телеграм ответил отказом: %s' % r)
             time.sleep(5)
             continue
+
+        if beda:
+            print('Связь с телеграмом восстановлена.')
+            beda = 0
 
         for upd in r.get('result', []):
             offset = upd['update_id'] + 1
