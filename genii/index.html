@@ -247,6 +247,31 @@
   </div>
 </section>
 
+<!-- 2а. БЕСПЛАТНАЯ ПРОВЕРКА
+     Отдельная кнопка со своей пометкой: заявка уходит тому же боту,
+     но помечается как запрос на бесплатный анализ, а не как обычная
+     заявка. Название источника подставляется из data-form-source,
+     заголовок и подпись окна — из data-form-title и data-form-sub. -->
+<section class="sec check-sec">
+  <div class="wrap">
+    <div class="check reveal">
+      <div class="check__copy">
+        <p class="check__kicker">Бесплатно</p>
+        <h2 class="h2 check__h">Проверьте ваш бизнес в нейровыдаче</h2>
+        <p class="check__d">Посмотрим, называют ли нейросети вашу компанию по запросам вашей ниши — и кого называют вместо вас. Пришлём разбор с наглядной картинкой. Без обязательств.</p>
+      </div>
+      <button class="btn btn--red btn--hero check__btn"
+              data-open-form
+              data-form-source="analiz"
+              data-form-title="Бесплатный анализ нейровыдачи"
+              data-form-sub="Заполните форму — проверим вашу нишу и пришлём разбор.">
+        <span class="btn__label">Получить бесплатный анализ</span>
+        <svg class="ic btn__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
 <!-- 3. РЫНОК ИЗМЕНИЛСЯ И НАШЕ РЕШЕНИЕ
      Раньше это были две секции подряд. После сокращения в первой
      остались только заголовок и абзац, и между ними зияла дыра

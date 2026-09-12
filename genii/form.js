@@ -65,8 +65,27 @@
     return String(raw).replace(/[^a-zA-Zа-яёА-ЯЁ0-9 _.\-]/g, '').trim().slice(0, 40);
   }
 
-  function openModal() {
+  /* Заголовок, подпись и источник по умолчанию — те, что стоят
+     в разметке. Кнопка может их подменить своими атрибутами, и после
+     закрытия окна всё возвращается на место: иначе следующий человек,
+     нажавший обычную кнопку, увидел бы чужой заголовок. */
+  var modalTitle = document.getElementById('modal-t');
+  var modalSub = modal ? modal.querySelector('.modal__sub') : null;
+  var defTitle = modalTitle ? modalTitle.textContent : '';
+  var defSub = modalSub ? modalSub.textContent : '';
+  var defSource = form ? (form.getAttribute('data-source') || '') : '';
+
+  function openModal(opener) {
     if (!modal) return;
+
+    var src = opener ? opener.getAttribute('data-form-source') : null;
+    var ttl = opener ? opener.getAttribute('data-form-title') : null;
+    var sub = opener ? opener.getAttribute('data-form-sub') : null;
+
+    if (form) form.setAttribute('data-source', src || defSource);
+    if (modalTitle) modalTitle.textContent = ttl || defTitle;
+    if (modalSub) modalSub.textContent = sub || defSub;
+
     lastFocused = document.activeElement;
     modal.hidden = false;
     document.body.classList.add('is-locked');
@@ -82,7 +101,7 @@
 
   document.addEventListener('click', function (e) {
     var opener = e.target.closest('[data-open-form]');
-    if (opener) { e.preventDefault(); openModal(); return; }
+    if (opener) { e.preventDefault(); openModal(opener); return; }
 
     var closer = e.target.closest('[data-close-form]');
     if (closer) { e.preventDefault(); closeModal(); }

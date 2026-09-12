@@ -181,6 +181,7 @@ function sourceLabel($value) {
   $known = array(
     'zayavka'  => 'страница заявки',
     'site'     => 'сайт',
+    'analiz'   => 'бесплатный анализ',
     'email'    => 'письмо',
     'telegram' => 'телеграм',
   );
@@ -303,9 +304,16 @@ function postJson($url, $payload, $headers = array()) {
   return array('code' => $code, 'body' => $resp, 'error' => $err);
 }
 
-/* ---------- Телеграм ---------- */
+/* ---------- Телеграм ----------
+   Запрос на бесплатный анализ идёт тем же сообщением, но с другой
+   первой строкой: в общем чате их видно сразу, не вчитываясь. */
+$isAnaliz = (strtolower($source) === 'analiz');
+$head = $isAnaliz
+  ? "🎁 Заявка на БЕСПЛАТНЫЙ АНАЛИЗ · genii-ai.ru"
+  : "🆕 Новая заявка · genii-ai.ru";
+
 $text =
-  "🆕 Новая заявка · genii-ai.ru\n" .
+  $head . "\n" .
   "👤 Имя: $name\n" .
   "📞 Телефон: $phone\n" .
   "📧 Почта: $emailPretty\n" .
@@ -342,7 +350,7 @@ function sendMail($rows, $name, $company, $replyTo) {
   if (!defined('MAIL_FROM') || !MAIL_FROM) return null;
 
   $html = '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111">'
-        . '<h2 style="margin:0 0 16px">Новая заявка с сайта genii-ai.ru</h2>'
+        . '<h2 style="margin:0 0 16px">' . ($isAnaliz ? 'Заявка на бесплатный анализ · genii-ai.ru' : 'Новая заявка с сайта genii-ai.ru') . '</h2>'
         . '<table cellpadding="6" style="border-collapse:collapse">';
   $plain = array();
   foreach ($rows as $label => $value) {
@@ -367,7 +375,7 @@ function sendMail($rows, $name, $company, $replyTo) {
       'from'     => MAIL_FROM,
       'to'       => $to,
       'reply_to' => $replyTo,
-      'subject'  => 'Заявка с genii-ai.ru: ' . $name . ', ' . $company,
+      'subject'  => ($isAnaliz ? 'Бесплатный анализ' : 'Заявка') . ' с genii-ai.ru: ' . $name . ', ' . $company,
       'text'     => implode("\n", $plain),
       'html'     => $html,
     ),
