@@ -1,0 +1,4 @@
+config.ini
+otchety/
+__pycache__/
+*.pyc
