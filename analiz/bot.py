@@ -35,11 +35,42 @@ from nejroanaliz import run as runner  # noqa: E402
 API = 'https://api.telegram.org/bot%s/%s'
 
 
-def load_config(path='config.ini'):
-    if not os.path.exists(path):
-        print('Нет файла %s. Скопируйте config.example.ini в config.ini '
-              'и впишите свои ключи.' % path)
-        sys.exit(1)
+# Проводник Windows по умолчанию прячет расширения, и копия
+# config.example.ini, переименованная в «config.ini», на самом деле
+# получает имя config.ini.ini. Человек видит правильное имя, а файла
+# с таким именем на диске нет. Поэтому ищем и такие варианты — и
+# говорим, как назвать файл по-человечески.
+CONFIG_NAMES = ('config.ini', 'config.ini.ini', 'config.ini.txt',
+                'config.txt', 'config.example.ini.ini')
+
+
+def find_config(folder='.'):
+    for name in CONFIG_NAMES:
+        full = os.path.join(folder, name)
+        if os.path.exists(full):
+            return full, name
+    return '', ''
+
+
+def load_config(path=''):
+    folder = os.path.dirname(os.path.abspath(__file__))
+
+    if not path:
+        path, name = find_config(folder)
+        if not path:
+            print('Не нашёл файл настроек в папке:')
+            print('  %s' % folder)
+            print('')
+            print('Скопируйте config.example.ini, назовите копию config.ini')
+            print('и впишите в неё ключи.')
+            sys.exit(1)
+        if name != 'config.ini':
+            print('Файл настроек называется «%s», а должен «config.ini».' % name)
+            print('Читаю его как есть, но лучше переименовать.')
+            print('')
+            print('Чтобы имена файлов было видно целиком: в проводнике')
+            print('вкладка «Вид» -> галочка «Расширения имён файлов».')
+            print('')
 
     p = configparser.ConfigParser()
     p.read(path, encoding='utf-8')
@@ -48,10 +79,19 @@ def load_config(path='config.ini'):
     cfg = {k: s.get(k, '').strip() for k in s.keys()}
     cfg['gigachat_verify'] = s.get('gigachat_verify', 'yes').strip().lower() not in ('no', 'нет', '0', 'false')
 
+    # Многоточие — это то, что стоит в образце. Значит, строку не
+    # заполнили, а не забыли: так и скажем.
+    for k, v in list(cfg.items()):
+        if isinstance(v, str) and set(v.strip()) == {'.'}:
+            cfg[k] = ''
+
     missing = [k for k in ('telegram_token', 'dadata_token') if not cfg.get(k)]
     if missing:
-        print('В config.ini не заполнено: %s' % ', '.join(missing))
+        print('В файле настроек не заполнено: %s' % ', '.join(missing))
         sys.exit(1)
+
+    cfg['out_dir'] = cfg.get('out_dir') or os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 'otchety')
     return cfg
 
 

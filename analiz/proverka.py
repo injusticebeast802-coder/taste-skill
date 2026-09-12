@@ -35,6 +35,12 @@ def main():
     except runner.RunError as e:
         print('\n%s' % e)
         return 1
+    except Exception as e:
+        # Всё остальное — тоже человеку, а не простынёй из питона.
+        print('\nНе получилось: %s' % e)
+        print('\nЕсли непонятно, в чём дело, пришлите эти две строки —')
+        print('разберёмся.')
+        return 1
 
     print('\n' + runner.as_text(data))
     print('\nКартинка: %s' % os.path.abspath(data['png']))

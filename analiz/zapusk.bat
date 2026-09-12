@@ -26,17 +26,6 @@ if not defined PY (
   exit /b 1
 )
 
-if not exist "config.ini" (
-  echo   V etoy papke net fayla config.ini
-  echo   Skopiruyte config.example.ini v config.ini i vpishite klyuchi.
-  echo.
-  dir /b
-  echo.
-  pause
-  popd
-  exit /b 1
-)
-
 rem ---- biblioteki ----
 rem Stavim ih v oboih faylah zapuska: ran-she eto delal tolko odin,
 rem i vtoroy padal s "No module named requests".
