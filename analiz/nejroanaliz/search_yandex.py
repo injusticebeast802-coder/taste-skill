@@ -173,7 +173,11 @@ def position_of(query, site, names, folder_id, api_key):
 
     for i, d in enumerate(docs, 1):
         if site:
-            if matching.domain_of(d['url']) == site:
+            # Поддомен — тоже наш сайт. Яндекс нередко показывает
+            # m.сайт.ру или shop.сайт.ру, и по строгому равенству
+            # компания выпадала из выдачи, хотя стояла в ней.
+            host = matching.domain_of(d['url'])
+            if host == site or host.endswith('.' + site):
                 return i, d['url']
         else:
             if matching.mentioned_any(d['title'] + ' ' + d['text'], names):
