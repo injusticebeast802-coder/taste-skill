@@ -178,11 +178,24 @@ def _glavnyj(host, vse):
 # Справочники, соцсети и агрегаторы: компания там есть почти всегда,
 # но это не её сайт и не её позиция.
 AGGREGATORS = (
-    'yandex.', 'ya.ru', 'google.', '2gis.', 'zoon.', 'yell.', 'flamp.',
-    'vk.com', 'ok.ru', 't.me', 'telegram.', 'instagram.', 'facebook.',
-    'avito.', 'youla.', 'ozon.', 'wildberries.', 'dzen.ru', 'rusprofile.',
-    'list-org.', 'checko.', 'sbis.ru', 'zachestnyibiznes.', 'prodoctorov.',
-    'otzovik.', 'irecommend.', 'hh.ru', 'rabota.',
+    # поисковики и карты
+    'yandex.', 'ya.ru', 'google.', '2gis.', 'maps.',
+    # справочники и отзывы
+    'zoon.', 'yell.', 'flamp.', 'orgpage.', 'spr.ru', 'blizko.',
+    'otzovik.', 'irecommend.', 'tripadvisor.', 'restoclub.', 'prodoctorov.',
+    # соцсети. Именно тут пряталась ошибка: стоял только vk.com, а
+    # ВКонтакте давно живёт ещё и на vk.ru — и страница группы
+    # становилась «сайтом компании».
+    'vk.com', 'vk.ru', 'vk.me', 'ok.ru', 't.me', 'telegram.',
+    'instagram.', 'facebook.', 'dzen.ru', 'youtube.', 'pinterest.',
+    # маркетплейсы и доски
+    'avito.', 'youla.', 'ozon.', 'wildberries.', 'market.', 'aliexpress.',
+    # записи и бронирования: у салонов и барбершопов выходят вперёд
+    # собственного сайта
+    'yclients.', 'dikidi.', 'n-a-p.ru', 'sbereats.', 'delivery-club.',
+    # реестры и работа
+    'rusprofile.', 'list-org.', 'checko.', 'sbis.ru', 'zachestnyibiznes.',
+    'audit-it.', 'hh.ru', 'rabota.', 'superjob.',
 )
 
 
