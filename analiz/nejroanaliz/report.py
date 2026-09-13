@@ -56,9 +56,20 @@ BRANDS = {
     },
 }
 
-# Шрифт ищем среди тех, что есть в системе. Первый найденный и берём:
-# на сервере обычно DejaVu, на компьютере менеджера — Arial.
+# Шрифт возим с собой, а не ищем в системе.
+#
+# На хостинге системных шрифтов может не быть вовсе, либо в них не быть
+# кириллицы. Латиница и цифры тогда рисуются, а русские буквы выходят
+# пустыми квадратиками — отчёт нечитаем. Так и случилось при первом
+# запуске на хостинге: «ООО НИЯМА» превратилось в решётку.
+#
+# Свой шрифт лежит в папке shrifty рядом с программой и берётся первым.
+# Системные пути остаются запасным вариантом — на случай, если папку
+# со шрифтами кто-нибудь потеряет.
+SVOI = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'shrifty')
+
 FONT_CANDIDATES = [
+    os.path.join(SVOI, 'DejaVuSans.ttf'),
     '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
     '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
     'C:/Windows/Fonts/segoeui.ttf',
@@ -66,6 +77,7 @@ FONT_CANDIDATES = [
     '/System/Library/Fonts/Supplemental/Arial.ttf',
 ]
 FONT_BOLD_CANDIDATES = [
+    os.path.join(SVOI, 'DejaVuSans-Bold.ttf'),
     '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
     '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
     'C:/Windows/Fonts/segoeuib.ttf',
@@ -83,8 +95,18 @@ def _mix(a, b, t):
 def _font(size, bold=False):
     for path in (FONT_BOLD_CANDIDATES if bold else FONT_CANDIDATES):
         if os.path.exists(path):
-            return ImageFont.truetype(path, size)
-    return ImageFont.load_default()
+            try:
+                return ImageFont.truetype(path, size)
+            except Exception:
+                continue
+
+    # Досюда доходить не должно. Встроенный шрифт кириллицы не знает, и
+    # отчёт выйдет из квадратиков — это хуже, чем отсутствие отчёта,
+    # потому что такую картинку менеджер отправит клиенту не глядя.
+    raise RuntimeError(
+        'Не нашёлся шрифт для картинки отчёта.\n'
+        'Он должен лежать здесь: %s\n'
+        'Запустите установку заново — она положит его на место.' % SVOI)
 
 
 def build(company, site, ai_results, search_results):
