@@ -85,9 +85,13 @@ TORGOVLYA = ('магазин', 'интернет-магазин', 'онлайн-
 
 def patterns_for(phrase):
     """Какими словами спрашивать: про покупку или про услугу."""
-    p = ' '.join((phrase or '').split()).lower()
-    head = p.split(' ')[0] if p else ''
-    return PATTERNS_TOVAR if head in TORGOVLYA else PATTERNS
+    words = _rovno(phrase).split(' ')
+    if not words or not words[0]:
+        return PATTERNS
+    # «онлайн магазин» — два слова, а торговля одна.
+    if words[0] in ('интернет', 'онлайн') and len(words) > 1:
+        return PATTERNS_TOVAR if words[1] in TORGOVLYA else PATTERNS
+    return PATTERNS_TOVAR if words[0] in TORGOVLYA else PATTERNS
 
 
 # Слова-приметы, по которым узнаём тему. Порядок важен: сначала
@@ -123,14 +127,25 @@ TRIGGERS = [
 ]
 
 
+def _rovno(text):
+    """Одинаковое написание для сравнения.
+
+    «Онлайн-магазин» и «онлайн магазин» — одно и то же слово, но для
+    программы это разные строки. Менеджер пишет как придётся, и на
+    дефисе проверка однажды уехала в безликий «розничный магазин»:
+    тема не опозналась, вопросов вышло семь вместо двенадцати.
+    """
+    return ' '.join((text or '').replace('-', ' ').lower().split())
+
+
 def topic_of(text):
     """Тема по словам-приметам. Пустая строка — тема неизвестна."""
-    t = (text or '').strip().lower()
+    t = _rovno(text)
     if len(t) < 3:
         return ''
     for topic, words in TRIGGERS:
         for w in words:
-            if w in t:
+            if _rovno(w) in t:
                 return topic
     return ''
 
@@ -146,6 +161,8 @@ def topic_of(text):
 # двенадцать раз ответит одинаково.
 GOLOVY = {
     'магазин': ('магазин', 'доставка', 'продажа'),
+    'интернет магазин': ('интернет-магазин', 'магазин', 'доставка'),
+    'онлайн магазин': ('онлайн-магазин', 'магазин', 'доставка'),
     'интернет-магазин': ('интернет-магазин', 'магазин', 'доставка'),
     'онлайн-магазин': ('онлайн-магазин', 'магазин', 'доставка'),
     'доставка': ('доставка', 'магазин', 'продажа'),
@@ -179,10 +196,17 @@ def _narrow_subjects(phrase):
         return []
     out = [p]
 
-    words = p.split(' ')
+    words = _rovno(p).split(' ')
     if len(words) < 2:
         return out
+
+    # Голова бывает из двух слов: «интернет магазин», «онлайн магазин».
+    # Берём длинную, если такая знакома, иначе первое слово.
     head, rest = words[0], ' '.join(words[1:])
+    if len(words) > 2:
+        para = ' '.join(words[:2])
+        if para in GOLOVY:
+            head, rest = para, ' '.join(words[2:])
     parts = [x.strip(' ,') for x in rest.split(' и ')]
     parts = [x for x in parts if len(x) >= 4]
     if len(parts) < 2:
@@ -194,10 +218,16 @@ def _narrow_subjects(phrase):
                 out.append(q)
 
     # Та же тема другими словами: меняем только первое слово.
+    # Сравниваем по «ровному» написанию, иначе «онлайн магазин» и
+    # «онлайн-магазин» уйдут в список как две разные темы и один и
+    # тот же вопрос будет задан дважды.
+    def est_uzhe(q):
+        return any(_rovno(q) == _rovno(e) for e in out)
+
     for zamena in GOLOVY.get(head, ()):
         for x in parts:
             q = '%s %s' % (zamena, x)
-            if q not in out:
+            if not est_uzhe(q):
                 out.append(q)
     return out
 

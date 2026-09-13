@@ -310,11 +310,22 @@ def as_text(data):
     if data['ai_best_position']:
         lines.append('Лучшее место в списке нейросети — %d-е.' % data['ai_best_position'])
     if data['search_best']:
-        lines.append('В поиске Яндекса лучшее место — %d-е.' % data['search_best'])
+        stroka = 'В поиске Яндекса лучшее место — %d-е' % data['search_best']
+        if data.get('search_best_query'):
+            stroka += ' по запросу «%s»' % data['search_best_query']
+        lines.append(stroka + '.')
     elif data.get('search_broken'):
         lines.append('Место в поиске Яндекса не смотрел: поиск недоступен.')
     else:
         lines.append('В поиске Яндекса в первой двадцатке не нашли.')
+    mesta = [r for r in data['search_results'] if not r.get('error')]
+    if mesta:
+        lines.append('')
+        lines.append('Места в поиске по каждому запросу:')
+        for r in mesta:
+            lines.append('  %s — %s' % (
+                r['query'], ('%d-е' % r['position']) if r.get('position') else 'нет в топ-20'))
+
     if data['rivals']:
         lines.append('Чаще называют: ' + ', '.join(n for n, _ in data['rivals'][:3]) + '.')
 
