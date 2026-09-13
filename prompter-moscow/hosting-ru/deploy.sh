@@ -66,7 +66,7 @@ echo "Очищаю папку сайта..."
 find "$DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
 echo "Раскладываю файлы..."
-cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
+cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/404.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
 cp "$SRC/robots.txt" "$SRC/sitemap.xml" "$DIR/"
 cp -r "$SRC/assets" "$SRC/img" "$SRC/fonts" "$DIR/"
 
@@ -92,7 +92,7 @@ else
 fi
 
 # Счётчики Vercel на этом хостинге не работают — убираем лишние запросы.
-sed -i '/_vercel\/insights/d; /_vercel\/speed-insights/d' "$DIR/index.html" "$DIR/privacy.html" "$DIR/zayavka.html" 2>/dev/null || true
+sed -i '/_vercel\/insights/d; /_vercel\/speed-insights/d' "$DIR/index.html" "$DIR/privacy.html" "$DIR/zayavka.html" "$DIR/404.html" 2>/dev/null || true
 
 chmod 644 "$DIR/config.php"
 find "$DIR" -type d -exec chmod 755 {} +
