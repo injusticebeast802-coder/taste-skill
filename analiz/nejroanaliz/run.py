@@ -351,10 +351,22 @@ def as_text(data):
     """Короткая выжимка текстом — идёт подписью к картинке."""
     c = data['company']
     head = report.verdict(data)[0]
+    # Первой строкой бренд, как и на картинке: подпись и картинка
+    # уходят клиенту вместе, и расходиться им нельзя. Реестровое имя
+    # идёт следом — оно нужно менеджеру, но не клиенту в заголовке.
+    zagolovok = c.get('brand') or c.get('full_name') or c.get('name') or ''
+    reestr = c.get('full_name') or c.get('name') or ''
+    vtoraya = []
+    if reestr and reestr.strip().lower() != zagolovok.strip().lower():
+        vtoraya.append(reestr)
+    if c.get('inn'):
+        vtoraya.append('ИНН %s' % c['inn'])
+    vtoraya.append(c.get('city') or 'город не указан')
+    vtoraya.append(c.get('industry') or '—')
+
     lines = [
-        '%s' % (c.get('full_name') or c.get('name')),
-        ((('ИНН %s · ' % c['inn']) if c.get('inn') else '')
-         + '%s · %s' % (c.get('city') or 'город не указан', c.get('industry') or '—')),
+        zagolovok,
+        ' · '.join(vtoraya),
         ('Сайт: %s' % data['site']) if data['site'] else
         ('Сайт: не проверял — поиск Яндекса недоступен' if data.get('search_broken')
          else 'Сайт: не нашли, проверяли по названию'),
