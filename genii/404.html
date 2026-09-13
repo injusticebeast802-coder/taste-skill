@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Страница не найдена — ГенИИ</title>
+<meta name="description" content="Такой страницы на сайте «ГенИИ» нет. Вернитесь на главную, почитайте статьи или оставьте заявку.">
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0A0A0C">
+<meta name="color-scheme" content="dark">
+
+<!-- ВАЖНО: все адреса здесь начинаются со слэша.
+     Эту страницу сервер отдаёт в ответ на ЛЮБОЙ несуществующий адрес,
+     в том числе на /uslugi/moskva/chego-to-net. Относительная ссылка
+     вида style.css в этом случае ушла бы в /uslugi/moskva/style.css,
+     и посетитель увидел бы голый текст без оформления. -->
+<link rel="icon" type="image/png" href="/assets/favicon-64.png">
+<link rel="apple-touch-icon" href="/assets/icon-180.png">
+<link rel="stylesheet" href="/style.css?v=1">
+
+<style>
+  /* Страница-ошибка. Своя вёрстка, но ни одного своего цвета:
+     всё берётся из переменных сайта, чтобы при смене палитры
+     эта страница менялась вместе с остальными. */
+
+  .e404{position:relative;overflow:hidden;padding:clamp(48px,7vw,104px) 0 clamp(64px,8vw,120px)}
+
+  /* Свечение как на первом экране главной: те же два фирменных пятна.
+     Картинки нет намеренно — страница должна открыться мгновенно даже
+     на плохой связи, ведь человек сюда попал случайно и ждать не станет. */
+  .e404__glow{
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(58% 70% at 12% 0%,rgba(166,214,230,.20),transparent 62%),
+      radial-gradient(52% 64% at 88% 96%,rgba(198,184,226,.16),transparent 66%);
+  }
+
+  .e404__in{
+    position:relative;
+    display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1fr);
+    gap:clamp(28px,5vw,72px);align-items:center;
+  }
+
+  /* Цифра — не заголовок, а картинка. Поэтому она контурная и приглушённая:
+     кричать должен текст справа, а не число. */
+  .e404__num{
+    margin:0;font-family:var(--f-display);font-weight:700;
+    font-size:clamp(96px,17vw,210px);line-height:.92;letter-spacing:-.04em;
+    color:transparent;
+    -webkit-text-stroke:2px var(--line-2);
+    user-select:none;
+  }
+  .e404__num b{font-weight:700;color:var(--mint);-webkit-text-stroke:0}
+  /* Safari до 15 и старые Android не знают -webkit-text-stroke на
+     прозрачном тексте и показали бы пустое место. Подстраховка. */
+  @supports not (-webkit-text-stroke:1px #000){
+    .e404__num{color:var(--muted-2);-webkit-text-stroke:0}
+  }
+
+  .e404__label{
+    display:block;margin-top:14px;
+    font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted-2);
+  }
+
+  .e404__copy{min-width:0}
+  .e404__h1{font-size:clamp(27px,4.2vw,44px);margin-bottom:16px;text-wrap:balance}
+  .e404__lead{margin-bottom:clamp(24px,3vw,34px);max-width:52ch}
+
+  .e404__act{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:clamp(30px,4vw,44px)}
+  .e404__ghost{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-family:var(--f-body);font-size:16px;font-weight:600;
+    padding:14px 26px;border-radius:var(--r-sm);
+    border:1px solid var(--line-2);background:transparent;color:var(--text);
+    text-decoration:none;
+    transition:background-color .18s var(--ease),border-color .18s var(--ease),transform .18s var(--ease);
+  }
+  .e404__ghost:hover{background:var(--surface);border-color:var(--line-2)}
+  .e404__ghost:active{transform:translateY(1px) scale(.99)}
+
+  /* Список путей дальше. Не карточки: три плитки с тенями здесь были бы
+     лишним шумом, хватает тонких линий. */
+  .e404__ways{border-top:1px solid var(--line)}
+  .e404__way{
+    display:flex;align-items:center;gap:16px;
+    padding:16px 4px;border-bottom:1px solid var(--line);
+    text-decoration:none;color:var(--text);
+    transition:background-color .18s var(--ease),padding-left .18s var(--ease);
+  }
+  .e404__way:hover{background:rgba(255,255,255,.035);padding-left:12px}
+  .e404__way-t{display:block;font-weight:600;font-size:16.5px}
+  .e404__way-d{display:block;color:var(--muted-2);font-size:14.5px;line-height:1.5}
+  .e404__way-txt{min-width:0}
+  .e404__way-ic{
+    width:20px;height:20px;flex:none;margin-left:auto;color:var(--muted-2);
+    transition:transform .18s var(--ease),color .18s var(--ease);
+  }
+  .e404__way:hover .e404__way-ic{transform:translateX(4px);color:var(--mint)}
+
+  @media (prefers-reduced-motion:reduce){
+    .e404__way,.e404__way-ic,.e404__ghost{transition:none}
+    .e404__way:hover{padding-left:4px}
+    .e404__way:hover .e404__way-ic{transform:none}
+  }
+
+  @media (max-width:860px){
+    .e404__in{grid-template-columns:1fr;gap:clamp(18px,4vw,28px);align-items:start}
+    .e404__num{font-size:clamp(84px,24vw,130px)}
+    /* Кнопки встают в столбик и тянутся на всю ширину — так же,
+       как на первом экране главной. */
+    .e404__act > *{flex:1 1 auto}
+  }
+</style>
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h13"/><path d="M12 6l6 6-6 6"/></symbol>
+</svg>
+
+<header class="hdr">
+  <div class="wrap hdr__in">
+    <a class="logo" href="/" aria-label="ГенИИ, на главную">
+      <img class="logo__mark" src="/assets/mark.png" alt="" width="34" height="34">
+      <span class="logo__txt">Ген<b>ИИ</b></span>
+    </a>
+  </div>
+</header>
+
+<main class="e404">
+  <div class="e404__glow" aria-hidden="true"></div>
+  <div class="wrap e404__in">
+
+    <div>
+      <p class="e404__num" aria-hidden="true">4<b>0</b>4</p>
+      <span class="e404__label">Ошибка 404</span>
+    </div>
+
+    <div class="e404__copy">
+      <h1 class="h1 e404__h1">Такой страницы у нас нет</h1>
+      <p class="lead e404__lead">Скорее всего, в адресе опечатка или страницу перенесли. Всё остальное на месте — выберите, куда пойти дальше.</p>
+
+      <div class="e404__act">
+        <a class="btn btn--grad btn--lg" href="/">
+          На главную
+          <svg class="ic" style="width:20px;height:20px" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </a>
+        <a class="e404__ghost" href="/zayavka">Оставить заявку</a>
+      </div>
+
+      <nav class="e404__ways" aria-label="Разделы сайта">
+        <a class="e404__way" href="/#solution">
+          <span class="e404__way-txt">
+            <span class="e404__way-t">Как работает технология</span>
+            <span class="e404__way-d">Почему нейросеть называет одни компании и молчит про другие</span>
+          </span>
+          <svg class="e404__way-ic ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </a>
+        <a class="e404__way" href="/#price">
+          <span class="e404__way-txt">
+            <span class="e404__way-t">Что входит в работу</span>
+            <span class="e404__way-d">Состав услуги и сроки</span>
+          </span>
+          <svg class="e404__way-ic ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </a>
+        <a class="e404__way" href="/stati/">
+          <span class="e404__way-txt">
+            <span class="e404__way-t">Полезные статьи</span>
+            <span class="e404__way-d">Разборы и ответы на частые вопросы</span>
+          </span>
+          <svg class="e404__way-ic ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </a>
+        <a class="e404__way" href="tel:+79067587777">
+          <span class="e404__way-txt">
+            <span class="e404__way-t">+7 906 758-77-77</span>
+            <span class="e404__way-d">Позвоните, если ищете что-то конкретное</span>
+          </span>
+          <svg class="e404__way-ic ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </a>
+      </nav>
+    </div>
+
+  </div>
+</main>
+
+<footer class="ftr">
+  <div class="wrap ftr__in">
+    <p class="ftr__c">
+      <img class="ftr__mark" src="/assets/mark.png" alt="" width="24" height="24">
+      © <span id="year">2026</span> ГенИИ
+    </p>
+    <a class="ftr__mail" href="mailto:geniiai@mail.ru">geniiai@mail.ru</a>
+    <a class="ftr__site" href="https://genii-ai.ru">genii-ai.ru</a>
+    <p class="ftr__place">Moscow, Skolkovo</p>
+    <a class="ftr__pp" href="/privacy">Политика обработки данных</a>
+    <a class="ftr__pp" href="/">На главную</a>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = String(new Date().getFullYear());
+</script>
+
+</body>
+</html>
