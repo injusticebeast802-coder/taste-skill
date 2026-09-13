@@ -67,8 +67,10 @@ mkdir -p "$DIR"
 # Настройки переживают обновление: второй раз ключи вводить незачем.
 [ -f "$DIR/config.ini" ] && cp "$DIR/config.ini" "$TMP/config.keep"
 
-rm -rf "$DIR/nejroanaliz" "$DIR/cloudflare" "$DIR/hosting"
-cp -r "$SRC/nejroanaliz" "$SRC/cloudflare" "$SRC/hosting" "$DIR/"
+rm -rf "$DIR/nejroanaliz" "$DIR/cloudflare" "$DIR/hosting" "$DIR/shrifty"
+# shrifty — шрифт для картинки отчёта. Возим с собой: на хостинге
+# системных шрифтов может не быть, и кириллица выйдет квадратиками.
+cp -r "$SRC/nejroanaliz" "$SRC/cloudflare" "$SRC/hosting" "$SRC/shrifty" "$DIR/"
 cp "$SRC/bot.py" "$SRC/proverka.py" "$SRC/requirements.txt" \
    "$SRC/config.example.ini" "$SRC/README.md" "$DIR/"
 chmod +x "$DIR/hosting/bot.sh"
@@ -92,6 +94,19 @@ echo "Ставлю библиотеки..."
 "$DIR/venv/bin/pip" install --quiet --upgrade pip
 "$DIR/venv/bin/pip" install --quiet -r "$DIR/requirements.txt"
 "$DIR/venv/bin/python" -c "import requests, PIL; print('библиотеки на месте')"
+
+# Проверяем шрифт сразу, а не когда менеджер отправит клиенту отчёт
+# из квадратиков. Мерим ширину русского слова: у шрифта без кириллицы
+# оно либо нулевой ширины, либо ровно такой же, как латинское, —
+# потому что рисуются одинаковые пустые квадратики.
+cd "$DIR" && "$DIR/venv/bin/python" -c "
+from nejroanaliz import report
+f = report._font(20)
+ru, lat = f.getlength('Проверка'), f.getlength('Proverka')
+if ru < 10 or abs(ru - lat) < 0.5:
+    raise SystemExit('ВНИМАНИЕ: шрифт без кириллицы, отчёт выйдет квадратиками.')
+print('шрифт с кириллицей на месте')
+"
 
 echo
 echo "Готово."
