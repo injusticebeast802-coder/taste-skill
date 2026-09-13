@@ -468,7 +468,12 @@ def draw_png(data, path, brand='genii'):
     # застройщика раньше рвалось на полуслове и без многоточия —
     # выходило «ООО СПЕЦИАЛИЗИРОВАННЫЙ ЗАСТРОЙЩИК ЖИЛЫХ», и клиент
     # видел в отчёте о себе обрубок.
-    nazvanie = c.get('full_name') or c.get('name') or ''
+    # В заголовок ставим бренд, а не строчку из реестра. У
+    # предпринимателя там фамилия владельца — «ИП Кормильцев Дмитрий
+    # Евгеньевич», — и отчёт с таким заголовком неловко отправлять
+    # самому клиенту: он знает свой барбершоп «Britva», а не паспорт
+    # хозяина. Реестровое имя не теряем, оно уходит строкой ниже.
+    nazvanie = c.get('brand') or c.get('full_name') or c.get('name') or ''
     for kegl in (44, 38, 33, 29, 25, 22):
         f_naz = _font(kegl, 'disp')
         stroki = _wrap(d, nazvanie, f_naz, SHIR)
@@ -479,11 +484,17 @@ def draw_png(data, path, brand='genii'):
         y += int(kegl * 1.3)
     y += 6
 
-    sub = 'ИНН %s' % c.get('inn', '')
+    chasti = []
+    reestr = c.get('full_name') or c.get('name') or ''
+    if reestr and reestr.strip().lower() != nazvanie.strip().lower():
+        chasti.append(reestr)
+    if c.get('inn'):
+        chasti.append('ИНН %s' % c['inn'])
     if c.get('city'):
-        sub += '  ·  %s' % c['city']
+        chasti.append(c['city'])
     if c.get('industry'):
-        sub += '  ·  %s' % c['industry']
+        chasti.append(c['industry'])
+    sub = '  ·  '.join(chasti)
     for line in _wrap(d, sub, _font(19), SHIR)[:2]:
         d.text((PAD, y), line, font=_font(19), fill=MUTED)
         y += 26
@@ -537,8 +548,12 @@ def draw_png(data, path, brand='genii'):
         # «Не смотрели» — это не плохое место, а отсутствие проверки:
         # красить в тревожный цвет нечестно.
         cvet = MUTED if bolshoe == 'не смотрели' else cvet_mesta(mesto)
-        d.text((px, py), bolshoe, font=_font(38, 'disp2'), fill=cvet)
-        py += 50
+        # Числу — крупный кегль, фразе — поменьше. «Нет в топ-20» тем
+        # же размером, что «3-е», занимает всю колонку и кричит, хотя
+        # это не показатель, а его отсутствие.
+        kegl = 38 if mesto else 24
+        d.text((px, py), bolshoe, font=_font(kegl, 'disp2'), fill=cvet)
+        py += kegl + 12
         for line in _wrap(d, podpis, _font(17), W - PAD - px)[:2]:
             d.text((px, py), line, font=_font(17), fill=MUTED)
             py += 23
