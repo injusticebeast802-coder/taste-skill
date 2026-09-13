@@ -327,6 +327,7 @@ def as_text(data):
                 r['query'], ('%d-е' % r['position']) if r.get('position') else 'нет в топ-20'))
 
     if data['rivals']:
+        lines.append('')
         lines.append('Чаще называют: ' + ', '.join(n for n, _ in data['rivals'][:3]) + '.')
 
     # По каждой нейросети отдельно: если одна не ответила совсем,
