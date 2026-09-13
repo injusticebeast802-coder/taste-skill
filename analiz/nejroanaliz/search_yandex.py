@@ -114,18 +114,71 @@ def raw_search(query, folder_id, api_key, timeout=20):
                       '\n'.join(problems))
 
 
-def find_site(names, city, folder_id, api_key):
-    """Ищет официальный сайт компании по названию.
+# Слова, по которым видно, что это соседняя контора с тем же
+# брендом, а не сам клиент. У барбершопа «Бритва» есть школа барберов
+# britva-academy.ru, и она выходит в поиске раньше самого барбершопа:
+# бренд в имени тот же, и отличить их можно только по роду занятий.
+CHUZHIE = ('academy', 'академи', 'school', 'школ', 'курс', 'обучени',
+           'franch', 'франш', 'вакансии', 'работа в', 'оптом', 'b2b',
+           'forum', 'форум', 'блог', 'blog', 'wiki')
 
-    Берём первую ссылку, которая не ведёт на справочник или соцсеть:
-    там компания тоже есть, но это не её сайт.
+
+def _ochki(indeks, host, zagolovok, opisanie, names, kind):
+    """Насколько эта ссылка похожа на сайт нашей компании.
+
+    Брать первую попавшуюся нельзя: поиск ставит вперёд то, что чаще
+    открывают, а это бывает школа, франшиза или форум. Поэтому
+    считаем приметы, а место в выдаче остаётся лишь одной из них.
+    """
+    h = host.lower()
+    zag = (zagolovok or '').lower()
+    ves = zag + ' ' + (opisanie or '').lower()
+    ochki = 0.0
+
+    # Бренд прямо в имени сайта — самая сильная примета.
+    for n in names:
+        korotko = matching.fold(n)
+        if korotko and korotko in matching.fold(h):
+            ochki += 4
+            break
+
+    # Род занятий в заголовке или описании: так барбершоп отличается
+    # от школы барберов, у которых бренд общий.
+    slova = [w for w in (kind or '').lower().replace('-', ' ').split() if len(w) > 4]
+    if slova and any(w[:6] in ves for w in slova):
+        ochki += 3
+
+    # Название встретилось в тексте страницы.
+    if matching.mentioned_any(zag + ' ' + (opisanie or ''), names):
+        ochki += 2
+
+    # Соседняя контора с тем же брендом. Ищем приметы только в имени
+    # сайта и в заголовке — в описании они врут. Настоящий барбершоп
+    # перечисляет филиалы, среди них «Академическая», и слово
+    # «академи» находилось внутри названия станции метро: правильный
+    # сайт получал штраф, а школа барберов выигрывала.
+    kind_low = (kind or '').lower()
+    if not any(w in kind_low for w in CHUZHIE):
+        if any(w in h for w in CHUZHIE):
+            ochki -= 5
+        if any(w in zag for w in CHUZHIE):
+            ochki -= 3
+
+    # Место в выдаче: важно, но не решает.
+    ochki -= indeks * 0.4
+    return ochki
+
+
+def find_site(names, city, folder_id, api_key, kind=''):
+    """Ищет официальный сайт компании по названию.
 
     names — все известные написания. Требовать совпадения названия в
     заголовке нельзя: в реестре «ФЛАУВАУ», а на сайте написано
-    Flowwow, и настоящий сайт отбраковывался. Поэтому имя проверяем,
-    но если ни одна ссылка не подошла — берём первую подходящую
-    не-справочную: по запросу с названием и словами «официальный
-    сайт» она почти всегда и есть искомая.
+    Flowwow, и настоящий сайт отбраковывался.
+
+    kind — род занятий. Без него по запросу «Britva Москва
+    официальный сайт» первой выходила школа барберов с тем же
+    брендом, а не сам барбершоп.
     """
     if isinstance(names, str):
         names = [names]
@@ -133,25 +186,22 @@ def find_site(names, city, folder_id, api_key):
     if not names:
         return ''
 
-    query = ('%s %s официальный сайт' % (names[0], city)).strip()
+    query = ' '.join(x for x in (names[0], kind, city, 'официальный сайт') if x)
     # Ошибку не глотаем: «сайт не нашли» и «поиск не работает» —
     # разные вещи, и вторую надо чинить, а не принимать за ответ.
     docs = raw_search(query, folder_id, api_key)
 
-    svoi = []
-    fallback = ''
-    nashli = ''
-    for d in docs[:10]:
+    svoi, luchshij, luchshie_ochki = [], '', None
+    for i, d in enumerate(docs[:10]):
         host = matching.domain_of(d['url'])
         if not host or any(bad in host for bad in AGGREGATORS):
             continue
         svoi.append(host)
-        if not fallback:
-            fallback = host
-        if not nashli and matching.mentioned_any(d['title'] + ' ' + d['text'], names):
-            nashli = host
+        o = _ochki(i, host, d['title'], d['text'], names, kind)
+        if luchshie_ochki is None or o > luchshie_ochki:
+            luchshij, luchshie_ochki = host, o
 
-    return _glavnyj(nashli or fallback, svoi)
+    return _glavnyj(luchshij, svoi)
 
 
 def _glavnyj(host, vse):

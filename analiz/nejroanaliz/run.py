@@ -173,7 +173,8 @@ def analyze(raw_inn, cfg, progress=None):
         say('Ищу сайт компании…')
         try:
             site = search_yandex.find_site(c['names'], c.get('city', ''),
-                                           cfg['yandex_folder_id'], cfg['yandex_search_key'])
+                                           cfg['yandex_folder_id'], cfg['yandex_search_key'],
+                                           kind=c.get('kind') or c.get('industry') or '')
         except Exception as e:
             site = ''
             search_broken = str(e)[:400]
