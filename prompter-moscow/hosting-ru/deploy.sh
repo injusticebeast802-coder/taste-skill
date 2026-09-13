@@ -91,9 +91,6 @@ else
   echo "иначе заявки приходить не будут."
 fi
 
-# Счётчики Vercel на этом хостинге не работают — убираем лишние запросы.
-sed -i '/_vercel\/insights/d; /_vercel\/speed-insights/d' "$DIR/index.html" "$DIR/privacy.html" "$DIR/zayavka.html" "$DIR/404.html" 2>/dev/null || true
-
 chmod 644 "$DIR/config.php"
 find "$DIR" -type d -exec chmod 755 {} +
 find "$DIR" -type f ! -name config.php -exec chmod 644 {} +
@@ -101,10 +98,25 @@ find "$DIR" -type f ! -name config.php -exec chmod 644 {} +
 # Итог показываем без конвейера: раньше здесь стояло «ls | head -20»,
 # и на хостинге это заканчивалось руганью — head не понимает старую
 # запись «-20», а следом ls жаловался на оборванный конвейер. Выглядело
-# как сбой деплоя, хотя файлы к этому моменту уже разложены.
+# как сбой установки, хотя файлы к этому моменту уже разложены.
 echo
 echo "Готово. В папке сайта $(ls -1A "$DIR" | wc -l) файлов и папок:"
 ls -1A "$DIR"
 
 echo
 echo "Презентаций выложено: $(ls -1 "$DIR"/presentations/*.pptx 2>/dev/null | wc -l)"
+
+# ---------- Проверка страницы «не найдено» ----------
+# Её легче всего потерять при обновлении: файл один, строка в .htaccess
+# одна, а узнаёшь о пропаже только когда клиент по битой ссылке увидит
+# казённое «Not Found» белым по серому и закроет вкладку.
+if [ -f "$DIR/404.html" ] && grep -q "ErrorDocument 404 /404.html" "$DIR/.htaccess"; then
+  echo
+  echo "Страница «не найдено» на месте."
+  echo "Проверить в браузере: https://prompter-ai.moscow/takoj-stranicy-net"
+  echo "Должна открыться тёмная страница сайта, а не белая надпись Not Found."
+else
+  echo
+  echo "ВНИМАНИЕ: страница «не найдено» не разложилась."
+  echo "Нужны файл 404.html и строка ErrorDocument 404 /404.html в .htaccess."
+fi
