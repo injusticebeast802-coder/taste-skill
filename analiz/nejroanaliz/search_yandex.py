@@ -138,16 +138,41 @@ def find_site(names, city, folder_id, api_key):
     # разные вещи, и вторую надо чинить, а не принимать за ответ.
     docs = raw_search(query, folder_id, api_key)
 
+    svoi = []
     fallback = ''
+    nashli = ''
     for d in docs[:10]:
         host = matching.domain_of(d['url'])
         if not host or any(bad in host for bad in AGGREGATORS):
             continue
+        svoi.append(host)
         if not fallback:
             fallback = host
-        if matching.mentioned_any(d['title'] + ' ' + d['text'], names):
-            return host
-    return fallback
+        if not nashli and matching.mentioned_any(d['title'] + ' ' + d['text'], names):
+            nashli = host
+
+    return _glavnyj(nashli or fallback, svoi)
+
+
+def _glavnyj(host, vse):
+    """Сводит найденный адрес к главному сайту сети.
+
+    У сетей бывают областные поддомены: ryazan.britvabarber.ru,
+    spb.britvabarber.ru. Поиск отдаёт их вперемешку с главным, и
+    однажды по московскому барбершопу нашёлся рязанский поддомен —
+    отчёт вышел про чужой город.
+
+    Сводим к главному, только если он сам встретился в выдаче: гадать
+    нельзя, потому что у некоторых компаний сайт и правда живёт на
+    поддомене, а у доменов вида contora.spb.ru отрезание части имени
+    дало бы вообще чужой сайт.
+    """
+    if not host:
+        return ''
+    for drugoj in vse:
+        if drugoj != host and host.endswith('.' + drugoj):
+            return drugoj
+    return host
 
 
 # Справочники, соцсети и агрегаторы: компания там есть почти всегда,
