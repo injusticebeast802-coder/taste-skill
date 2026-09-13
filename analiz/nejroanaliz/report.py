@@ -4,6 +4,47 @@ import os
 
 from PIL import Image, ImageDraw, ImageFont
 
+# Цвета показаний: плохо, средне, хорошо.
+#
+# Это не фирменные цвета, а язык прибора — его понимают без подписи.
+# Поэтому они одинаковы на обоих сайтах: клиент смотрит на полосу
+# соседа и на свою и видит разницу раньше, чем прочтёт числа.
+#
+# Насыщенность приглушена намеренно: чистый светофор на тёмном фоне
+# выглядит аварийной панелью, а не отчётом.
+PLOHO = (222, 96, 88)
+SREDNE = (226, 174, 74)
+HOROSHO = (94, 186, 134)
+
+# Границы. Ниже четверти — плохо, до трёх пятых — средне, дальше
+# хорошо. Считаем от того, сколько всего было ответов, а в списке
+# конкурентов — от лучшего в списке.
+PORAG_PLOHO = 0.25
+PORAG_SREDNE = 0.60
+
+
+def cvet_doli(dolya):
+    """Цвет полосы по её заполненности."""
+    if dolya < PORAG_PLOHO:
+        return PLOHO
+    if dolya < PORAG_SREDNE:
+        return SREDNE
+    return HOROSHO
+
+
+def cvet_mesta(mesto):
+    """Цвет для места в списке. Первая тройка — хорошо, до десятого
+    терпимо, дальше плохо: туда уже не смотрят. Места нет вовсе —
+    тоже плохо, и это честно."""
+    if not mesto:
+        return PLOHO
+    if mesto <= 3:
+        return HOROSHO
+    if mesto <= 10:
+        return SREDNE
+    return PLOHO
+
+
 # Цвета «ГенИИ»
 MINT = (129, 216, 208)
 SKY = (166, 214, 230)
@@ -31,9 +72,9 @@ BRANDS = {
         'band': (38, 74, 71),  # куда дорастём — тот же мятный, но приглушённый
         'box': (58, 110, 106),
         'muted': (170, 166, 182),
-        'warn': BLUSH,
-        'mid': SKY,
-        'good': MINT,
+        'warn': PLOHO,
+        'mid': SREDNE,
+        'good': HOROSHO,
     },
     'prompter': {
         'kicker': 'Промптер · проверка в нейровыдаче',
@@ -50,9 +91,9 @@ BRANDS = {
         'band': (34, 60, 112),
         'box': (61, 107, 255),
         'muted': (159, 182, 220),
-        'warn': BLUSH,
-        'mid': (214, 228, 255),
-        'good': (127, 196, 255),
+        'warn': PLOHO,
+        'mid': SREDNE,
+        'good': HOROSHO,
     },
 }
 
@@ -465,7 +506,7 @@ def draw_png(data, path, brand='genii'):
     verh = y
     f_ogr = _font(104, 'disp')
     chislo = '%d' % named
-    d.text((PAD, y - 12), chislo, font=f_ogr, fill=b['c1'])
+    d.text((PAD, y - 12), chislo, font=f_ogr, fill=cvet_doli(dolya))
     shirina_ch = d.textlength(chislo, font=f_ogr)
 
     f_iz = _font(30, 'disp2')
@@ -475,7 +516,7 @@ def draw_png(data, path, brand='genii'):
     d.text((PAD, y), 'ответов нейросетей, где вас назвали',
            font=_font(19), fill=MUTED)
     y += 34
-    _polosa(d, PAD, y, int(SHIR * 0.58), 10, dolya, b['c1'], b['track'])
+    _polosa(d, PAD, y, int(SHIR * 0.58), 10, dolya, cvet_doli(dolya), b['track'])
     y += 34
 
     # Два второстепенных числа — справа, без рамок, мельче: они
@@ -484,16 +525,19 @@ def draw_png(data, path, brand='genii'):
     py = verh
     pары = [
         (('%d-е' % data['ai_best_position']) if data['ai_best_position'] else '—',
-         'место в списке нейросети'),
+         'место в списке нейросети', data['ai_best_position']),
         (('%d-е' % data['search_best']) if data['search_best']
          else ('не смотрели' if data.get('search_broken') else 'нет в топ-20'),
-         'место в поиске Яндекса'),
+         'место в поиске Яндекса', data['search_best']),
     ]
-    for i, (bolshoe, podpis) in enumerate(pары):
+    for i, (bolshoe, podpis, mesto) in enumerate(pары):
         if i:
             d.rectangle([px, py, W - PAD, py + 1], fill=LINE)
             py += 26
-        d.text((px, py), bolshoe, font=_font(38, 'disp2'), fill=b['c2'] if i == 0 else b['c3'])
+        # «Не смотрели» — это не плохое место, а отсутствие проверки:
+        # красить в тревожный цвет нечестно.
+        cvet = MUTED if bolshoe == 'не смотрели' else cvet_mesta(mesto)
+        d.text((px, py), bolshoe, font=_font(38, 'disp2'), fill=cvet)
         py += 50
         for line in _wrap(d, podpis, _font(17), W - PAD - px)[:2]:
             d.text((px, py), line, font=_font(17), fill=MUTED)
@@ -510,8 +554,8 @@ def draw_png(data, path, brand='genii'):
     stroki = [(n, e['named'], e['total']) for n, e in data['ai_by_engine'].items()]
     for imya, n, t in stroki:
         d.text((PAD, y), imya, font=_font(20, 'med'), fill=TEXT)
-        _polosa(d, PAD + 190, y + 7, 380, 10, (n / t) if t else 0,
-                b['c1'] if n else b['track'], b['track'])
+        d_e = (n / t) if t else 0
+        _polosa(d, PAD + 190, y + 7, 380, 10, d_e, cvet_doli(d_e), b['track'])
         d.text((PAD + 600, y), '%d из %d' % (n, t), font=_font(19), fill=MUTED if not n else TEXT)
         y += 38
     for imya in otkazy:
@@ -537,7 +581,7 @@ def draw_png(data, path, brand='genii'):
         for imya, n in rivals:
             for line in _wrap(d, imya, _font(20), 320)[:1]:
                 d.text((PAD, y), line, font=_font(20), fill=TEXT)
-            _polosa(d, PAD + 340, y + 7, 420, 10, n / maks, b['c3'], b['track'])
+            _polosa(d, PAD + 340, y + 7, 420, 10, n / maks, cvet_doli(n / maks), b['track'])
             d.text((PAD + 790, y), str(n), font=_font(19), fill=MUTED)
             y += 36
 
@@ -547,7 +591,7 @@ def draw_png(data, path, brand='genii'):
         svoe = c.get('brand') or c.get('name') or 'ваша компания'
         d.text((PAD, y), _wrap(d, svoe, _font(20, 'semi'), 320)[0],
                font=_font(20, 'semi'), fill=head_color)
-        _polosa(d, PAD + 340, y + 7, 420, 10, named / maks, b['now'], b['track'])
+        _polosa(d, PAD + 340, y + 7, 420, 10, named / maks, cvet_doli(named / maks), b['track'])
         d.text((PAD + 790, y), str(named), font=_font(19, 'semi'), fill=head_color)
         y += 48
 
