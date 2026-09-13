@@ -56,47 +56,47 @@ BRANDS = {
     },
 }
 
-# Шрифт возим с собой, а не ищем в системе.
-#
-# На хостинге системных шрифтов может не быть вовсе, либо в них не быть
-# кириллицы. Латиница и цифры тогда рисуются, а русские буквы выходят
-# пустыми квадратиками — отчёт нечитаем. Так и случилось при первом
-# запуске на хостинге: «ООО НИЯМА» превратилось в решётку.
-#
-# Свой шрифт лежит в папке shrifty рядом с программой и берётся первым.
-# Системные пути остаются запасным вариантом — на случай, если папку
-# со шрифтами кто-нибудь потеряет.
-SVOI = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'shrifty')
-
-FONT_CANDIDATES = [
-    os.path.join(SVOI, 'DejaVuSans.ttf'),
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
-    'C:/Windows/Fonts/segoeui.ttf',
-    'C:/Windows/Fonts/arial.ttf',
-    '/System/Library/Fonts/Supplemental/Arial.ttf',
-]
-FONT_BOLD_CANDIDATES = [
-    os.path.join(SVOI, 'DejaVuSans-Bold.ttf'),
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
-    '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
-    'C:/Windows/Fonts/segoeuib.ttf',
-    'C:/Windows/Fonts/arialbd.ttf',
-    '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
-]
-
-
 def _mix(a, b, t):
     """Цвет между a и b: t=0 — это a, t=1 — это b. Нужен для
     приглушённых подписей: прозрачности в RGB-картинке нет."""
     return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
-def _font(size, bold=False):
-    for path in (FONT_BOLD_CANDIDATES if bold else FONT_CANDIDATES):
+# Шрифты возим с собой, а не ищем в системе.
+#
+# На хостинге системных шрифтов может не быть вовсе, либо в них не быть
+# кириллицы: латиница нарисуется, а русские буквы выйдут пустыми
+# квадратиками. Так и случилось при первом запуске на хостинге.
+#
+# Здесь те же гарнитуры, что на сайтах: Unbounded для крупных чисел и
+# названия, Inter для остального. Отчёт из-за этого читается как
+# продолжение сайта, а не как чужая бумага.
+SVOI = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'shrifty')
+
+NACHERTANIYA = {
+    'reg':  ('Inter-Regular.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'),
+    'med':  ('Inter-Medium.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'),
+    'semi': ('Inter-SemiBold.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'),
+    'bold': ('Inter-Bold.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'),
+    'disp': ('Unbounded-Bold.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'),
+    'disp2': ('Unbounded-SemiBold.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'),
+}
+
+_kesh = {}
+
+
+def _font(size, nach='reg'):
+    """Шрифт нужного начертания. Системный — только как запасной."""
+    klyuch = (size, nach)
+    if klyuch in _kesh:
+        return _kesh[klyuch]
+
+    imya, zapas = NACHERTANIYA.get(nach, NACHERTANIYA['reg'])
+    for path in (os.path.join(SVOI, imya), zapas):
         if os.path.exists(path):
             try:
-                return ImageFont.truetype(path, size)
+                _kesh[klyuch] = ImageFont.truetype(path, size)
+                return _kesh[klyuch]
             except Exception:
                 continue
 
@@ -348,6 +348,50 @@ def _wrap(draw, text, font, width):
     return lines
 
 
+def _podlozhka(W, H, bg, ottenok):
+    """Фон с едва заметным переходом сверху вниз.
+
+    Ровная заливка выглядит пустой заготовкой, и по совету
+    оформителей сюда просилось зерно. Зерно пробовали: картинка
+    раздувается втрое, потому что сжатие живёт на ровных участках. А
+    картинка идёт через телеграм по связи, которая на длинных посылках
+    и так рвётся, — так что цена оказалась выше пользы, тем более что
+    на телефоне зерна всё равно не видно.
+    Переход даёт ту же глубину и не стоит почти ничего: строки
+    сжимаются одна относительно другой.
+    """
+    img = Image.new('RGB', (W, H), bg)
+    d = ImageDraw.Draw(img)
+    vysota = min(H, 700)
+    for i in range(vysota):
+        k = (1 - i / float(vysota)) ** 2
+        d.line([(0, i), (W, i)], fill=_mix(bg, ottenok, 0.5 * k))
+    return img
+
+
+def _razryadka(d, xy, text, font, fill, shag=1.6):
+    """Текст с разрядкой — лишний воздух между буквами.
+
+    Мелкие подписи набраны заглавными, а заглавные без разрядки
+    слипаются в плотный кирпич. Разрядки в рисовалке нет, поэтому
+    ведём буквы по одной.
+    """
+    x, y = xy
+    for ch in text:
+        d.text((x, y), ch, font=font, fill=fill)
+        x += d.textlength(ch, font=font) + shag
+
+
+def _polosa(d, x, y, shirina, vysota, dolya, cvet, fon, radius=None):
+    """Полоса заполнения. Ею показываем доли: глазом сравнивать длины
+    куда быстрее, чем читать «7 из 12» и «4 из 12» подряд."""
+    r = radius if radius is not None else vysota // 2
+    d.rounded_rectangle([x, y, x + shirina, y + vysota], radius=r, fill=fon)
+    if dolya > 0:
+        zanyato = max(vysota, int(shirina * min(dolya, 1.0)))
+        d.rounded_rectangle([x, y, x + zanyato, y + vysota], radius=r, fill=cvet)
+
+
 def draw_png(data, path, brand='genii'):
     """Рисует картинку отчёта. Ширина 1200 — читается и в телеграме,
     и при пересылке клиенту.
@@ -356,170 +400,217 @@ def draw_png(data, path, brand='genii'):
     сайта, с которого пришла заявка.
     """
     b = BRANDS.get(brand, BRANDS['genii'])
-    BG, CARD, LINE, MUTED = b['bg'], b['card'], b['line'], b['muted']
+    BG, LINE, MUTED = b['bg'], b['line'], b['muted']
 
-    W, PAD = 1200, 56
-    f_h1 = _font(46, True)
-    f_h2 = _font(27, True)
-    f_big = _font(72, True)
-    f_t = _font(22)
-    f_s = _font(19)
-    f_xs = _font(17)
+    W, PAD = 1200, 64
+    SHIR = W - PAD * 2
 
     c = data['company']
     head, tone = _verdict(data)
     head_color = b[tone]
     rivals = data['rivals']
+    total, named = data['ai_total'], data['ai_named']
+    dolya = (named / total) if total else 0
 
-    # Рисуем с запасом по высоте и в конце обрезаем по последней
-    # строке. Считать высоту заранее — значит держать в двух местах
-    # одну и ту же раскладку: стоит добавить строку, и подпись внизу
-    # наезжает на текст.
-    H = 2200
-    img = Image.new('RGB', (W, H), BG)
+    H = 2400
+    img = _podlozhka(W, H, BG, b['card'])
     d = ImageDraw.Draw(img)
 
+    # ---------- шапка ----------
     y = PAD
-    d.text((PAD, y), b['kicker'], font=f_s, fill=b['c1'])
-    y += 40
+    # Название набираем как есть: «ГенИИ» заглавными превращается в
+    # «ГЕНИИ» и перестаёт быть фирменным написанием.
+    _razryadka(d, (PAD, y), b['kicker'], _font(16, 'semi'), b['c1'], 0.8)
+    y += 34
 
-    for line in _wrap(d, c.get('full_name') or c.get('name'), f_h1, W - PAD * 2)[:2]:
-        d.text((PAD, y), line, font=f_h1, fill=TEXT)
-        y += 54
+    # Название подгоняем кеглем, а не обрезаем. Длинное имя
+    # застройщика раньше рвалось на полуслове и без многоточия —
+    # выходило «ООО СПЕЦИАЛИЗИРОВАННЫЙ ЗАСТРОЙЩИК ЖИЛЫХ», и клиент
+    # видел в отчёте о себе обрубок.
+    nazvanie = c.get('full_name') or c.get('name') or ''
+    for kegl in (44, 38, 33, 29, 25, 22):
+        f_naz = _font(kegl, 'disp')
+        stroki = _wrap(d, nazvanie, f_naz, SHIR)
+        if len(stroki) <= 2:
+            break
+    for line in stroki[:3]:
+        d.text((PAD, y), line, font=f_naz, fill=TEXT)
+        y += int(kegl * 1.3)
+    y += 6
 
     sub = 'ИНН %s' % c.get('inn', '')
     if c.get('city'):
-        sub += ' · %s' % c['city']
+        sub += '  ·  %s' % c['city']
     if c.get('industry'):
-        sub += ' · %s' % c['industry']
-    d.text((PAD, y), sub, font=f_s, fill=MUTED)
-    y += 30
-    d.text((PAD, y), ('Сайт: ' + data['site']) if data['site'] else 'Сайта не нашли — проверяли по названию',
-           font=f_s, fill=b['c2'] if data['site'] else MUTED)
+        sub += '  ·  %s' % c['industry']
+    for line in _wrap(d, sub, _font(19), SHIR)[:2]:
+        d.text((PAD, y), line, font=_font(19), fill=MUTED)
+        y += 26
+    d.text((PAD, y), (data['site'] or 'сайта не нашли — проверяли по названию'),
+           font=_font(19, 'med'), fill=b['c2'] if data['site'] else MUTED)
     y += 46
 
-    # Главная строка
-    d.rectangle([PAD, y, W - PAD, y + 2], fill=LINE)
-    y += 30
-    for line in _wrap(d, head, f_h2, W - PAD * 2):
-        d.text((PAD, y), line, font=f_h2, fill=head_color)
-        y += 36
-    y += 14
+    d.rectangle([PAD, y, W - PAD, y + 1], fill=LINE)
+    y += 44
 
-    # Три числа в ряд
-    cards = [
-        ('%d из %d' % (data['ai_named'], data['ai_total']),
-         'ответов нейросетей, где вас назвали', b['c1']),
+    # ---------- главное: одно число, а не три одинаковых ----------
+    # Раньше здесь стояли три равные карточки. Так главное число — доля
+    # ответов, где компанию называют, — весило ровно столько же, сколько
+    # второстепенные места в списках. Читающий не понимал, куда смотреть.
+    for line in _wrap(d, head, _font(31, 'semi'), int(SHIR * 0.62)):
+        d.text((PAD, y), line, font=_font(31, 'semi'), fill=head_color)
+        y += 40
+    y += 18
+
+    verh = y
+    f_ogr = _font(104, 'disp')
+    chislo = '%d' % named
+    d.text((PAD, y - 12), chislo, font=f_ogr, fill=b['c1'])
+    shirina_ch = d.textlength(chislo, font=f_ogr)
+
+    f_iz = _font(30, 'disp2')
+    d.text((PAD + shirina_ch + 14, y + 48), 'из %d' % total, font=f_iz, fill=MUTED)
+
+    y += 118
+    d.text((PAD, y), 'ответов нейросетей, где вас назвали',
+           font=_font(19), fill=MUTED)
+    y += 34
+    _polosa(d, PAD, y, int(SHIR * 0.58), 10, dolya, b['c1'], b['track'])
+    y += 34
+
+    # Два второстепенных числа — справа, без рамок, мельче: они
+    # поясняют главное, а не спорят с ним.
+    px = PAD + int(SHIR * 0.66)
+    py = verh
+    pары = [
         (('%d-е' % data['ai_best_position']) if data['ai_best_position'] else '—',
-         'лучшее место в списке нейросети', b['c2']),
+         'место в списке нейросети'),
         (('%d-е' % data['search_best']) if data['search_best']
          else ('не смотрели' if data.get('search_broken') else 'нет в топ-20'),
-         'лучшее место в поиске Яндекса', b['c3']),
+         'место в поиске Яндекса'),
     ]
-    cw = (W - PAD * 2 - 24 * 2) // 3
-    for i, (big, cap, col) in enumerate(cards):
-        x = PAD + i * (cw + 24)
-        d.rounded_rectangle([x, y, x + cw, y + 150], radius=18, fill=CARD, outline=LINE)
-        d.text((x + 22, y + 26), big, font=f_big if len(big) < 8 else _font(44, True), fill=col)
-        ty = y + 104
-        for line in _wrap(d, cap, f_xs, cw - 44)[:2]:
-            d.text((x + 22, ty), line, font=f_xs, fill=MUTED)
-            ty += 22
-    y += 150 + 34
+    for i, (bolshoe, podpis) in enumerate(pары):
+        if i:
+            d.rectangle([px, py, W - PAD, py + 1], fill=LINE)
+            py += 26
+        d.text((px, py), bolshoe, font=_font(38, 'disp2'), fill=b['c2'] if i == 0 else b['c3'])
+        py += 50
+        for line in _wrap(d, podpis, _font(17), W - PAD - px)[:2]:
+            d.text((px, py), line, font=_font(17), fill=MUTED)
+            py += 23
+        py += 22
 
-    # По нейросетям отдельно
-    d.text((PAD, y), 'По нейросетям', font=f_h2, fill=TEXT)
-    y += 40
+    y = max(y, py) + 28
+
+    # ---------- по нейросетям: полосами ----------
+    _razryadka(d, (PAD, y), 'ПО НЕЙРОСЕТЯМ', _font(14, 'semi'), _mix(MUTED, BG, 0.15))
+    y += 32
+
     otkazy = data.get('ai_otkazy') or {}
-    if data['ai_by_engine'] or otkazy:
-        for name, e in data['ai_by_engine'].items():
-            d.text((PAD, y), '%s — назвали в %d из %d ответов' % (name, e['named'], e['total']),
-                   font=f_t, fill=MUTED if not e['named'] else TEXT)
-            y += 32
-        for name, n in otkazy.items():
-            # Нейросеть, ответившая хотя бы на часть вопросов, уже
-            # показана строкой выше — там про отказы говорить незачем.
-            if name in data['ai_by_engine']:
-                continue
-            d.text((PAD, y), '%s — не ответил, проверка шла без него' % name,
-                   font=f_t, fill=b['warn'])
-            y += 32
-    else:
-        d.text((PAD, y), 'Ответов нет', font=f_t, fill=MUTED)
-        y += 32
-    y += 12
+    stroki = [(n, e['named'], e['total']) for n, e in data['ai_by_engine'].items()]
+    for imya, n, t in stroki:
+        d.text((PAD, y), imya, font=_font(20, 'med'), fill=TEXT)
+        _polosa(d, PAD + 190, y + 7, 380, 10, (n / t) if t else 0,
+                b['c1'] if n else b['track'], b['track'])
+        d.text((PAD + 600, y), '%d из %d' % (n, t), font=_font(19), fill=MUTED if not n else TEXT)
+        y += 38
+    for imya in otkazy:
+        if imya in data['ai_by_engine']:
+            continue
+        d.text((PAD, y), imya, font=_font(20, 'med'), fill=MUTED)
+        d.text((PAD + 190, y), 'не ответил, проверка шла без него',
+               font=_font(19), fill=b['warn'])
+        y += 38
+    if not stroki and not otkazy:
+        d.text((PAD, y), 'ответов нет', font=_font(20), fill=MUTED)
+        y += 38
+    y += 22
 
+    # ---------- конкуренты: полосами, и вы в том же списке ----------
+    # Своя строка в конце — самое сильное место отчёта. Пока компания
+    # была просто не упомянута, разрыв надо было воображать. Теперь он
+    # виден в одном столбце: у соседей полосы, у вас пусто.
     if rivals:
-        d.text((PAD, y), 'Кого называют вместо вас', font=f_h2, fill=TEXT)
-        y += 40
-        for name, n in rivals:
-            d.text((PAD, y), '· %s — в %d ответах' % (name[:60], n), font=f_t, fill=MUTED)
-            y += 34
+        _razryadka(d, (PAD, y), 'КОГО НАЗЫВАЮТ ВМЕСТО ВАС', _font(14, 'semi'), _mix(MUTED, BG, 0.15))
+        y += 32
+        maks = max([n for _, n in rivals] + [named]) or 1
+        for imya, n in rivals:
+            for line in _wrap(d, imya, _font(20), 320)[:1]:
+                d.text((PAD, y), line, font=_font(20), fill=TEXT)
+            _polosa(d, PAD + 340, y + 7, 420, 10, n / maks, b['c3'], b['track'])
+            d.text((PAD + 790, y), str(n), font=_font(19), fill=MUTED)
+            y += 36
 
-    # --- Что будет с нами ---
-    # Ради этого блока отчёт и показывают клиенту: одни цифры «как
-    # сейчас» ничего не продают.
+        y += 6
+        d.rectangle([PAD, y, PAD + 810, y + 1], fill=LINE)
+        y += 18
+        svoe = c.get('brand') or c.get('name') or 'ваша компания'
+        d.text((PAD, y), _wrap(d, svoe, _font(20, 'semi'), 320)[0],
+               font=_font(20, 'semi'), fill=head_color)
+        _polosa(d, PAD + 340, y + 7, 420, 10, named / maks, b['now'], b['track'])
+        d.text((PAD + 790, y), str(named), font=_font(19, 'semi'), fill=head_color)
+        y += 48
+
+    # ---------- что изменится ----------
     p = promise(data)
     if p:
-        y = _draw_promise(d, data, p, b, y + 16, W, PAD, f_h2, f_xs)
+        y = _draw_promise(d, data, p, b, y + 10, W, PAD, _font(27, 'semi'), _font(18))
 
-    d.text((PAD, y), b['foot'], font=f_xs, fill=MUTED)
-    y += 26
+    d.text((PAD, y), b['foot'], font=_font(17), fill=_mix(MUTED, BG, 0.35))
+    y += 30
 
-    y += 26
-    img = img.crop((0, 0, W, min(H, y + PAD - 20)))
-    img.save(path, 'PNG')
+    img = img.crop((0, 0, W, min(H, y + PAD - 14)))
+    img.save(path, 'PNG', optimize=True)
     return path
 
 
-def _steps(d, b, right, base, n=5, flat=False):
-    """Столбики лесенкой — знак роста вместо полоски с долями.
+def _stupeni(d, b, right, base, n=5, rovno=False):
+    """Столбики лесенкой — знак роста без единой цифры.
 
-    Полоска показывала, сколько ответов будет через три месяца, и это
-    было обещание в числах. Лесенка говорит то же самое про
-    направление и ничего не обещает в цифрах.
+    Раньше здесь была полоска с долями, и это было обещание в числах.
+    Лесенка говорит то же самое про направление и ничего не обещает.
 
-    flat — столбики вровень: там, где речь про удержание места,
+    rovno — столбики вровень: там, где речь про удержание места,
     лесенка вверх противоречила бы тексту.
     """
-    w, gap, top_h = 16, 10, 46
-    total_w = n * w + (n - 1) * gap
-    x = right - total_w
+    w, gap, verh = 14, 9, 42
+    x = right - (n * w + (n - 1) * gap)
     for i in range(n):
         k = i / float(n - 1)
-        h = int(top_h * (0.78 if flat else 0.22 + 0.78 * k))
-        col = b['c1'] if flat else _mix(b['band'], b['c1'], k)
-        d.rounded_rectangle([x, base - h, x + w, base], radius=5, fill=col)
+        h = int(verh * (0.78 if rovno else 0.20 + 0.80 * k))
+        col = b['c1'] if rovno else _mix(b['band'], b['c1'], k)
+        d.rounded_rectangle([x, base - h, x + w, base], radius=4, fill=col)
         x += w + gap
 
 
 def _draw_promise(d, data, p, b, top, W, PAD, f_h2, f_xs):
     """Коробка «что изменится с нами». Высоту считаем по тексту:
     строк бывает от трёх до шести, и рамка должна их вместить."""
-    pad_x = PAD + 24
-    box_w = W - PAD * 2 - 48
+    pad_x = PAD + 28
+    box_w = W - PAD * 2 - 56
 
-    head = p['head'] or 'Что изменится с %s' % b['we']
+    head = ('Это место надо удержать' if p['hold']
+            else 'Что изменится с %s' % b['we'])
 
     lines = []
-    lines += [(l, b['c1']) for l in _wrap(d, p['lead'], f_xs, box_w)[:2]]
+    lines += [(l, b['c1'], 'med') for l in _wrap(d, p['lead'], f_xs, box_w - 150)[:2]]
     why = why_line(data['company'])
     if why:
-        lines += [(l, b['c2']) for l in _wrap(d, why, f_xs, box_w)[:2]]
+        lines += [(l, b['c2'], 'reg') for l in _wrap(d, why, f_xs, box_w)[:2]]
     s_line = search_line(data)
     if s_line:
-        lines += [(l, b['muted']) for l in _wrap(d, s_line, f_xs, box_w)[:2]]
-    lines += [(l, b['muted']) for l in _wrap(d, p['body'], f_xs, box_w)[:3]]
+        lines += [(l, b['muted'], 'reg') for l in _wrap(d, s_line, f_xs, box_w)[:2]]
+    lines += [(l, b['muted'], 'reg') for l in _wrap(d, p['body'], f_xs, box_w)[:3]]
 
-    height = 96 + len(lines) * 24
-    d.rounded_rectangle([PAD, top, W - PAD, top + height], radius=20,
+    height = 108 + len(lines) * 26
+    d.rounded_rectangle([PAD, top, W - PAD, top + height], radius=24,
                         fill=b['card'], outline=b['box'])
-    d.text((pad_x, top + 24), head, font=f_h2, fill=b['c1'])
-    _steps(d, b, W - PAD - 24, top + 58, flat=p['hold'])
+    d.text((pad_x, top + 30), head, font=f_h2, fill=b['c1'])
+    _stupeni(d, b, W - PAD - 28, top + 62, rovno=p['hold'])
 
-    ty = top + 82
-    for line, col in lines:
-        d.text((pad_x, ty), line, font=f_xs, fill=col)
-        ty += 24
+    ty = top + 84
+    for line, col, nach in lines:
+        d.text((pad_x, ty), line, font=_font(18, nach), fill=col)
+        ty += 26
 
-    return top + height + 26
+    return top + height + 30
