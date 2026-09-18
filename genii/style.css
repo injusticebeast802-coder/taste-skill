@@ -572,6 +572,22 @@ html{scroll-padding-top:84px}
 }
 .feed__note{margin:16px 0 0;color:var(--muted-2);font-size:13px;line-height:1.45;max-width:80ch}
 
+/* Вывод под ключевой технологией: одна фраза, ради которой
+   секция и существует. Правила не было вовсе — разметка ссылалась
+   на классы, которых нет, и фраза выходила обычным текстом без
+   рамки, хотя ниже по файлу медиазапрос её уже переопределял. */
+.tech__foot{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:22px;margin-top:44px;padding:26px 30px;
+  border-radius:var(--r-md);
+  background:rgba(16,16,20,.62);border:1px solid var(--line-2);
+}
+.tech__claim{
+  margin:0;font-family:var(--f-display);font-weight:500;
+  font-size:clamp(18px,2vw,24px);line-height:1.35;max-width:46ch;
+}
+.tech__claim b{font-weight:700;color:var(--mint)}
+
 /* =========================================================
    8. Как устроена работа: цикл из девяти шагов
 
@@ -1536,7 +1552,7 @@ html{scroll-padding-top:84px}
   .brand__in{flex-direction:column;text-align:center}
   .levelup{flex-wrap:wrap}
   .cta__in{grid-template-columns:1fr;gap:28px}
-  .krug{flex-direction:column;align-items:flex-start;gap:12px}
+  .cycle{flex-direction:column;align-items:flex-start;gap:12px}
   .chans{flex-direction:column;align-items:flex-start;gap:14px}
   /* На телефоне строка узкая: целый кадр помещается во всю ширину. */
   .sup__grid .office{max-width:none}

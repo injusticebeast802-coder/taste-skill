@@ -276,7 +276,6 @@ section[id]{scroll-margin-top:84px}
 }
 .nav a:hover{color:var(--text)}
 
-.hdr__cta{flex:none;padding:11px 20px;font-size:15px}
 .burger{
   display:none;flex:none;
   width:42px;height:42px;border-radius:var(--r-sm);
@@ -311,7 +310,6 @@ section[id]{scroll-margin-top:84px}
   background:var(--accent-soft);
   font-size:15px;font-weight:600;color:var(--accent-text);letter-spacing:.01em;
 }
-.plate__dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
 
 /* Плашка официального партнёра. Стоит выше заголовка первого экрана
    и должна читаться сразу, поэтому крупный шрифт и контрастная рамка. */
@@ -938,15 +936,6 @@ section[id]{scroll-margin-top:84px}
 .niche .ic{color:var(--muted);margin-bottom:14px}
 .niche p{margin:0;color:var(--muted);font-size:16.5px;line-height:1.5}
 
-/* Карточка авто/мото занимает две колонки, чтобы в ряду не оставалось
-   пустой ячейки: обычных ниш восемь, а сетка трёхколоночная. */
-.niche--span2{
-  grid-column:span 2;
-  /* Карточка тянется по высоте соседней, поэтому содержимое
-     центрируем по вертикали, иначе снизу висит пустое поле. */
-  display:flex;flex-direction:column;justify-content:center;
-}
-.niche--span2 p{max-width:none}
 
 /* Цвет заголовка по отрасли: спокойная холодная гамма, без красного и жёлтого. */
 .niche--n1 .h3{color:#F2A9C4}   /* HoReCa — приглушённый розовый */
@@ -1013,10 +1002,6 @@ section[id]{scroll-margin-top:84px}
 
 /* На широкой карточке подпись стоит по центру, как и остальной текст. */
 .niche--wide .niche__dl{margin-left:auto;margin-right:auto}
-/* Карточка авто/мото центрирует содержимое по вертикали — подпись
-   не растягиваем, иначе она отрывается от текста. */
-.niche--span2 p{flex:0 1 auto}
-.niche--span2 .niche__dl{align-self:flex-start}
 
 /* Подсказка под заголовком раздела: с иконкой, в одну строку с текстом. */
 .niches__hint{
@@ -1488,7 +1473,6 @@ section[id]{scroll-margin-top:84px}
   .team__contacts li{align-items:center}
 
   .hdr__in{height:64px;gap:12px}
-  .hdr__cta{display:none}
   .burger{display:grid}
 
   .nav{
@@ -1519,7 +1503,6 @@ section[id]{scroll-margin-top:84px}
   .check__btn{width:100%}
   .tech__foot{flex-direction:column;align-items:flex-start}
   .niches{grid-template-columns:repeat(2,1fr)}
-  .niche--span2{grid-column:span 2}
   .bens{grid-template-columns:1fr}
   .price{grid-template-columns:1fr}
   .cta__in{grid-template-columns:1fr;gap:28px}
@@ -1540,7 +1523,6 @@ section[id]{scroll-margin-top:84px}
      фотографии. Уменьшаем её и поджимаем отступы. */
   .sup__photo figcaption{font-size:14.5px;padding:26px 16px 14px}
   .niches{grid-template-columns:1fr}
-  .niche--span2{grid-column:span 1}
   .hero__panel,.team,.price__card{padding:22px}
   .vs__card,.agent,.niche,.fact,.ben{padding:22px}
   .verdict{padding:22px}
