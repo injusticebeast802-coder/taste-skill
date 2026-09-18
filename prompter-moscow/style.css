@@ -621,11 +621,11 @@ section[id]{scroll-margin-top:84px}
    возврата промахивается мимо их середины.
    ========================================================= */
 
-.cycle__head{max-width:74ch;margin-bottom:clamp(30px,4vw,48px)}
-.cycle__lead{margin-bottom:0}
-.cycle__lead b{font-weight:600;color:var(--accent-text)}
+.krug__head{max-width:74ch;margin-bottom:clamp(30px,4vw,48px)}
+.krug__lead{margin-bottom:0}
+.krug__lead b{font-weight:600;color:var(--accent-text)}
 
-.cycle{
+.krug{
   --gap:clamp(12px,1.25vw,20px);
   display:grid;
   grid-template-columns:clamp(96px,9vw,132px) repeat(5,minmax(0,1fr));
@@ -701,15 +701,15 @@ section[id]{scroll-margin-top:84px}
 }
 
 /* Возврат к началу: скоба слева, охватывающая оба ряда. */
-.cycle__back{position:relative;grid-area:1/1/3/2}
-.cycle__back::before{
+.krug__back{position:relative;grid-area:1/1/3/2}
+.krug__back::before{
   content:"";position:absolute;pointer-events:none;
   left:52%;right:calc(var(--gap) * -1);
   top:25%;bottom:25%;
   border:1.5px solid var(--line-2);border-right:0;
   border-radius:16px 0 0 16px;
 }
-.cycle__back-t{
+.krug__back-t{
   position:absolute;left:0;width:52%;top:50%;
   transform:translateY(-50%);
   padding-right:10px;text-align:right;
@@ -717,12 +717,12 @@ section[id]{scroll-margin-top:84px}
   font-size:12.5px;line-height:1.3;color:var(--muted-2);
   text-wrap:balance;
 }
-.cycle__back-ic{
+.krug__back-ic{
   display:block;margin:0 0 6px auto;width:18px;height:18px;
   fill:none;stroke:currentColor;stroke-width:1.6;
   stroke-linecap:round;stroke-linejoin:round;color:var(--accent);
 }
-.cycle__back-go{
+.krug__back-go{
   position:absolute;top:calc(25% - 9px);
   right:calc(var(--gap) * -1);
   width:18px;height:18px;
@@ -785,23 +785,23 @@ section[id]{scroll-margin-top:84px}
    убираются: на телефоне они показывали бы направление,
    которого на экране уже нет. */
 @media (max-width:1180px){
-  .cycle{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto}
+  .krug{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto}
   .cyc--6,.cyc--7,.cyc--8,.cyc--9{grid-area:auto}
   .cyc--6::after{display:none}
   .cyc__go{display:none}
-  .cycle__back{grid-area:auto;display:grid;place-items:center;min-height:74px}
-  .cycle__back::before,.cycle__back-go{display:none}
-  .cycle__back-t{
+  .krug__back{grid-area:auto;display:grid;place-items:center;min-height:74px}
+  .krug__back::before,.krug__back-go{display:none}
+  .krug__back-t{
     position:static;width:auto;transform:none;
     padding:0;text-align:center;display:flex;align-items:center;gap:9px;
   }
-  .cycle__back-ic{margin:0}
+  .krug__back-ic{margin:0}
   .learn__row{grid-template-columns:repeat(2,minmax(0,1fr))}
   .learn__i .cyc__go{display:none}
 }
 
 @media (max-width:620px){
-  .cycle{grid-template-columns:1fr}
+  .krug{grid-template-columns:1fr}
   .learn__row{grid-template-columns:1fr}
   .learn__h{letter-spacing:.03em}
 }
