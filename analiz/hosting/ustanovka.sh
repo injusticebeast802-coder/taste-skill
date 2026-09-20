@@ -71,7 +71,8 @@ rm -rf "$DIR/nejroanaliz" "$DIR/cloudflare" "$DIR/hosting" "$DIR/shrifty"
 # shrifty — шрифт для картинки отчёта. Возим с собой: на хостинге
 # системных шрифтов может не быть, и кириллица выйдет квадратиками.
 cp -r "$SRC/nejroanaliz" "$SRC/cloudflare" "$SRC/hosting" "$SRC/shrifty" "$DIR/"
-cp "$SRC/bot.py" "$SRC/proverka.py" "$SRC/requirements.txt" \
+cp "$SRC/bot.py" "$SRC/proverka.py" "$SRC/proverka_marshruta.py" \
+   "$SRC/requirements.txt" \
    "$SRC/config.example.ini" "$SRC/README.md" "$DIR/"
 chmod +x "$DIR/hosting/bot.sh"
 
@@ -107,6 +108,17 @@ if ru < 10 or abs(ru - lat) < 0.5:
     raise SystemExit('ВНИМАНИЕ: шрифт без кириллицы, отчёт выйдет квадратиками.')
 print('шрифт с кириллицей на месте')
 "
+
+# Маршруты бота: что уходит в работу, а что в справку. Ключи не нужны,
+# идёт секунду. Проверка нужна потому, что справка и сторож на входе
+# один раз уже разъехались: справка предлагала прислать название через
+# запятую, а бот такие сообщения молча отбивал этой же справкой.
+if (cd "$DIR" && "$DIR/venv/bin/python" "$DIR/proverka_marshruta.py" >/dev/null 2>&1); then
+  echo "маршруты бота в порядке"
+else
+  echo "ВНИМАНИЕ: бот принимает не то, что обещает его справка."
+  echo "Подробности:  $DIR/venv/bin/python $DIR/proverka_marshruta.py"
+fi
 
 echo
 echo "Готово."
