@@ -437,11 +437,17 @@ section[id]{scroll-margin-top:84px}
 .fact__t{margin:0 0 10px;font-family:var(--f-display);font-weight:600;font-size:19px}
 .fact__d{margin:0;color:var(--muted);font-size:16.5px;line-height:1.55}
 
-/* 6. Шесть ИИ-агентов. Ровная сетка плиток, у каждого агента свой
-   цвет значка, чтобы блок читался как набор инструментов. */
-/* Агентов четыре, поэтому сетка два на два.
-   При трёх колонках последняя карточка оставалась одна в ряду. */
+/* 6. Пять ИИ-агентов. Ровная сетка плиток, у каждого агента свой
+   цвет значка, чтобы блок читался как набор инструментов.
+   Сетка два на два: при трёх колонках последняя карточка оставалась
+   одна в ряду. */
 .agents{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+/* Пятая карточка — во всю ширину. Агентов стало пять, и последний
+   остался бы один в ряду рядом с пустым местом. Широкая карточка
+   читается как задуманная, а не как забытая: это и есть самое новое
+   из того, что платформа умеет. */
+.agent--wide{grid-column:1 / -1}
+
 .agent{
   position:relative;padding:26px 24px 24px;
   background:linear-gradient(165deg,rgba(61,107,255,.16),rgba(21,35,67,.94));
@@ -467,6 +473,8 @@ section[id]{scroll-margin-top:84px}
 .agent--c2 .agent__t{color:#8FD9F0}
 .agent--c3 .agent__ic{background:linear-gradient(150deg,#7E7BF5,#4A44CE)}
 .agent--c3 .agent__t{color:#B3B0FF}
+.agent--c4 .agent__ic{background:linear-gradient(150deg,#FF8A5B,#D4512A)}
+.agent--c4 .agent__t{color:#FFB596}
 .agent--c6 .agent__ic{background:linear-gradient(150deg,#C583EE,#7B44B8)}
 .agent--c6 .agent__t{color:#DDAEF5}
 
