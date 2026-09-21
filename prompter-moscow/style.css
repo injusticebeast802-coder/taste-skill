@@ -389,8 +389,24 @@ section[id]{scroll-margin-top:84px}
 .check__btn{flex:none;white-space:normal;text-align:center}
 
 /* 5. Решение */
-.solution{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,56px);align-items:center}
-.solution__copy .lead{margin-bottom:26px}
+/* Знак платформы и что она делает: логотип слева, текст справа.
+   Та же компоновка, что на ГенИИ. */
+.brand__in{
+  display:flex;align-items:center;gap:clamp(24px,4vw,54px);
+  padding:clamp(24px,3.2vw,38px) clamp(26px,4vw,52px);
+  border-radius:var(--r-lg);
+  border:1px solid var(--line-2);
+  background:var(--surface);
+  box-shadow:0 24px 60px rgba(0,0,0,.36);
+}
+.brand__mark{flex:none;width:clamp(118px,13vw,172px);height:auto}
+.brand__txt{margin:0;color:var(--muted);font-size:clamp(17px,1.9vw,21px);line-height:1.55;max-width:64ch}
+
+.solution{
+  display:grid;grid-template-columns:.85fr 1.15fr;
+  gap:clamp(24px,3vw,40px);align-items:center;
+  margin-top:clamp(18px,2vw,26px);
+}
 
 /* Картинка нейронов со второго слайда презентации стоит справа от текста. */
 .solution__img{
@@ -398,13 +414,12 @@ section[id]{scroll-margin-top:84px}
   border:1px solid var(--line);
 }
 .solution__img img{
-  width:100%;height:clamp(240px,26vw,340px);
+  width:100%;height:clamp(200px,20vw,268px);
   object-fit:cover;object-position:center 45%;display:block;
 }
 
 .solution__facts{
   display:grid;grid-template-columns:1fr 1fr;gap:18px;
-  margin-top:clamp(24px,3vw,36px);
 }
 .fact{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:24px}
 .fact__num{
@@ -1230,6 +1245,7 @@ section[id]{scroll-margin-top:84px}
   .check{flex-direction:column;align-items:stretch}
   .check__btn{width:100%}
   .tech__foot{flex-direction:column;align-items:flex-start}
+  .brand__in{flex-direction:column;text-align:center}
   .niches{grid-template-columns:repeat(2,1fr)}
   .bens{grid-template-columns:1fr}
   .price{grid-template-columns:1fr}
