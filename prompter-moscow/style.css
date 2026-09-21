@@ -399,7 +399,9 @@ section[id]{scroll-margin-top:84px}
   background:var(--surface);
   box-shadow:0 24px 60px rgba(0,0,0,.36);
 }
-.brand__mark{flex:none;width:clamp(118px,13vw,172px);height:auto}
+/* Уже, чем у ГенИИ: там логотип почти квадратный, а здесь знак
+   с подписью под ним, и при той же ширине карточка выходила выше. */
+.brand__mark{flex:none;width:clamp(94px,10vw,136px);height:auto}
 .brand__txt{margin:0;color:var(--muted);font-size:clamp(17px,1.9vw,21px);line-height:1.55;max-width:64ch}
 
 .solution{
