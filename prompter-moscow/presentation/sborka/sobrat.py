@@ -149,10 +149,12 @@ def slajd_1(prs):
          [('Официальный партнёр IT-компании «Промптер» по Москве и МО', {'color': MUTED2}),
           ('     ЛД № 54-ПРТ', {'color': LBLUE, 'bold': True})],
          IR, 12, font=BODY, lead=1.3)
-    blok(sl, PAD, H - 0.96, 11.0,
-         [('prompter-ai.moscow', {'color': WHITE, 'bold': True}),
-          ('     %s     %s' % (TELEFON, POCHTA), {'color': MUTED2})],
-         IS, 13, font=BODY, lead=1.3)
+    blok(sl, PAD, H - 0.96, 4.0, 'prompter-ai.moscow',
+         IS, 13, font=BODY, color=WHITE, bold=True, lead=1.3)
+    # Контакты на обложке — своя надпись, отдельно от адреса сайта:
+    # менеджер меняет её целиком и не боится задеть чужой текст.
+    blok(sl, PAD + 2.2, H - 0.96, 8.0, '%s     %s' % (TELEFON, POCHTA),
+         IS, 13, font=BODY, color=MUTED2, lead=1.3)
 
 
 # ====================================================== 2. РЫНОК ИЗМЕНИЛСЯ
@@ -511,13 +513,14 @@ def slajd_8(prs):
               IR, 11.5, color=MUTED2, lead=1.35, max_strok=1, max_h=0.26)
 
     ty += 0.34
-    for ik, t, url in [('phone', TELEFON, 'tel:' + TELEFON.replace(' ', '').replace('-', '')),
-                       ('mail', POCHTA, 'mailto:' + POCHTA),
-                       ('tg', AKKAUNT, 'https://t.me/' + AKKAUNT.lstrip('@'))]:
+    # Каждая строка — отдельная надпись и обычный текст: менеджер
+    # заходит в неё двойным щелчком и пишет своё. Ссылок на телефоне,
+    # почте и аккаунте намеренно нет. Ссылка живёт отдельно от текста:
+    # подписи меняют, а она остаётся старой — и клиент звонит не тому.
+    for ik, t in [('phone', TELEFON), ('mail', POCHTA), ('tg', AKKAUNT)]:
         kartinka(sl, ikonka(ik, '7FC4FF'), kx + 0.42, ty + 0.04, 0.22, 0.22)
         tf = nadpis(sl, kx + 0.76, ty, fw - 0.34, 0.3)
         abzac(tf, t, 12.5, font=BODY, color=WHITE, lead=1.2, first=True)
-        ssylka(tf._parent, url)
         ty += 0.4
 
     kartinka(sl, ASSETS + '/logo.png', PAD, H - 1.0, 0.42, 0.42)
@@ -560,7 +563,7 @@ def proverit_znaki(prs):
     return net
 
 
-def main():
+def main(fajl='obshchaya.pptx'):
     prs = Presentation()
     prs.slide_width = Inches(W)
     prs.slide_height = Inches(H)
@@ -574,7 +577,7 @@ def main():
     else:
         print('все знаки есть в шрифтах')
 
-    put = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'obshchaya.pptx')
+    put = os.path.join(os.path.dirname(os.path.abspath(__file__)), fajl)
     prs.save(put)
     if MALO:
         print('НЕ ВЛЕЗЛО:')
@@ -587,4 +590,20 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # Копия под менеджера собирается одной командой, например:
+    #   python3 sobrat.py --telefon '+7 900 000-00-00' \
+    #       --pochta 'ivanov@mail.ru' --akkaunt '@ivanov' --fajl ivanov.pptx
+    # Без ключей собирается обычная общая презентация.
+    import argparse
+    razbor = argparse.ArgumentParser(description='Сборка общей презентации')
+    razbor.add_argument('--telefon', help='телефон менеджера')
+    razbor.add_argument('--pochta', help='почта менеджера')
+    razbor.add_argument('--akkaunt', help='телеграм менеджера, с собачкой')
+    razbor.add_argument('--fajl', default='obshchaya.pptx',
+                        help='имя файла на выходе')
+    kl = razbor.parse_args()
+    for imya, znach in (('TELEFON', kl.telefon), ('POCHTA', kl.pochta),
+                        ('AKKAUNT', kl.akkaunt)):
+        if znach:
+            globals()[imya] = znach
+    main(kl.fajl)
