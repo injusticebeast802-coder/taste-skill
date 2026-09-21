@@ -257,11 +257,19 @@ def subjects_for(company):
     industry, kind = company.get('industry'), company.get('kind')
     own = ' '.join((kind or industry or '').split()).lower().strip(' .,;')
 
+    # Запросы из расширенной анкеты. Это слова, которыми клиент сам
+    # описывает, как его ищут, — точнее них нет ничего: ни заготовка
+    # по отрасли, ни строчка ОКВЭД так не спросят. Поэтому они идут
+    # первыми и занимают начало списка вопросов.
+    iz_ankety = [' '.join(str(q).split()).lower().strip(' .,;')
+                 for q in (company.get('own_queries') or [])]
+    iz_ankety = [q for q in iz_ankety if len(q) >= 3]
+
     topic = topic_of(industry) or topic_of(kind)
     wide = list(SHAPES.get(topic, [])) if topic else []
 
     if len(own) < 3:
-        return [], wide
+        return iz_ankety, wide
 
     if company.get('kind_from_lead'):
         narrow = _narrow_subjects(own)
@@ -273,6 +281,8 @@ def subjects_for(company):
     else:
         narrow = [own]
 
+    # Слова из анкеты впереди наших, повторы убираем.
+    narrow = iz_ankety + [n for n in narrow if n not in iz_ankety]
     wide = [w for w in wide if w not in narrow]
     return narrow, wide
 

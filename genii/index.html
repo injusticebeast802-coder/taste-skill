@@ -40,7 +40,7 @@
      и скрипты держит час (правило в .htaccess). Поменяли style.css,
      script.js или form.js — увеличьте номер здесь, в zayavka.html
      и в privacy.html. -->
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 
 <!-- Если JavaScript выключен, показываем весь контент сразу. -->
 <noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
@@ -276,6 +276,7 @@
               data-open-form
               data-form-source="analiz"
               data-form-inn="yes"
+              data-form-deep="yes"
               data-form-title="Бесплатный анализ нейровыдачи"
               data-form-sub="Заполните форму — проверим вашу нишу и пришлём разбор.">
         <span class="btn__label">Получить бесплатный анализ</span>
@@ -713,6 +714,17 @@
       <h2 class="modal__t" id="modal-t">Оставить заявку</h2>
       <p class="modal__sub">Заполните форму, и специалист свяжется с вами в ближайшее время.</p>
 
+      <!-- Углублённый разбор: текст и ссылка, а не ещё десяток полей.
+           Поля по локации и конкурентам нужны не всем и сильно удлиняют
+           окно, поэтому они вынесены на отдельную страницу. Плашка
+           показывается только у бесплатного анализа — её включает
+           признак data-form-deep у кнопки. -->
+      <div class="deep" id="modal-deep" hidden>
+        <p class="deep__t">Нужен разбор по локации и конкурентам?</p>
+        <p class="deep__d">Для него нужны дополнительные данные: город и районы работы, сайт, конкуренты и запросы, по которым вас ищут клиенты.</p>
+        <a class="deep__a" href="analiz.html">Открыть расширенную анкету<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+      </div>
+
       <form class="frm" id="frm" data-source="site" novalidate>
         <div class="frm__f">
           <label class="frm__l" for="f-name">Ваше имя</label>
@@ -813,7 +825,7 @@
 <script src="script.js?v=1"></script>
 <!-- Логика формы вынесена отдельно: тот же файл подключает страница
      zayavka.html. Правила проверки и адрес отправки едины для обеих. -->
-<script src="form.js?v=1"></script>
+<script src="form.js?v=2"></script>
 
 </body>
 </html>

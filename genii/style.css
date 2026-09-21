@@ -1147,6 +1147,53 @@ html{scroll-padding-top:84px}
 }
 .modal__sub{margin:0 0 22px;color:#54596E;font-size:16px;line-height:1.5}
 
+
+/* Плашка «нужен углублённый разбор» в окне заявки.
+   Внутри окна — только короткий текст и ссылка, а не ещё десяток
+   полей: данные по локации и конкурентам нужны не каждому, а окно от
+   них разрастается вдвое. Сами поля живут на отдельной странице
+   analiz.html. */
+.deep{
+  margin:-4px 0 22px;padding:16px 18px;
+  background:#F5F2FB;border:1px solid #E6E0F2;border-radius:var(--r-sm);
+}
+.deep[hidden]{display:none}
+.deep__t{margin:0 0 6px;font-weight:600;font-size:15.5px;line-height:1.35;color:#1B2035}
+.deep__d{margin:0 0 12px;font-size:14.5px;line-height:1.5;color:#54596E}
+.deep__a{
+  display:inline-flex;align-items:center;gap:8px;
+  font-weight:600;font-size:14.5px;color:var(--accent-ink);text-decoration:none;
+}
+.deep__a .ic{width:18px;height:18px;transition:transform .18s var(--ease)}
+.deep__a:hover{text-decoration:underline;text-underline-offset:3px}
+.deep__a:hover .ic{transform:translateX(3px)}
+@media (prefers-reduced-motion:reduce){
+  .deep__a .ic{transition:none}
+  .deep__a:hover .ic{transform:none}
+}
+
+/* Расширенная анкета: необязательные поля собраны в отдельный блок,
+   чтобы человек сразу видел, где кончается обязательное. */
+.dop{
+  margin-top:6px;padding:18px;
+  background:#F5F2FB;border:1px solid #E6E0F2;border-radius:var(--r-md);
+  display:grid;gap:18px;
+}
+.dop__h{margin:0;font-family:var(--f-display);font-weight:600;font-size:18px;
+  line-height:1.3;color:#1B2035}
+.dop__d{margin:-8px 0 0;font-size:14.5px;line-height:1.5;color:#54596E}
+.frm__t{
+  width:100%;min-height:88px;resize:vertical;
+  padding:13px 15px;border:1px solid #D5D6E0;border-radius:var(--r-sm);
+  background:#fff;color:#10121F;
+  font-family:var(--f-body);font-size:17px;line-height:1.4;
+  transition:border-color .18s var(--ease),box-shadow .18s var(--ease);
+}
+.frm__t::placeholder{color:#8E93A8}
+.frm__t:focus{outline:none;border-color:var(--accent-ink);box-shadow:0 0 0 3px rgba(81,64,160,.16)}
+/* Пояснение под полем: зачем эти данные проверке. */
+.frm__why{margin:0;font-size:13.5px;line-height:1.45;color:#8E93A8}
+
 .frm{display:grid;gap:18px}
 .frm__f{display:grid;gap:8px}
 /* display:grid у .frm__f перебивает встроенное правило браузера для
@@ -1497,6 +1544,9 @@ html{scroll-padding-top:84px}
    странице ей не нужны ни ограничение по высоте, ни внутренняя
    прокрутка: длинную форму листает сама страница. */
 .fpage__win{max-height:none;overflow:visible}
+/* Расширенная анкета длиннее обычной заявки: на большом экране
+   ей нужна ширина, иначе поля вытягиваются в узкий столбик. */
+.fpage__win--wide{max-width:620px}
 
 .fpage__note{
   margin:0;color:var(--muted-2);font-size:15.5px;text-align:center;

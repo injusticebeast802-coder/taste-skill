@@ -34,6 +34,26 @@
   var fField = document.getElementById('f-field');
   var fInn = document.getElementById('f-inn');
   var fInnWrap = document.getElementById('f-inn-wrap');
+
+  /* Плашка со ссылкой на расширенную анкету. Есть только в модальном
+     окне на главной; на отдельных страницах её нет, и код ниже просто
+     ничего не делает. */
+  var deepNote = document.getElementById('modal-deep');
+
+  /* Необязательные поля расширенной анкеты. На главной и на странице
+     заявки этих полей нет — тогда в заявку они не попадают вовсе.
+     Ключ здесь = id поля без «f-» = имя в заявке: так добавить новое
+     поле можно одной строкой в этом списке и одной в разметке. */
+  var DOP = ['city', 'site', 'rivals', 'queries', 'places', 'tried'];
+
+  function dopPolya() {
+    var out = {};
+    for (var i = 0; i < DOP.length; i++) {
+      var el = document.getElementById('f-' + DOP[i]);
+      if (el && el.value.trim()) out[DOP[i]] = el.value.trim();
+    }
+    return out;
+  }
   var fHoney = document.getElementById('f-website');
   var fAgree1 = document.getElementById('f-agree1');
   var fAgree2 = document.getElementById('f-agree2');
@@ -94,6 +114,12 @@
     if (fInnWrap) {
       fInnWrap.hidden = !(opener && opener.getAttribute('data-form-inn'));
       if (fInnWrap.hidden && fInn) fInn.value = '';
+    }
+
+    // Плашка про углублённый разбор — там же, где бесплатный анализ:
+    // в обычной заявке предлагать разбор по локации незачем.
+    if (deepNote) {
+      deepNote.hidden = !(opener && opener.getAttribute('data-form-deep'));
     }
 
     lastFocused = document.activeElement;
@@ -421,7 +447,7 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Отправляем…';
 
-      sendLead({
+      var zayavka = {
         name: fName.value.trim(),
         phone: fPhone.value.trim(),
         email: fEmail.value.trim(),
@@ -430,7 +456,17 @@
         inn: (fInn && fInnWrap && !fInnWrap.hidden) ? fInn.value.trim() : '',
         dm: dmValue(),
         source: leadSource()
-      })
+      };
+
+      // Поля расширенной анкеты добавляем только если они на странице
+      // есть и заполнены. Пустые в заявку не уходят, чтобы сообщение
+      // не обрастало пустыми строками.
+      var dop = dopPolya();
+      for (var k in dop) {
+        if (Object.prototype.hasOwnProperty.call(dop, k)) zayavka[k] = dop[k];
+      }
+
+      sendLead(zayavka)
         .then(function (res) {
           if (!res.ok) {
             var err = new Error('lead ' + res.status);
