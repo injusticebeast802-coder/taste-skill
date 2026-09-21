@@ -395,44 +395,6 @@ section[id]{scroll-margin-top:84px}
 }
 .verdict b{font-weight:700;color:var(--red-text)}
 
-/* 4. Почему это важно.
-   Главный тезис вынесен в отдельную панель во всю ширину, а доводы
-   разложены на карточки: у каждой свой вывод крупно и пояснение мельче. */
-.why__claim{
-  margin:0 0 clamp(28px,3.4vw,44px);
-  padding:clamp(24px,3vw,34px) clamp(26px,3.4vw,40px);
-  border-radius:var(--r-lg);
-  border:1px solid var(--line-2);
-  border-left:4px solid var(--accent-text);
-  background:linear-gradient(110deg,rgba(61,107,255,.24),rgba(15,26,54,.92));
-  font-family:var(--f-display);font-weight:500;
-  font-size:clamp(21px,2.7vw,32px);line-height:1.32;letter-spacing:-.015em;
-  color:#fff;max-width:34ch;
-}
-.why__claim b{font-weight:700;color:var(--accent-text)}
-
-.why__cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.why__card{
-  padding:26px 24px;
-  background:linear-gradient(170deg,rgba(61,107,255,.14),rgba(15,26,54,.92));
-  border:1px solid var(--line);border-radius:var(--r-md);
-  transition:transform .2s var(--ease),border-color .2s var(--ease);
-}
-.why__card:hover{transform:translateY(-3px);border-color:var(--line-2)}
-.why__ic{
-  display:grid;place-items:center;width:46px;height:46px;margin-bottom:18px;
-  border-radius:14px;color:#fff;
-  background:linear-gradient(150deg,#5B8CFF,#2445C8);
-  box-shadow:0 8px 22px rgba(45,79,214,.38);
-}
-.why__ic .ic{width:24px;height:24px;stroke-width:1.9}
-.why__v{
-  margin:0 0 8px;font-family:var(--f-display);font-weight:700;
-  font-size:clamp(22px,1.9vw,26px);line-height:1.15;letter-spacing:-.02em;
-  color:var(--accent-text);
-}
-.why__card .h3{font-size:18px;margin-bottom:10px;line-height:1.35}
-.why__d{margin:0;color:var(--muted);font-size:16px;line-height:1.55}
 
 /* 2а. Бесплатная проверка. Полоса между первым экраном и текстом:
    единственное место на странице, где предлагают что-то бесплатно,
@@ -603,211 +565,6 @@ section[id]{scroll-margin-top:84px}
   font-size:clamp(18px,2vw,24px);line-height:1.35;max-width:46ch;
 }
 .tech__claim b{font-weight:700;color:var(--red-text)}
-
-/* =========================================================
-   8. Как работает платформа: цикл из девяти шагов
-
-   Раскладка — змейка. Первый ряд идёт слева направо, второй
-   справа налево, слева линия возвращает к началу. Так девять
-   карточек ложатся в два ряда без единой пустой ячейки, и сразу
-   видно, что это кольцо, а не список с концом.
-
-   Сетка на шесть колонок: крайняя левая отдана возврату и занимает
-   оба ряда, остальные пять — карточкам. Шестая ячейка второго ряда
-   занята угловым соединителем, который уводит поток вниз.
-   grid-auto-rows:1fr держит ряды одной высоты — иначе линия
-   возврата промахивается мимо их середины.
-   ========================================================= */
-
-.krug__head{max-width:74ch;margin-bottom:clamp(30px,4vw,48px)}
-.krug__lead{margin-bottom:0}
-.krug__lead b{font-weight:600;color:var(--accent-text)}
-
-.krug{
-  --gap:clamp(12px,1.25vw,20px);
-  display:grid;
-  grid-template-columns:clamp(96px,9vw,132px) repeat(5,minmax(0,1fr));
-  grid-auto-rows:1fr;
-  gap:var(--gap);
-}
-
-/* Второй ряд выкладывается справа налево. Порядок в разметке при этом
-   остаётся обычным, 6-7-8-9: так читают с экрана и так же
-   выстраивается столбик на телефоне. */
-.cyc--6{grid-area:2/5}
-.cyc--7{grid-area:2/4}
-.cyc--8{grid-area:2/3}
-.cyc--9{grid-area:2/2}
-
-.cyc{
-  position:relative;
-  padding:20px 18px 18px;
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:var(--r-md);
-  transition:border-color .2s var(--ease),background-color .2s var(--ease),transform .2s var(--ease);
-}
-.cyc:hover{border-color:var(--line-2);background:var(--surface-2);transform:translateY(-2px)}
-
-/* Кружок с номером. Заливка светло-голубая, цифра почти чёрная:
-   белая цифра на фирменном синем даёт контраст 4,5 — на грани
-   нечитаемости, а здесь 10,4. */
-.cyc__n{
-  display:grid;place-items:center;
-  width:30px;height:30px;margin-bottom:13px;border-radius:50%;
-  background:var(--accent-text);color:#08122B;
-  font-family:var(--f-display);font-weight:700;font-size:14px;line-height:1;
-}
-.cyc__t{
-  margin:0 0 6px;
-  font-family:var(--f-display);font-weight:600;
-  font-size:16px;line-height:1.3;letter-spacing:-.005em;
-  color:var(--accent-text);
-}
-.cyc__d{margin:0;color:var(--muted);font-size:14.5px;line-height:1.45}
-
-/* Публикация и статистика — то, ради чего цикл существует.
-   Зелёный здесь тот же, которым на сайте отмечена выгода. */
-.cyc--out{background:#102A2B;border-color:rgba(74,222,128,.34)}
-.cyc--out:hover{background:#143435;border-color:rgba(74,222,128,.56)}
-.cyc--out .cyc__n{background:var(--green);color:#052014}
-.cyc--out .cyc__t{color:var(--green)}
-
-/* Стрелка потока живёт в промежутке между карточками. */
-.cyc__go{
-  position:absolute;top:50%;
-  right:calc(var(--gap) / -2 - 9px);
-  width:18px;height:18px;flex:none;
-  fill:none;stroke:currentColor;stroke-width:1.6;
-  stroke-linecap:round;stroke-linejoin:round;
-  color:var(--accent);
-  transform:translateY(-50%);
-}
-/* Во втором ряду поток идёт справа налево. */
-.cyc__go--back{transform:translateY(-50%) rotate(180deg)}
-
-/* Угловой соединитель: спускается из-под пятой карточки по шестой
-   колонке и поворачивает влево, в шестую карточку. Рисуется двумя
-   границами — отдельной картинки для этого не нужно. */
-.cyc--6::after{
-  content:"";position:absolute;pointer-events:none;
-  left:100%;width:calc(50% + var(--gap));
-  top:calc(var(--gap) * -1);bottom:50%;
-  border-right:1.5px solid var(--line-2);
-  border-bottom:1.5px solid var(--line-2);
-  border-bottom-right-radius:18px;
-}
-
-/* Возврат к началу: скоба слева, охватывающая оба ряда. */
-.krug__back{position:relative;grid-area:1/1/3/2}
-.krug__back::before{
-  content:"";position:absolute;pointer-events:none;
-  left:52%;right:calc(var(--gap) * -1);
-  top:25%;bottom:25%;
-  border:1.5px solid var(--line-2);border-right:0;
-  border-radius:16px 0 0 16px;
-}
-.krug__back-t{
-  position:absolute;left:0;width:52%;top:50%;
-  transform:translateY(-50%);
-  padding-right:10px;text-align:right;
-  font-family:var(--f-display);font-weight:600;
-  font-size:12.5px;line-height:1.3;color:var(--muted-2);
-  text-wrap:balance;
-}
-.krug__back-ic{
-  display:block;margin:0 0 6px auto;width:18px;height:18px;
-  fill:none;stroke:currentColor;stroke-width:1.6;
-  stroke-linecap:round;stroke-linejoin:round;color:var(--accent);
-}
-.krug__back-go{
-  position:absolute;top:calc(25% - 9px);
-  right:calc(var(--gap) * -1);
-  width:18px;height:18px;
-  fill:none;stroke:currentColor;stroke-width:1.6;
-  stroke-linecap:round;stroke-linejoin:round;color:var(--accent);
-}
-
-/* Ступенчатое появление: карточки проявляются одна за другой по ходу
-   цикла, а не все разом. Задержки маленькие — на девять штук
-   набегает полсекунды, дольше ждать никто не станет. */
-.cyc--1{transition-delay:0s}
-.cyc--2{transition-delay:.05s}
-.cyc--3{transition-delay:.10s}
-.cyc--4{transition-delay:.15s}
-.cyc--5{transition-delay:.20s}
-.cyc--6{transition-delay:.25s}
-.cyc--7{transition-delay:.30s}
-.cyc--8{transition-delay:.35s}
-.cyc--9{transition-delay:.40s}
-
-/* ---------- Нижняя панель: чему платформа учится ---------- */
-.learn{
-  margin-top:clamp(30px,3.6vw,48px);
-  padding:clamp(22px,2.6vw,34px);
-  border:1px solid var(--line-2);border-radius:var(--r-lg);
-  background:rgba(10,14,26,.60);
-}
-.learn__h{
-  margin:0 0 clamp(18px,2vw,26px);
-  font-family:var(--f-display);font-weight:700;
-  font-size:clamp(15px,1.7vw,20px);line-height:1.3;
-  letter-spacing:.04em;text-transform:uppercase;
-}
-.learn__row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,1.25vw,20px)}
-.learn__i{
-  --gap:clamp(12px,1.25vw,20px);
-  position:relative;padding:18px 17px;
-  background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-sm);
-  transition:border-color .2s var(--ease),background-color .2s var(--ease);
-}
-.learn__i:hover{border-color:var(--line-2);background:var(--surface-2)}
-.learn__t{
-  margin:0 0 7px;
-  font-family:var(--f-display);font-weight:600;
-  font-size:15px;line-height:1.3;color:var(--accent-text);
-}
-.learn__d{margin:0;color:var(--muted);font-size:14.5px;line-height:1.45}
-.learn__d b{font-weight:600;color:var(--text)}
-.learn__i--out{background:#102A2B;border-color:rgba(74,222,128,.34)}
-.learn__i--out:hover{background:#143435;border-color:rgba(74,222,128,.56)}
-.learn__i--out .learn__t{color:var(--green)}
-.learn__note{
-  margin:clamp(16px,1.8vw,22px) 0 0;
-  font-style:italic;font-size:14.5px;line-height:1.5;color:var(--muted-2);
-}
-
-/* ---------- Узкие экраны ----------
-   Змейка распрямляется в обычный поток, соединители и стрелки
-   убираются: на телефоне они показывали бы направление,
-   которого на экране уже нет. */
-@media (max-width:1180px){
-  .krug{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto}
-  .cyc--6,.cyc--7,.cyc--8,.cyc--9{grid-area:auto}
-  .cyc--6::after{display:none}
-  .cyc__go{display:none}
-  .krug__back{grid-area:auto;display:grid;place-items:center;min-height:74px}
-  .krug__back::before,.krug__back-go{display:none}
-  .krug__back-t{
-    position:static;width:auto;transform:none;
-    padding:0;text-align:center;display:flex;align-items:center;gap:9px;
-  }
-  .krug__back-ic{margin:0}
-  .learn__row{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .learn__i .cyc__go{display:none}
-}
-
-@media (max-width:620px){
-  .krug{grid-template-columns:1fr}
-  .learn__row{grid-template-columns:1fr}
-  .learn__h{letter-spacing:.03em}
-}
-
-@media (prefers-reduced-motion:reduce){
-  .cyc{transition-delay:0s !important;transition:none}
-  .cyc:hover{transform:none}
-}
 
 /* =========================================================
    9. Новое: четыре функции
@@ -1253,6 +1010,16 @@ section[id]{scroll-margin-top:84px}
 /* Подсветка цифр и выгод внутри текста: цифра крупная и белая,
    единица измерения остаётся обычным текстом. */
 .hl{color:var(--text);font-weight:700;font-size:1.14em}
+/* Пометка у новых пунктов подписки. Снять её, когда перестанут быть
+   новостью, — дело одного удалённого span в разметке. */
+.new{
+  display:inline-block;vertical-align:2px;margin-left:8px;
+  padding:2px 8px;border-radius:8px;
+  background:var(--accent-text);color:#08122B;
+  font-family:var(--f-body);font-size:11.5px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;line-height:1.45;
+}
+
 .hl--accent{color:var(--red-text);font-weight:700}
 
 /* ---------- Появление секций при скролле ---------- */
@@ -1459,7 +1226,6 @@ section[id]{scroll-margin-top:84px}
   .rail{grid-template-columns:repeat(2,1fr)}
   .rail__item::after{display:none}
   .agents{grid-template-columns:repeat(2,1fr)}
-  .why__cards{grid-template-columns:repeat(2,1fr)}
   .bens{grid-template-columns:1fr}
   .sup__grid{grid-template-columns:1fr}
 }
@@ -1491,7 +1257,6 @@ section[id]{scroll-margin-top:84px}
   .hero__actions .btn{flex:1 1 auto}
 
   .vs{grid-template-columns:1fr}
-  .why__cards{grid-template-columns:1fr}
   .solution{grid-template-columns:1fr}
   .solution__facts{grid-template-columns:1fr}
   .agents{grid-template-columns:1fr}
