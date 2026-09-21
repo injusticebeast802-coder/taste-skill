@@ -215,6 +215,8 @@ class Hod:
                 self.kogda = teper
                 return
             self.pravka_est = False
+            print('Посредник не даёт править сообщения (%s). Ход проверки '
+                  'буду досылать частями.' % (opisanie or 'без объяснения'))
 
         if tiho:
             return                       # счётчики новым сообщением не шлём
@@ -404,9 +406,21 @@ def handle(cfg, chat_id, text):
         send(cfg, chat_id, 'Не получилось: %s' % e)
 
 
+def kogda_obnovlen():
+    """Когда положили файлы бота. Нужно, чтобы отличить свежую версию
+    от старой: после обновления бота надо ещё перезапустить, и без
+    этой строки нельзя понять, какой код сейчас работает."""
+    try:
+        t = os.path.getmtime(os.path.abspath(__file__))
+        return time.strftime('%d.%m.%Y, %H:%M', time.localtime(t))
+    except Exception:
+        return 'неизвестно'
+
+
 def main():
     cfg = load_config()
     print('Бот запущен. Остановить — Ctrl+C.')
+    print('Версия файлов: от %s.' % kogda_obnovlen())
 
     # Показываем, каким путём пошли и за какого бота нас принимает
     # телеграм. Пустое окно раньше означало и «связи нет», и «связь
