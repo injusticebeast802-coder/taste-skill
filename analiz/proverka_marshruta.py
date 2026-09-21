@@ -37,16 +37,24 @@ ZAYAVKA_KOROTKAYA = (
     '🕒 21.09.2026, 16:40 МСК'
 )
 
-ZAYAVKA_POLNAYA = (
+# Заявка с расширенной анкеты: город с районами, сайт и что пробовали.
+# Конкурентов и запросы анкета больше не спрашивает — их дописывает
+# менеджер руками, и это следующий случай.
+ZAYAVKA_ANKETA = (
     ZAYAVKA_KOROTKAYA.replace('📍 Источник: бесплатный анализ',
                               '📍 Источник: углублённый анализ · анкета')
     + '\n\n— для углублённого анализа —\n'
       '🌍 Город и районы: Москва, ЮЗАО и Одинцово\n'
       '🔗 Сайт: https://romashka.ru/\n'
-      '🥊 Конкуренты: Дента, Белый клык\n'
-      '🔍 Как ищут: имплантация зубов под ключ, детский стоматолог\n'
-      '📡 Уже есть: vk.com/romashka\n'
       '🧪 Пробовали: контекст'
+)
+
+# Та же заявка, дописанная менеджером. Бот обязан понимать эти строки:
+# полей в анкете нет, но менеджер конкурентов клиента обычно знает.
+ZAYAVKA_POLNAYA = (
+    ZAYAVKA_ANKETA
+    + '\nКонкуренты: Дента, Белый клык'
+      '\nКак ищут: имплантация зубов под ключ, детский стоматолог'
 )
 
 # Сообщение, должно ли уйти в работу
@@ -60,6 +68,7 @@ SLUCHAI = [
     ('9702020445 Flowwow',                        True),
     ('9702020445 Flowwow, доставка цветов',       True),
     (ZAYAVKA_KOROTKAYA,                           True),
+    (ZAYAVKA_ANKETA,                              True),
     (ZAYAVKA_POLNAYA,                             True),
     ('привет',                                    False),
     ('Москва',                                    False),
@@ -125,6 +134,13 @@ def main():
     if razbor != nado:
         plohо.append('из заявки вышло %r, а надо %r' % (razbor, nado))
     print('  из заявки: %s' % (razbor,))
+
+    anketa = bot_mod.runner.razobrat_zayavku(ZAYAVKA_ANKETA)
+    if 'rivals' in anketa or 'queries' in anketa:
+        plohо.append('анкета не должна присылать конкурентов и запросы: %r' % (anketa,))
+    if bot_mod.runner.domen_iz(anketa.get('site')) != 'romashka.ru':
+        plohо.append('сайт из анкеты не прочитался: %r' % (anketa,))
+    print('  из анкеты: %s' % sorted(anketa))
 
     dop = bot_mod.runner.razobrat_zayavku(ZAYAVKA_POLNAYA)
     proverki = [

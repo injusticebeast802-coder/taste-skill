@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Углублённый анализ — ГенИИ</title>
-<meta name="description" content="Расширенная анкета для углублённого анализа нейровыдачи: город и районы работы, сайт, конкуренты и запросы клиентов.">
+<meta name="description" content="Расширенная анкета для углублённого анализа нейровыдачи: город и районы работы и сайт компании.">
 <link rel="canonical" href="https://genii-ai.ru/analiz">
 
 <!-- Страница только для приёма заявок, в поиске ей делать нечего. -->
@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="ГенИИ">
 <meta property="og:url" content="https://genii-ai.ru/analiz">
 <meta property="og:title" content="Углублённый анализ — ГенИИ">
-<meta property="og:description" content="Расширенная анкета: по локации, конкурентам и запросам разбор выходит точнее.">
+<meta property="og:description" content="Расширенная анкета: укажите район работы — посмотрим, кого нейросети называют из тех, кто работает рядом.">
 <meta property="og:locale" content="ru_RU">
 <meta property="og:image" content="https://genii-ai.ru/assets/og.png?v=1">
 <meta name="theme-color" content="#0A0A0C">
@@ -44,7 +44,7 @@
   <div class="fpage__win fpage__win--wide modal__win">
     <div class="modal__body" id="modal-body">
       <h1 class="modal__t" id="modal-t">Углублённый анализ нейровыдачи</h1>
-      <p class="modal__sub">Мы проверяем, называют ли нейросети вашу компанию. Обязательных полей шесть — по ним разбор уже будет. Ниже — необязательные: чем больше заполните, тем точнее выйдет разбор по вашей локации и конкурентам.</p>
+      <p class="modal__sub">Мы проверяем, называют ли нейросети вашу компанию. Обязательных полей семь — по ним разбор уже будет. Ниже — необязательные: укажите район работы, и мы заодно посмотрим, кого нейросети называют из тех, кто работает рядом с вами.</p>
 
       <!-- data-source — запасной вариант, если в ссылке нет ?from=…
            Строка попадает в сообщение боту как «Источник». -->
@@ -109,8 +109,11 @@
 
         <!-- Необязательная часть. Ради неё страница и существует:
              в окне заявки на главной этих полей нет, чтобы окно не
-             разрасталось, а тем, кому нужен разбор по локации и
-             конкурентам, сюда ведёт ссылка из того же окна. -->
+             разрасталось, а тем, кому нужен разбор по локации, сюда
+             ведёт ссылка из того же окна.
+
+             Конкурентов и запросы клиента здесь больше не спрашиваем:
+             конкурентов по указанному району проверка находит сама. -->
         <div class="dop">
           <h3 class="dop__h">Данные для углублённого анализа</h3>
           <p class="dop__d">Заполните то, что знаете. Каждое поле делает разбор точнее, но ни одно не обязательно — заявку примем и без них.</p>
@@ -125,24 +128,6 @@
           <label class="frm__l" for="f-site">Сайт компании <span class="frm__opt">необязательно</span></label>
           <input class="frm__i" id="f-site" name="site" type="text" maxlength="200" autocomplete="off" placeholder="например, genii-ai.ru">
           <p class="frm__why">Если сайт известен заранее, проверка не тратит попытку на его поиск и точнее засчитывает упоминания по домену.</p>
-        </div>
-
-        <div class="frm__f" id="f-rivals-wrap">
-          <label class="frm__l" for="f-rivals">Конкуренты <span class="frm__opt">необязательно</span></label>
-          <input class="frm__i" id="f-rivals" name="rivals" type="text" maxlength="200" autocomplete="off" placeholder="до пяти названий через запятую">
-          <p class="frm__why">Посмотрим, называют ли нейросети именно их вместо вас, и покажем это рядом на одном графике.</p>
-        </div>
-
-        <div class="frm__f" id="f-queries-wrap">
-          <label class="frm__l" for="f-queries">Как вас ищут клиенты <span class="frm__opt">необязательно</span></label>
-          <textarea class="frm__t" id="f-queries" name="queries" maxlength="400" rows="3" placeholder="Например: имплантация зубов под ключ, детский стоматолог, брекеты"></textarea>
-          <p class="frm__why">Слова клиента точнее любой заготовки. Именно ими мы и спросим нейросети — по одному запросу в строке или через запятую.</p>
-        </div>
-
-        <div class="frm__f" id="f-places-wrap">
-          <label class="frm__l" for="f-places">Где вы уже есть <span class="frm__opt">необязательно</span></label>
-          <textarea class="frm__t" id="f-places" name="places" maxlength="400" rows="3" placeholder="Ссылки на сайт, соцсети, карточки на картах и маркетплейсах"></textarea>
-          <p class="frm__why">Показывает, что у вас уже проиндексировано, а что нейросети пока не видят.</p>
         </div>
 
         <div class="frm__f" id="f-tried-wrap">
@@ -191,6 +176,6 @@
   </p>
 </main>
 
-<script src="form.js?v=3"></script>
+<script src="form.js?v=4"></script>
 </body>
 </html>
