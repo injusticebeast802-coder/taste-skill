@@ -46,6 +46,23 @@ AKKAUNT = '@Prompter_mos'
 
 MALO = []     # сюда попадает всё, что не влезло: печатаем в конце сборки
 
+# Контактные строки: их координаты нужны, чтобы в pdf на этих местах
+# появились поля для правки. PUSTO включается ключом --polya: тогда сам
+# текст не рисуется, его показывает поле.
+POLYA = []
+PUSTO = False
+
+
+def kontakt(sl, stranica, x, y, w, h, tekst, pt, cvet, imya):
+    """Контактная строка. Координаты запоминаем всегда, текст рисуем,
+    только если не собираем версию с полями."""
+    POLYA.append({'stranica': stranica, 'imya': imya, 'tekst': tekst,
+                  'x': x, 'y': y, 'w': w, 'h': h,
+                  'kegl': pt, 'cvet': str(cvet)})
+    if not PUSTO:
+        blok(sl, x, y, w, tekst, IS, pt, font=BODY, color=cvet, bold=True,
+             lead=1.3)
+
 
 def novyj(prs):
     sl = prs.slides.add_slide(prs.slide_layouts[6])
@@ -153,8 +170,8 @@ def slajd_1(prs):
          IS, 13, font=BODY, color=WHITE, bold=True, lead=1.3)
     # Контакты на обложке — своя надпись, отдельно от адреса сайта:
     # менеджер меняет её целиком и не боится задеть чужой текст.
-    blok(sl, PAD + 2.2, H - 0.96, 8.0, '%s     %s' % (TELEFON, POCHTA),
-         IS, 13, font=BODY, color=MUTED2, lead=1.3)
+    kontakt(sl, 1, PAD + 2.2, H - 0.96, 8.0, 0.24,
+            '%s     %s' % (TELEFON, POCHTA), 13, MUTED2, 'kontakty-oblozhka')
 
 
 # ====================================================== 2. РЫНОК ИЗМЕНИЛСЯ
@@ -517,10 +534,16 @@ def slajd_8(prs):
     # заходит в неё двойным щелчком и пишет своё. Ссылок на телефоне,
     # почте и аккаунте намеренно нет. Ссылка живёт отдельно от текста:
     # подписи меняют, а она остаётся старой — и клиент звонит не тому.
-    for ik, t in [('phone', TELEFON), ('mail', POCHTA), ('tg', AKKAUNT)]:
+    for ik, t, imya in [('phone', TELEFON, 'telefon'),
+                        ('mail', POCHTA, 'pochta'),
+                        ('tg', AKKAUNT, 'akkaunt')]:
         kartinka(sl, ikonka(ik, '7FC4FF'), kx + 0.42, ty + 0.04, 0.22, 0.22)
-        tf = nadpis(sl, kx + 0.76, ty, fw - 0.34, 0.3)
-        abzac(tf, t, 12.5, font=BODY, color=WHITE, lead=1.2, first=True)
+        POLYA.append({'stranica': VSEGO, 'imya': imya, 'tekst': t,
+                      'x': kx + 0.76, 'y': ty, 'w': fw - 0.34, 'h': 0.26,
+                      'kegl': 12.5, 'cvet': str(WHITE)})
+        if not PUSTO:
+            tf = nadpis(sl, kx + 0.76, ty, fw - 0.34, 0.3)
+            abzac(tf, t, 12.5, font=BODY, color=WHITE, lead=1.2, first=True)
         ty += 0.4
 
     kartinka(sl, ASSETS + '/logo.png', PAD, H - 1.0, 0.42, 0.42)
@@ -586,6 +609,13 @@ def main(fajl='obshchaya.pptx'):
     else:
         print('всё влезает в отведённое место')
     print('собрано:', put, '| слайдов:', VSEGO)
+
+    if PUSTO:
+        import json
+        ryadom = os.path.join(os.path.dirname(put), 'polya.json')
+        json.dump(POLYA, open(ryadom, 'w', encoding='utf-8'),
+                  ensure_ascii=False, indent=1)
+        print('координаты контактных полей:', ryadom)
     return put
 
 
@@ -601,9 +631,13 @@ if __name__ == '__main__':
     razbor.add_argument('--akkaunt', help='телеграм менеджера, с собачкой')
     razbor.add_argument('--fajl', default='obshchaya.pptx',
                         help='имя файла на выходе')
+    razbor.add_argument('--polya', action='store_true',
+                        help='контактные строки оставить пустыми и '
+                             'записать их координаты для полей в pdf')
     kl = razbor.parse_args()
     for imya, znach in (('TELEFON', kl.telefon), ('POCHTA', kl.pochta),
                         ('AKKAUNT', kl.akkaunt)):
         if znach:
             globals()[imya] = znach
+    PUSTO = kl.polya
     main(kl.fajl)
