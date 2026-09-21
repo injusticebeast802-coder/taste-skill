@@ -1,0 +1,6 @@
+# Промежуточные файлы сборки: сама презентация лежит уровнем выше,
+# в prompter-obshchaya.pptx, и попадает в репозиторий именно оттуда.
+obshchaya.pptx
+obshchaya-so-shriftami.pptx
+*.pdf
+raspakovka/

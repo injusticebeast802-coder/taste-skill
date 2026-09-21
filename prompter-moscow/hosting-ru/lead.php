@@ -181,7 +181,8 @@ function sourceLabel($value) {
   $known = array(
     'analiz'       => 'бесплатный анализ',
     'presentation' => 'презентация',
-    'presentation-kratkaya' => 'презентация · короткая',
+    'presentation-obshchaya' => 'презентация · общая',
+    'presentation-analiz' => 'презентация · бесплатный анализ',
     /* Отраслевые презентации: у каждой своя кнопка со своей меткой,
        чтобы в заявке было видно, какую именно показывали клиенту. */
     'presentation-beauty'  => 'презентация · салоны красоты',
