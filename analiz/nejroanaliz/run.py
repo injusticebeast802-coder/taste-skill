@@ -134,6 +134,34 @@ def domen_iz(znach):
     return t
 
 
+def mesta_poiska(rajony, gorod):
+    """Где искать соседей: пара мест — поближе и вокруг.
+
+    Возвращает список пар (что ищем, в окружении чего). Пара нужна,
+    чтобы запрос вышел однозначным: «шаурма Заречье Одинцово», а не
+    просто «шаурма Заречье» — Заречий в стране десяток.
+
+    Правила простые. Названы два района и больше — берём первые два:
+    клиент работает там, и город целиком ему не нужен, по нему
+    найдутся сети. Назван один район — берём его и город вокруг.
+    Района нет — только город.
+    """
+    rajony = [r for r in (rajony or []) if r]
+    gorod = (gorod or "").strip()
+    def vokrug(rajon):
+        # Если район и город названы одинаково, второй раз писать его
+        # в запрос незачем: выйдет «шаурма Котельники Котельники».
+        return '' if gorod.lower() == rajon.lower() else gorod
+
+    if len(rajony) >= 2:
+        return [(rajony[0], vokrug(rajony[0])), (rajony[1], vokrug(rajony[1]))]
+    if rajony:
+        pary = [(rajony[0], vokrug(rajony[0]))]
+        if gorod and gorod.lower() != rajony[0].lower():
+            pary.append((gorod, ""))
+        return pary
+    return [(gorod, "")] if gorod else []
+
 def razdelit_mesto(znach):
     """Из «Москва, ЮЗАО и Одинцово» делает («Москва», ['ЮЗАО', 'Одинцово']).
 
@@ -290,35 +318,58 @@ def analyze(raw_inn, cfg, progress=None):
         say('Спрошу словами из анкеты: %s' % ', '.join(own_q))
     known_rivals = spisok(zayavka.get('rivals'), 5)
     if known_rivals:
-        say('Конкуренты из анкеты: %s' % ', '.join(known_rivals))
+        c['known_rivals'] = known_rivals
+        say('Конкуренты от менеджера: %s' % ', '.join(known_rivals))
 
-    # Районы работы. Если человек назвал конкретный район, конкурентов
-    # можно не угадывать по ответам нейросетей, а прямо спросить
-    # поиск: «стоматология ЮЗАО Москва». Выдача по такому запросу —
-    # это и есть те, к кому уходит клиент, когда его не называют.
+    # Кто работает рядом.
+    #
+    # Нейросеть на общий вопрос называет крупные имена: по деревянным
+    # домам это «Теремъ» и «Зодчий» на всю страну. Клиенту из
+    # Котельников сравнение с ними ничего не говорит — он хочет знать,
+    # как выглядит рядом с теми, кто работает в его же районе и его же
+    # размера. Таких не угадать по ответам нейросети: их там и нет.
+    # Зато их прямо показывает обычный поиск.
+    #
+    # Ищем по району, если он указан в анкете, иначе по городу:
+    # «строительство деревянных домов Котельники». Раньше шаг включался
+    # только при указанном районе и потому почти не работал — город
+    # известен почти всегда, а район пишут редко.
     _gorod_iz_ankety, rajony = razdelit_mesto(zayavka.get('city', ''))
     if rajony:
         c['rajony'] = rajony
-    sosedi = []
-    if rajony and cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
+
+    # Ищем на двух уровнях, и это важно для равновесия. Шаурмичной
+    # в Заречье нужны соседи и по Заречью, и по Одинцову: по одному
+    # Заречью найдётся два ларька, а по одному Одинцову — сети, до
+    # которых ей далеко. Вместе получается тот круг, в котором она
+    # и правда соревнуется.
+    #
+    # Два поиска, не больше: каждый стоит секунды, а проверка и так
+    # идёт минуту-две.
+    mesta = mesta_poiska(rajony, c.get('city') or '')
+    sosedi, gde_iskali = [], []
+    if mesta and cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
         kind_dlya_poiska = c.get('kind') or c.get('industry') or ''
-        say('Смотрю, кто работает рядом: %s, %s…' % (kind_dlya_poiska, rajony[0]))
-        sosedi = search_yandex.sosedi(
-            kind_dlya_poiska, rajony[0], c.get('city', ''),
-            cfg['yandex_folder_id'], cfg['yandex_search_key'],
-            svoi=c['names'], limit=5)
+        say('Смотрю, кто работает рядом: %s — %s…'
+            % (kind_dlya_poiska, ' и '.join(m for m, _ in mesta)))
+        for mesto, vokrug in mesta:
+            naideno = search_yandex.sosedi(
+                kind_dlya_poiska, mesto, vokrug,
+                cfg['yandex_folder_id'], cfg['yandex_search_key'],
+                svoi=c['names'], limit=4)
+            if naideno:
+                gde_iskali.append(mesto)
+            for imya in naideno:
+                if imya.lower() not in [x.lower() for x in sosedi]:
+                    sosedi.append(imya)
+        sosedi = sosedi[:6]
         if sosedi:
             say('Рядом нашлись: %s' % ', '.join(sosedi))
         else:
-            say('Рядом никого не нашли — проверю только по ответам нейросетей.')
-
-    # Названные клиентом идут первыми: он знает, с кем себя сравнивает.
-    vse_rivals = list(known_rivals)
-    for imya in sosedi:
-        if imya.lower() not in [x.lower() for x in vse_rivals]:
-            vse_rivals.append(imya)
-    if vse_rivals:
-        c['known_rivals'] = vse_rivals[:6]
+            say('Рядом никого не нашли — сравню только по ответам нейросетей.')
+    if sosedi:
+        c['sosedi'] = sosedi
+        c['sosedi_gde'] = ' и '.join(gde_iskali)
 
     if c.get('status') and c['status'] != 'ACTIVE':
         say('Внимание: по справочнику компания не действующая.')
@@ -434,7 +485,6 @@ def analyze(raw_inn, cfg, progress=None):
         path = os.path.join(out_dir, 'otchet-%s-%s-%s.png' % (digits, stamp, brand))
         report.draw_png(data, path, brand=brand)
         pngs[brand] = path
-    data['sosedi'] = sosedi
     data['rajony'] = rajony
     data['png'] = pngs['genii']          # для старых вызовов
     data['pngs'] = pngs
@@ -546,15 +596,30 @@ def as_text(data):
     ]
     if data['ai_best_position']:
         lines.append('Лучшее место в списке нейросети — %d-е.' % data['ai_best_position'])
-    if data['search_best']:
-        stroka = 'В поиске Яндекса лучшее место — %d-е' % data['search_best']
-        if data.get('search_best_query'):
-            stroka += ' по запросу «%s»' % data['search_best_query']
-        lines.append(stroka + '.')
-    elif data.get('search_broken'):
+    # Сколько мест в ответе нейросети вообще бывает. Число объясняет
+    # разницу между двумя списками лучше любого объяснения: в выдаче
+    # Яндекса двадцать строк, и человек выбирает сам, а здесь мест
+    # столько, и выбор сделан за него.
+    if data.get('nazyvayut_v_otvete'):
+        n = data['nazyvayut_v_otvete']
+        lines.append('В одном ответе нейросеть называет %d %s.'
+                     % (n, report.sklonenie(n, 'компанию', 'компании', 'компаний')))
+    # Про поиск — вся картина, а не лучшее место. Прежняя строка брала
+    # лучший запрос из пяти и писала только его: по одному первому
+    # месту выходило, что в поиске всё хорошо, хотя по трём другим
+    # запросам сайта не было вовсе.
+    if data.get('search_broken'):
         lines.append('Место в поиске Яндекса не смотрел: поиск недоступен.')
-    else:
-        lines.append('В поиске Яндекса в первой двадцатке не нашли.')
+    elif data.get('search_total'):
+        vsego = data['search_total']
+        v10 = data.get('search_v_top10') or 0
+        naideno = data.get('search_found') or 0
+        if not naideno:
+            lines.append('В поиске Яндекса сайта нет в топ-20 ни по одному '
+                         'из %d запросов.' % vsego)
+        else:
+            lines.append('В поиске Яндекса: в первой десятке по %d из %d '
+                         'запросов, в топ-20 — по %d.' % (v10, vsego, naideno))
     mesta = [r for r in data['search_results'] if not r.get('error')]
     if mesta:
         lines.append('')
@@ -563,13 +628,24 @@ def as_text(data):
             lines.append('  %s — %s' % (
                 r['query'], ('%d-е' % r['position']) if r.get('position') else 'нет в топ-20'))
 
-    # Кого нашли рядом по указанному району. Отдельной строкой, потому
-    # что это не догадка из ответов, а живая выдача поиска: с этими
-    # компаниями клиент и делит район.
+    # Соседи — отдельным блоком. Это не догадка из ответов нейросети,
+    # а живая выдача поиска: компании того же размера и того же
+    # района. Сравнение с ними клиенту нужнее, чем с «Теремом».
     if data.get('sosedi'):
         lines.append('')
-        gde = ', '.join(data.get('rajony') or []) or 'рядом'
-        lines.append('Работают там же (%s): %s.' % (gde, ', '.join(data['sosedi'])))
+        gde = data.get('sosedi_gde') or 'рядом'
+        lines.append('Кто работает рядом (%s):' % gde)
+        for imya, n in data['sosedi']:
+            lines.append('  %s — %s' % (
+                imya, ('называют в %d %s' % (n, report.sklonenie(
+                    n, 'ответе', 'ответах', 'ответах'))) if n else 'не называют'))
+        nazvany = [x for x in data['sosedi'] if x[1]]
+        if nazvany and not data['ai_named']:
+            lines.append('Из соседей нейросети называют %d из %d, вас — ни разу.'
+                         % (len(nazvany), len(data['sosedi'])))
+        elif not nazvany:
+            lines.append('Рядом не называют никого: место свободно, '
+                         'займёт тот, кто начнёт первым.')
 
     if data['rivals']:
         lines.append('')

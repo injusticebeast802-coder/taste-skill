@@ -141,6 +141,105 @@ def send(cfg, chat_id, text):
     return api(cfg, 'sendMessage', chat_id=chat_id, text=text, disable_web_page_preview=True)
 
 
+
+def edit(cfg, chat_id, msg_id, text):
+    """Переписать уже отправленное сообщение."""
+    return api(cfg, 'editMessageText', chat_id=chat_id, message_id=msg_id,
+               text=text, disable_web_page_preview=True)
+
+
+class Hod:
+    """Ход проверки — одним сообщением вместо десятка.
+
+    Раньше каждая строка уходила отдельным сообщением: «ищу в
+    справочнике», «компания такая-то», «спрашиваю про…», четыре раза
+    «…N из 24», «смотрю выдачу». На одну проверку в чате появлялось
+    штук двенадцать сообщений, и найти среди них сам отчёт было
+    трудно.
+
+    Теперь строки копятся в одном сообщении. Если телеграм разрешает
+    его править — правим на месте, и в чате остаётся одна растущая
+    запись. Если не разрешает (через посредника правка может быть
+    закрыта), досылаем накопленное редко, раз в минуту, а счётчики
+    «…N из 24» в этом случае не шлём вовсе: они нужны, только пока
+    видно, как строка меняется.
+    """
+
+    PRAVKA_NE_CHASHCHE = 3.0     # секунд между правками
+    NOVOE_NE_CHASHCHE = 60.0     # секунд между досылками, если правка закрыта
+
+    def __init__(self, cfg, chat_id):
+        self.cfg = cfg
+        self.chat_id = chat_id
+        self.stroki = []
+        self.msg_id = None
+        self.pravka_est = True
+        self.pokazano = 0
+        self.kogda = 0.0
+
+    def __call__(self, text):
+        text = (text or '').strip()
+        if not text:
+            return
+        # Счётчик заменяет предыдущий счётчик, а не копится под ним.
+        tiho = text.startswith('…')
+        if tiho and self.stroki and self.stroki[-1].startswith('…'):
+            self.stroki[-1] = text
+        else:
+            self.stroki.append(text)
+        self._pokazat(tiho)
+
+    def _pokazat(self, tiho=False):
+        teper = time.time()
+
+        if self.msg_id is None:
+            self._poslat(self.stroki)
+            return
+
+        if self.pravka_est:
+            if teper - self.kogda < self.PRAVKA_NE_CHASHCHE:
+                return
+            try:
+                otvet = edit(self.cfg, self.chat_id, self.msg_id,
+                             '\n'.join(self.stroki))
+            except Exception:
+                otvet = None
+            if otvet and otvet.get('ok'):
+                self.pokazano = len(self.stroki)
+                self.kogda = teper
+                return
+            # «message is not modified» — не беда, а вот отказ метода
+            # означает, что править нам нельзя, и дальше не пробуем.
+            opisanie = (otvet or {}).get('description', '')
+            if 'not modified' in str(opisanie):
+                self.kogda = teper
+                return
+            self.pravka_est = False
+
+        if tiho:
+            return                       # счётчики новым сообщением не шлём
+        if teper - self.kogda < self.NOVOE_NE_CHASHCHE:
+            return
+        novye = [x for x in self.stroki[self.pokazano:] if not x.startswith('…')]
+        if novye:
+            self._poslat(novye)
+
+    def _poslat(self, stroki):
+        try:
+            otvet = send(self.cfg, self.chat_id, '\n'.join(stroki))
+        except Exception:
+            return
+        if self.msg_id is None and isinstance(otvet, dict):
+            self.msg_id = (otvet.get('result') or {}).get('message_id')
+        self.pokazano = len(self.stroki)
+        self.kogda = time.time()
+
+    def zakonchit(self):
+        """Дописать то, что осталось, перед отправкой отчёта."""
+        self.kogda = 0.0
+        if self.stroki and self.pokazano < len(self.stroki):
+            self._pokazat()
+
 def send_photo(cfg, chat_id, path, caption, popytok=3):
     """Отправка картинки отчёта.
 
@@ -280,11 +379,13 @@ def handle(cfg, chat_id, text):
         send(cfg, chat_id, HELP)
         return
 
-    def progress(msg):
-        send(cfg, chat_id, msg)
+    hod = Hod(cfg, chat_id)
 
     try:
-        data = runner.analyze(text, cfg, progress=progress)
+        data = runner.analyze(text, cfg, progress=hod)
+        # Дописываем накопленное до отчёта: иначе последние строки
+        # хода остались бы невидимыми, а проверка уже закончилась.
+        hod.zakonchit()
         # Две картинки: одна и та же проверка в оформлении двух наших
         # сайтов. Менеджер пересылает клиенту ту, на сайте которого
         # тот оставил заявку.
@@ -295,8 +396,10 @@ def handle(cfg, chat_id, text):
             send_photo(cfg, chat_id, pngs['prompter'],
                        'То же самое для заявки с prompter-ai.moscow')
     except runner.RunError as e:
+        hod.zakonchit()
         send(cfg, chat_id, str(e))
     except Exception as e:
+        hod.zakonchit()
         traceback.print_exc()
         send(cfg, chat_id, 'Не получилось: %s' % e)
 

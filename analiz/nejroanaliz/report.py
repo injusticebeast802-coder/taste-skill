@@ -198,10 +198,21 @@ def build(company, site, ai_results, search_results):
         # сильнее, чем кажется.
         'search_best_query': (min(s_found, key=lambda r: r['position'])['query']
                               if s_found else ''),
+        # Сколько запросов вывели сайт в первую десятку. Честная
+        # картина по поиску: одно лучшее место из пяти запросов ничего
+        # не говорит об остальных четырёх.
+        'search_v_top10': len([p for p in s_positions if p <= 10]),
+        # Сколько компаний нейросеть называет в одном ответе.
+        'nazyvayut_v_otvete': skolko_nazyvayut(ai_results),
         'ai_results': ai_results,
         'search_results': search_results,
         'rivals': _rivals(ai_results, company.get('names') or [company.get('name', '')],
-                          company.get('known_rivals')),
+                          company.get('known_rivals'), company.get('sosedi')),
+        # Соседи — отдельно от «кого называют вместо вас». Там имена из
+        # ответов нейросети, то есть крупные на всю страну. Здесь —
+        # найденные поиском по району: того же размера и того же места.
+        'sosedi': upominaniya(ai_results, company.get('sosedi')),
+        'sosedi_gde': company.get('sosedi_gde', ''),
     }
 
 
@@ -232,7 +243,75 @@ def _looks_like_name(cand):
     return not any(w in low for w in NOT_A_NAME)
 
 
-def _rivals(ai_results, own_names, known=None):
+def upominaniya(ai_results, imena):
+    """Сколько ответов назвали каждое из имён. Ноль тоже считаем.
+
+    Ноль здесь не пустая строка, а самое важное, что можно сказать
+    клиенту: рядом с ним работают вот эти пятеро, и их тоже не
+    называют — значит, место свободно.
+    """
+    from . import matching
+
+    out = []
+    for imya in (imena or []):
+        n = sum(1 for r in ai_results
+                if matching.mentioned_any(r.get("answer") or "", [imya]))
+        out.append((imya, n))
+    return out
+
+def imena_v_otvete(text):
+    """Названия компаний из одного ответа нейросети.
+
+    Берём строки нумерованных списков: в них нейросеть и перечисляет
+    компании. Это не точный разбор, а подсказка — но её хватает и
+    чтобы понять, кого называют, и чтобы сосчитать, сколько мест в
+    ответе вообще бывает.
+    """
+    import re
+
+    out = []
+    for line in (text or '').splitlines():
+        # Разделяем только по длинному тире и двоеточию: обычный
+        # дефис — часть названия, «Дента-Люкс» по нему рвать нельзя.
+        m = re.match(r'^\s*\d+[.)]\s*([^—–:\n]{3,60})', line)
+        if not m:
+            continue
+        cand = m.group(1).strip(' *«»"\'.,')
+        # Закрывающая кавычка обрезается вместе с точкой, а открывающая
+        # остаётся внутри строки: «ООО «Главстрой». Возвращаем пару.
+        if cand.count('«') > cand.count('»'):
+            cand += '»'
+        if _looks_like_name(cand):
+            out.append(cand)
+    return out
+
+
+def skolko_nazyvayut(ai_results):
+    """Сколько компаний нейросеть называет в одном ответе — обычно.
+
+    Это число заменило в отчёте место в поиске Яндекса. Прежнее число
+    было лучшим местом из всех запросов, и рядом с «нейросети не
+    называют вас ни разу» оно читалось как «да всё у меня хорошо»:
+    клиент видел единицу и успокаивался. Хотя смысл разбора ровно
+    обратный — поиск и нейросеть это два разных списка, и место в
+    одном ничего не говорит о втором.
+
+    Сколько мест в ответе — число честное и бьёт в ту же точку: вот
+    столько компаний нейросеть назовёт вашему клиенту, и вас среди
+    них нет.
+
+    Берём середину ряда, а не среднее: один ответ на двадцать позиций
+    перекосил бы среднее и обещал бы клиенту больше мест, чем бывает.
+    """
+    dliny = sorted(len(imena_v_otvete(r.get('answer') or ''))
+                   for r in ai_results if not r.get('error'))
+    dliny = [n for n in dliny if n]
+    if not dliny:
+        return 0
+    return dliny[len(dliny) // 2]
+
+
+def _rivals(ai_results, own_names, known=None, krome=None):
     """Кого нейросети называют вместо компании.
 
     Берём строки нумерованных списков: в них нейросеть и перечисляет
@@ -244,20 +323,7 @@ def _rivals(ai_results, own_names, known=None):
 
     counts = {}
     for r in ai_results:
-        for line in (r.get('answer') or '').splitlines():
-            # Разделяем только по длинному тире и двоеточию: обычный
-            # дефис — часть названия, «Дента-Люкс» по нему рвать нельзя.
-            m = re.match(r'^\s*\d+[.)]\s*([^—–:\n]{3,60})', line)
-            if not m:
-                continue
-            cand = m.group(1).strip(' *«»"\'.,')
-            # Закрывающая кавычка обрезается вместе с точкой, а
-            # открывающая остаётся внутри строки: «ООО «Главстрой».
-            # Возвращаем пару на место.
-            if cand.count('«') > cand.count('»'):
-                cand += '»'
-            if not _looks_like_name(cand):
-                continue
+        for cand in imena_v_otvete(r.get('answer') or ''):
             if matching.mentioned_any(cand, own_names):
                 continue
             key = matching.fold(cand)
@@ -277,6 +343,12 @@ def _rivals(ai_results, own_names, known=None):
         n = sum(1 for r in ai_results
                 if matching.mentioned_any(r.get('answer') or '', [imya]))
         izvestnye.append((imya, n))
+
+    # Соседей по району в этом списке не показываем: у них свой блок
+    # ниже. Иначе одна и та же компания стоит в отчёте дважды, и
+    # кажется, что её назвали вдвое чаще.
+    for imya in (krome or []):
+        counts.pop(matching.fold(imya), None)
 
     mest = max(0, 6 - len(izvestnye))
     top = sorted(counts.values(), key=lambda x: -x[0])[:mest]
@@ -375,18 +447,84 @@ def why_line(company):
     return CROWDED.get(topic, '')
 
 
+def sklonenie(n, odna, dve, mnogo):
+    """Число со словом в нужном падеже: 1 компанию, 2 компании, 5 компаний.
+
+    Без этого в отчёте выходило «называет 4 компаний». Мелочь, но
+    отчёт уходит клиенту, и по таким мелочам судят обо всём остальном.
+    """
+    n = abs(int(n))
+    if n % 100 in (11, 12, 13, 14):
+        return mnogo
+    ost = n % 10
+    if ost == 1:
+        return odna
+    if ost in (2, 3, 4):
+        return dve
+    return mnogo
+
+def sosedi_line(data):
+    """Одна фраза под списком соседей — то, ради чего он показан.
+
+    Три случая, и все три клиенту полезны: соседей называют, а его
+    нет; не называют никого, и место свободно; называют и его тоже,
+    и тогда речь про то, чтобы не потерять место.
+    """
+    sosedi = data.get("sosedi") or []
+    if not sosedi:
+        return ''
+    nazvany = [x for x in sosedi if x[1]]
+    svoi = data.get("ai_named", 0)
+
+    if not nazvany and not svoi:
+        return ("Рядом нейросети не называют никого. Место свободно: "
+                "займёт тот, кто начнёт публиковаться первым.")
+    if nazvany and not svoi:
+        return ("Из тех, кто работает рядом, нейросети называют %d %s, "
+                "а вас — ни разу." % (len(nazvany), sklonenie(
+                    len(nazvany), "компанию", "компании", "компаний")))
+    if nazvany:
+        return ("Рядом называют не только вас — эти компании занимают "
+                "те же места в ответах.")
+    return "Рядом называют только вас."
+
 def search_line(data):
-    """Строчка про обычный поиск — про направление, не про место."""
+    """Строчка про обычный поиск.
+
+    Раньше здесь стояло лучшее место из всех запросов, и при хорошем
+    месте выходило «в поиске вы наверху — эту позицию удерживаем».
+    Клиент читал это рядом с «нейросети не называют вас ни разу» и
+    делал вывод, что у него и так всё в порядке.
+
+    Поэтому теперь строка не хвалит место, а объясняет разницу между
+    двумя списками: в выдаче Яндекса двадцать строк и человек выбирает
+    сам, в ответе нейросети — несколько названий, и выбор уже сделан
+    за него. Место в первом списке ничего не даёт во втором.
+    """
     if data.get('search_broken') or not data.get('search_total'):
         return ''
-    best = data.get('search_best')
-    if not best:
+
+    vsego = data['search_total']
+    v_top10 = data.get('search_v_top10') or 0
+    naideno = data.get('search_found') or 0
+    skolko = data.get('nazyvayut_v_otvete') or 0
+
+    if not data.get('search_best'):
         return 'В поиске Яндекса вас пока нет в топ-20 — поднимаем и там.'
-    if best > 10:
-        return 'В поиске Яндекса вы на %d-м месте — поднимаем выше.' % best
-    if best > 3:
-        return 'В поиске Яндекса вы на %d-м месте — подтягиваем ближе к первым.' % best
-    return 'В поиске Яндекса вы наверху — эту позицию удерживаем.'
+
+    skolko_zaprosov = v_top10 if v_top10 else naideno
+    slovo = sklonenie(skolko_zaprosov, 'запросу', 'запросам', 'запросам')
+    gde = '%s по %d %s из %d' % (
+        'в первой десятке' if v_top10 else 'в топ-20',
+        skolko_zaprosov, slovo, vsego)
+
+    if data.get('ai_named'):
+        return 'В поиске Яндекса сайт %s — эти места удерживаем.' % gde
+
+    if skolko:
+        return ('В поиске Яндекса сайт %s. Но выдачу человек листает сам, а нейросеть сразу называет %d %s — и выбирает за него.'
+                % (gde, skolko, sklonenie(skolko, 'компанию', 'компании', 'компаний')))
+    return ('В поиске Яндекса сайт %s. Но выдачу человек листает сам, а нейросеть сразу называет несколько компаний — и выбирает за него.' % gde)
 
 
 def _wrap(draw, text, font, width):
@@ -549,27 +687,34 @@ def draw_png(data, path, brand='genii'):
     # поясняют главное, а не спорят с ним.
     px = PAD + int(SHIR * 0.66)
     py = verh
+    # Второе число — сколько компаний нейросеть называет в одном
+    # ответе. Раньше здесь стояло лучшее место сайта в поиске Яндекса,
+    # и рядом с «не называют ни разу» оно читалось как «да всё у меня
+    # хорошо»: клиент видел единицу и успокаивался. Смысл разбора
+    # ровно обратный — поиск и нейросеть это два разных списка, и
+    # место в одном ничего не говорит о втором. Число мест в ответе
+    # бьёт в ту же точку и не требует оговорок: вот столько компаний
+    # услышит ваш клиент, и вас среди них нет.
+    skolko = data.get('nazyvayut_v_otvete') or 0
     pары = [
         (('%d-е' % data['ai_best_position']) if data['ai_best_position'] else '—',
-         'место в списке нейросети', data['ai_best_position']),
-        (('%d-е' % data['search_best']) if data['search_best']
-         else ('не смотрели' if data.get('search_broken') else 'нет в топ-20'),
-         'место в поиске Яндекса', data['search_best']),
+         'место в списке нейросети', cvet_mesta(data['ai_best_position']),
+         38 if data['ai_best_position'] else 24),
+        (str(skolko) if skolko else '—',
+         '%s нейросеть называет в одном ответе'
+         % sklonenie(skolko, 'компанию', 'компании', 'компаний'),
+         TEXT if skolko else MUTED, 38 if skolko else 24),
     ]
-    for i, (bolshoe, podpis, mesto) in enumerate(pары):
+    for i, (bolshoe, podpis, cvet, kegl) in enumerate(pары):
         if i:
             d.rectangle([px, py, W - PAD, py + 1], fill=LINE)
             py += 26
-        # «Не смотрели» — это не плохое место, а отсутствие проверки:
-        # красить в тревожный цвет нечестно.
-        cvet = MUTED if bolshoe == 'не смотрели' else cvet_mesta(mesto)
-        # Числу — крупный кегль, фразе — поменьше. «Нет в топ-20» тем
-        # же размером, что «3-е», занимает всю колонку и кричит, хотя
+        # Числу — крупный кегль, фразе — поменьше. Прочерк тем же
+        # размером, что «3-е», занимает всю колонку и кричит, хотя
         # это не показатель, а его отсутствие.
-        kegl = 38 if mesto else 24
         d.text((px, py), bolshoe, font=_font(kegl, 'disp2'), fill=cvet)
         py += kegl + 12
-        for line in _wrap(d, podpis, _font(17), W - PAD - px)[:2]:
+        for line in _wrap(d, podpis, _font(17), W - PAD - px)[:3]:
             d.text((px, py), line, font=_font(17), fill=MUTED)
             py += 23
         py += 22
@@ -604,6 +749,9 @@ def draw_png(data, path, brand='genii'):
     # Своя строка в конце — самое сильное место отчёта. Пока компания
     # была просто не упомянута, разрыв надо было воображать. Теперь он
     # виден в одном столбце: у соседей полосы, у вас пусто.
+    # Своя строка рисуется один раз и внизу последнего блока: когда
+    # она стояла под обоими графиками, отчёт читался как повтор.
+    sosedi = data.get('sosedi') or []
     if rivals:
         _razryadka(d, (PAD, y), 'КОГО НАЗЫВАЮТ ВМЕСТО ВАС', _font(14, 'semi'), _mix(MUTED, BG, 0.15))
         y += 32
@@ -615,15 +763,56 @@ def draw_png(data, path, brand='genii'):
             d.text((PAD + 790, y), str(n), font=_font(19), fill=MUTED)
             y += 36
 
+        if not sosedi:
+            y += 6
+            d.rectangle([PAD, y, PAD + 810, y + 1], fill=LINE)
+            y += 18
+            svoe = c.get('brand') or c.get('name') or 'ваша компания'
+            d.text((PAD, y), _wrap(d, svoe, _font(20, 'semi'), 320)[0],
+                   font=_font(20, 'semi'), fill=head_color)
+            _polosa(d, PAD + 340, y + 7, 420, 10, named / maks,
+                    cvet_doli(named / maks), b['track'])
+            d.text((PAD + 790, y), str(named), font=_font(19, 'semi'), fill=head_color)
+        y += 48
+
+    # ---------- соседи: кто работает рядом ----------
+    # Нейросеть на общий вопрос называет имена на всю страну, и
+    # сравнение с ними клиента только расстраивает: он не «Теремъ» и
+    # не станет им. А вот пятеро из его же района и его же размера —
+    # это и есть та конкуренция, которую он чувствует каждый день.
+    if sosedi:
+        y += 14
+        gde = data.get('sosedi_gde') or ''
+        shapka = ('КТО РАБОТАЕТ РЯДОМ С ВАМИ' if not gde
+                  else 'КТО РАБОТАЕТ РЯДОМ: %s' % gde.upper())
+        _razryadka(d, (PAD, y), shapka, _font(14, 'semi'), _mix(MUTED, BG, 0.15))
+        y += 32
+        maks_s = max([n for _, n in sosedi] + [named]) or 1
+        for imya, n in sosedi:
+            for line in _wrap(d, imya, _font(20), 320)[:1]:
+                d.text((PAD, y), line, font=_font(20), fill=TEXT)
+            _polosa(d, PAD + 340, y + 7, 420, 10, n / maks_s,
+                    cvet_doli(n / maks_s), b['track'])
+            d.text((PAD + 790, y), str(n), font=_font(19), fill=MUTED)
+            y += 36
+
         y += 6
         d.rectangle([PAD, y, PAD + 810, y + 1], fill=LINE)
         y += 18
         svoe = c.get('brand') or c.get('name') or 'ваша компания'
         d.text((PAD, y), _wrap(d, svoe, _font(20, 'semi'), 320)[0],
                font=_font(20, 'semi'), fill=head_color)
-        _polosa(d, PAD + 340, y + 7, 420, 10, named / maks, cvet_doli(named / maks), b['track'])
+        _polosa(d, PAD + 340, y + 7, 420, 10, named / maks_s,
+                cvet_doli(named / maks_s), b['track'])
         d.text((PAD + 790, y), str(named), font=_font(19, 'semi'), fill=head_color)
-        y += 48
+        y += 44
+
+        itog = sosedi_line(data)
+        if itog:
+            for line in _wrap(d, itog, _font(19), SHIR)[:3]:
+                d.text((PAD, y), line, font=_font(19), fill=MUTED)
+                y += 26
+            y += 16
 
     # ---------- что изменится ----------
     p = promise(data)
