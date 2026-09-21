@@ -22,6 +22,32 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bot as bot_mod                   # noqa: E402
 
+# Заявка с сайта, вставленная целиком. Менеджер именно так и делает:
+# пересылает сообщение, а не перепечатывает поля руками.
+ZAYAVKA_KOROTKAYA = (
+    '🎁 Заявка на БЕСПЛАТНЫЙ АНАЛИЗ\n'
+    '👤 Имя: Иван\n'
+    '📞 Телефон: +7 999 000-11-22\n'
+    '📧 Почта: ivan@romashka.ru\n'
+    '🏢 Компания: Ромашка\n'
+    '📦 Род деятельности: стоматология\n'
+    '👔 ЛПР: да\n'
+    '📍 Источник: бесплатный анализ\n'
+    '🕒 21.09.2026, 16:40 МСК'
+)
+
+ZAYAVKA_POLNAYA = (
+    ZAYAVKA_KOROTKAYA.replace('📍 Источник: бесплатный анализ',
+                              '📍 Источник: углублённый анализ · анкета')
+    + '\n\n— для углублённого анализа —\n'
+      '🌍 Город и районы: Москва, ЮЗАО и Одинцово\n'
+      '🔗 Сайт: https://romashka.ru/\n'
+      '🥊 Конкуренты: Дента, Белый клык\n'
+      '🔍 Как ищут: имплантация зубов под ключ, детский стоматолог\n'
+      '📡 Уже есть: vk.com/romashka\n'
+      '🧪 Пробовали: контекст'
+)
+
 # Сообщение, должно ли уйти в работу
 SLUCHAI = [
     ('Pho-House, Вьетнамская закусочная, Москва', True),
@@ -32,6 +58,8 @@ SLUCHAI = [
     ('9702020445',                                True),
     ('9702020445 Flowwow',                        True),
     ('9702020445 Flowwow, доставка цветов',       True),
+    (ZAYAVKA_KOROTKAYA,                           True),
+    (ZAYAVKA_POLNAYA,                             True),
     ('привет',                                    False),
     ('Москва',                                    False),
     ('спасибо, всё ок',                           False),
@@ -68,7 +96,8 @@ def main():
         if not ladno:
             plohо.append('%s — ушло в «%s», а надо было в «%s»'
                          % (text, itog, 'в работу' if nado else 'справка'))
-        print('  %-44s %-9s %s' % (text[:43], itog, 'ок' if ladno else 'НЕ ТАК'))
+        podpis = ' '.join(text.split())[:43]
+        print('  %-44s %-9s %s' % (podpis, itog, 'ок' if ladno else 'НЕ ТАК'))
 
     # Отдельно: каждый пример из справки должен приниматься. Справка —
     # обещание пользователю, и нарушать его нельзя.
@@ -85,6 +114,47 @@ def main():
             plohо.append('пример из справки «%s» бот не принимает' % p)
         print('  пример из справки: %-38s %s'
               % (p[:37], 'принят' if zapusheno else 'ОТБИТ'))
+
+    # Что именно бот вытащил из вставленной заявки. Маршрут может быть
+    # верным, а поля — потеряться: тогда проверка пойдёт не про ту
+    # компанию и не в том городе, и заметить это будет уже поздно.
+    print()
+    razbor = bot_mod.runner.parse_request(ZAYAVKA_POLNAYA)
+    nado = ('', 'Ромашка', 'стоматология', 'Москва')
+    if razbor != nado:
+        plohо.append('из заявки вышло %r, а надо %r' % (razbor, nado))
+    print('  из заявки: %s' % (razbor,))
+
+    dop = bot_mod.runner.razobrat_zayavku(ZAYAVKA_POLNAYA)
+    proverki = [
+        ('сайт', bot_mod.runner.domen_iz(dop.get('site')), 'romashka.ru'),
+        ('конкуренты', bot_mod.runner.spisok(dop.get('rivals')), ['Дента', 'Белый клык']),
+        ('запросы', bot_mod.runner.spisok(dop.get('queries')),
+         ['имплантация зубов под ключ', 'детский стоматолог']),
+    ]
+    for imya, bylo, nado_tak in proverki:
+        if bylo != nado_tak:
+            plohо.append('%s из анкеты: вышло %r, а надо %r' % (imya, bylo, nado_tak))
+        print('  %-12s %s' % (imya + ':', bylo))
+
+    # Слова клиента должны идти первыми в вопросах нейросетям: ради
+    # этого поле в анкете и заведено.
+    from nejroanaliz import queries as q_mod
+    uzkie, _ = q_mod.subjects_for({
+        'industry': 'стоматология', 'kind': 'стоматология', 'kind_from_lead': True,
+        'own_queries': bot_mod.runner.spisok(dop.get('queries'))})
+    if uzkie[:2] != ['имплантация зубов под ключ', 'детский стоматолог']:
+        plohо.append('запросы из анкеты не встали первыми: %r' % (uzkie,))
+    print('  спросим про: %s' % ', '.join(uzkie))
+
+    # Конкурент из анкеты обязан попасть в список, даже если его не
+    # назвали ни разу: ноль — это тоже ответ клиенту.
+    from nejroanaliz import report as r_mod
+    ryadom = r_mod._rivals([{'answer': '1. Улыбка\n2. Дента'}], ['Ромашка'],
+                           ['Дента', 'Белый клык'])
+    if ('Белый клык', 0) not in ryadom:
+        plohо.append('конкурент без упоминаний выпал из списка: %r' % (ryadom,))
+    print('  конкуренты в отчёте: %s' % ryadom)
 
     print()
     if plohо:

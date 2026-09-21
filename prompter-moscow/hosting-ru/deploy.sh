@@ -66,7 +66,7 @@ echo "Очищаю папку сайта..."
 find "$DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
 echo "Раскладываю файлы..."
-cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/404.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
+cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/analiz.html" "$SRC/404.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
 cp "$SRC/robots.txt" "$SRC/sitemap.xml" "$DIR/"
 cp -r "$SRC/assets" "$SRC/img" "$SRC/fonts" "$DIR/"
 

@@ -200,7 +200,8 @@ def build(company, site, ai_results, search_results):
                               if s_found else ''),
         'ai_results': ai_results,
         'search_results': search_results,
-        'rivals': _rivals(ai_results, company.get('names') or [company.get('name', '')]),
+        'rivals': _rivals(ai_results, company.get('names') or [company.get('name', '')],
+                          company.get('known_rivals')),
     }
 
 
@@ -231,7 +232,7 @@ def _looks_like_name(cand):
     return not any(w in low for w in NOT_A_NAME)
 
 
-def _rivals(ai_results, own_names):
+def _rivals(ai_results, own_names, known=None):
     """Кого нейросети называют вместо компании.
 
     Берём строки нумерованных списков: в них нейросеть и перечисляет
@@ -264,8 +265,22 @@ def _rivals(ai_results, own_names):
                 counts[key] = counts.get(key, [0, cand])
                 counts[key][0] += 1
                 counts[key][1] = cand
-    top = sorted(counts.values(), key=lambda x: -x[0])[:5]
-    return [(name, n) for n, name in top]
+    # Конкуренты, названные в анкете, попадают в список всегда —
+    # даже с нулём упоминаний. Ноль здесь не пустое место, а довод:
+    # клиент видит, что названного им конкурента тоже не знают.
+    izvestnye = []
+    for imya in (known or []):
+        key = matching.fold(imya)
+        if not key:
+            continue
+        counts.pop(key, None)
+        n = sum(1 for r in ai_results
+                if matching.mentioned_any(r.get('answer') or '', [imya]))
+        izvestnye.append((imya, n))
+
+    mest = max(0, 6 - len(izvestnye))
+    top = sorted(counts.values(), key=lambda x: -x[0])[:mest]
+    return izvestnye + [(name, n) for n, name in top]
 
 
 def _verdict(data):

@@ -180,6 +180,7 @@ function sourceLabel($value) {
   if ($value === '') return 'сайт';
   $known = array(
     'analiz'       => 'бесплатный анализ',
+    'analiz-glubokij' => 'углублённый анализ · анкета',
     'presentation' => 'презентация',
     'presentation-obshchaya' => 'презентация · общая',
     'presentation-analiz' => 'презентация · бесплатный анализ',
@@ -208,6 +209,56 @@ $sourcePretty = sourceLabel($source);
 $innRaw   = preg_replace('/\D/', '', (string) field($body, 'inn'));
 $inn      = (strlen($innRaw) === 10 || strlen($innRaw) === 12) ? $innRaw : '';
 $isAnaliz = (strtolower($source) === 'analiz');
+
+/* ---------- поля расширенной анкеты ----------
+   Приходят только со страницы /analiz: там человек по своей воле
+   рассказывает про город, сайт, конкурентов и запросы. В короткой
+   форме этих полей нет, и тогда все строки ниже пустые и в сообщение
+   не попадают.
+
+   Обязательными их не делаем ни здесь, ни в форме: анкета для тех,
+   кому нужен разбор поточнее, а не пропуск к заявке. */
+$dop = array();
+foreach (array(
+  'city' => 200,
+  'site' => 200,
+  'rivals' => 200,
+  'queries' => 400,
+  'places' => 400,
+  'tried' => 400,
+) as $klyuch => $predel) {
+  /* В трёх полях анкеты человек пишет списком, каждый пункт с новой
+     строки. clean() схлопывает переносы в пробелы, и «имплантация
+     зубов» с «детским стоматологом» слипались в одну фразу — проверка
+     потом спрашивала нейросеть ерунду. Поэтому перенос строки сначала
+     превращаем в запятую: по ней список и разбирается дальше. */
+  $syroe = field($body, $klyuch);
+  if (is_string($syroe)) $syroe = preg_replace('/[\r\n]+/u', ', ', $syroe);
+  $znach = clean($syroe, $predel);
+  $znach = preg_replace('/(,\s*)+/u', ', ', $znach);
+  $znach = trim($znach, ' ,');
+  if ($znach !== '') $dop[$klyuch] = $znach;
+}
+
+/* Подписи для сообщения. Порядок тот, в каком их читает проверка:
+   сначала где искать, потом с кем сравнивать, потом чем спрашивать. */
+$dopPodpisi = array(
+  'city' => '🌍 Город и районы',
+  'site' => '🔗 Сайт',
+  'rivals' => '🥊 Конкуренты',
+  'queries' => '🔍 Как ищут',
+  'places' => '📡 Уже есть',
+  'tried' => '🧪 Пробовали',
+);
+
+$dopText = '';
+$dopRows = array();
+foreach ($dopPodpisi as $klyuch => $podpis) {
+  if (isset($dop[$klyuch])) {
+    $dopText .= $podpis . ': ' . $dop[$klyuch] . "\n";
+    $dopRows[trim(preg_replace('/^\S+\s/u', '', $podpis))] = $dop[$klyuch];
+  }
+}
 
 /* ---------- читаемый вид кириллического адреса ----------
    Поле с типом email заставляет браузер переписывать нелатинский домен
@@ -334,6 +385,7 @@ $text =
   "📦 Род деятельности: $fieldOf\n" .
   "👔 ЛПР: $dm\n" .
   "📍 Источник: $sourcePretty\n" .
+  ($dopText !== '' ? "\n— для углублённого анализа —\n" . $dopText : '') .
   "🕒 $stamp";
 
 $tg = postJson(
@@ -417,7 +469,7 @@ $mailed = sendMail(
     'ЛПР'              => $dm,
     'Источник'         => $sourcePretty,
     'Время'            => $stamp,
-  ),
+  ) + $dopRows,
   $name, $company, $email
 );
 

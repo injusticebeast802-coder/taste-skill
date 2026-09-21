@@ -56,6 +56,95 @@ def vydelit_gorod(kind):
     return t, ''
 
 
+# ---------------------------------------------------------------------
+# Разбор заявки, вставленной целиком
+#
+# Менеджер не перепечатывает данные в бота — он пересылает сообщение,
+# которое прислал сайт, как есть. С расширенной анкеты в этом сообщении
+# приходят город, сайт, конкуренты и запросы клиента, и всё это
+# проверке пригодится: город уточняет вопрос, сайт экономит поиск,
+# конкуренты попадают на график, а запросы клиента точнее любой нашей
+# заготовки.
+#
+# Ключ — подпись строки в сообщении, значение — наше поле. Значки в
+# начале строки не обязательны: при копировании их иногда теряют.
+PODPISI = {
+    'инн': 'inn',
+    'компания': 'brand',
+    'род деятельности': 'kind',
+    'город и районы': 'city',
+    'город': 'city',
+    'сайт': 'site',
+    'конкуренты': 'rivals',
+    'как ищут': 'queries',
+}
+
+
+def razobrat_zayavku(raw):
+    """Разбирает сообщение с сайта. Если это не оно — пустой словарь.
+
+    Признак заявки — две и более знакомых подписи. Одной мало:
+    «Сайт: romashka.ru» человек может написать и просто так, а
+    разбирать такое как заявку значит потерять название компании.
+    """
+    import re
+
+    polya = {}
+    for stroka in str(raw or '').splitlines():
+        s = stroka.strip()
+        if ':' not in s:
+            continue
+        podpis, _, znach = s.partition(':')
+        # «🏢 Компания» -> «компания»: значки и знаки убираем.
+        klyuch = re.sub(r'[^а-яёa-z ]', ' ', podpis.lower())
+        klyuch = ' '.join(klyuch.split())
+        znach = znach.strip()
+        if klyuch in PODPISI and znach:
+            polya.setdefault(PODPISI[klyuch], znach)
+
+    return polya if len(polya) >= 2 else {}
+
+
+def spisok(znach, predel=5):
+    """Список через запятую в перечень: «Дента, Белый клык» -> два имени."""
+    out = []
+    for x in str(znach or '').replace(';', ',').split(','):
+        x = ' '.join(x.split()).strip(' .')
+        if x and x.lower() not in [y.lower() for y in out]:
+            out.append(x)
+    return out[:predel]
+
+
+def domen_iz(znach):
+    """Из любого написания адреса делает голое доменное имя.
+
+    В анкете пишут по-разному: «https://romashka.ru/», «www.romashka.ru»,
+    «romashka.ru». Дальше по коду домен сравнивается с тем, что нашлось
+    в ответе нейросети, и лишний «https://» ломал бы сравнение.
+    """
+    t = ' '.join(str(znach or '').split()).strip().lower()
+    if not t:
+        return ''
+    t = t.split('//')[-1].split('/')[0].split('?')[0].strip(' .,')
+    if t.startswith('www.'):
+        t = t[4:]
+    # Минимальная проверка: точка и буквы после неё.
+    if '.' not in t or len(t.rsplit('.', 1)[-1]) < 2:
+        return ''
+    return t
+
+
+def pervyj_gorod(znach):
+    """Из «Москва, ЮЗАО и Одинцово» берём «Москва».
+
+    Город подставляется прямо в вопрос нейросети. Список районов там
+    превращает вопрос в кашу, а первое слово — это почти всегда
+    основной город, его и спрашиваем.
+    """
+    chast = spisok(znach, 1)
+    return chast[0] if chast else ''
+
+
 def parse_request(raw):
     """Разбирает присланное. ИНН не обязателен.
 
@@ -71,6 +160,22 @@ def parse_request(raw):
     ФЛАУВАУ» и код ОКВЭД, а спрашивать нейросеть надо про Flowwow и
     доставку цветов.
     """
+    # Сначала пробуем прочесть вставленное сообщение с сайта: там всё
+    # разложено по подписям и гадать не нужно.
+    zayavka = razobrat_zayavku(raw)
+    if zayavka:
+        import re
+        digits = re.sub(r'\D', '', zayavka.get('inn', ''))
+        if len(digits) not in (10, 12):
+            digits = ''
+        brand = zayavka.get('brand', '')
+        kind = zayavka.get('kind', '')
+        city = pervyj_gorod(zayavka.get('city', ''))
+        if not city:
+            kind, iz_teksta = vydelit_gorod(kind)
+            city = iz_teksta
+        return digits, brand, kind, city
+
     text = str(raw or '').strip()
 
     # ИНН — только если сообщение с цифр и начинается.
@@ -114,6 +219,8 @@ def analyze(raw_inn, cfg, progress=None):
                 pass
 
     digits, brand, kind_override, city_override = parse_request(raw_inn)
+    # Поля расширенной анкеты, если заявку вставили целиком.
+    zayavka = razobrat_zayavku(raw_inn)
 
     if digits:
         problem = inn_mod.explain(digits)
@@ -159,6 +266,20 @@ def analyze(raw_inn, cfg, progress=None):
     # Все написания, под которыми компанию могут назвать.
     c['names'] = [n for n in (c.get('brand'), c.get('name')) if n]
 
+    # Из расширенной анкеты. Запросы клиента — самое ценное: это его
+    # собственные слова, и спрашивать нейросеть надо именно ими, а не
+    # нашей заготовкой по отрасли. Конкурентов держим отдельно, чтобы
+    # проверить каждого поимённо, даже если в ответах его не назвали
+    # ни разу: «вашего конкурента тоже не знают» — это тоже ответ.
+    own_q = spisok(zayavka.get('queries'), 8)
+    if own_q:
+        c['own_queries'] = own_q
+        say('Спрошу словами из анкеты: %s' % ', '.join(own_q))
+    known_rivals = spisok(zayavka.get('rivals'), 5)
+    if known_rivals:
+        c['known_rivals'] = known_rivals
+        say('Конкуренты из анкеты: %s' % ', '.join(known_rivals))
+
     if c.get('status') and c['status'] != 'ACTIVE':
         say('Внимание: по справочнику компания не действующая.')
 
@@ -167,9 +288,16 @@ def analyze(raw_inn, cfg, progress=None):
                                     c.get('industry') or 'род занятий не определён'))
 
     # --- сайт ---
-    site = ''
+    # Если сайт указан в анкете, поиск не нужен: своё доменное имя
+    # клиент знает точнее, чем его угадает поисковая выдача.
+    site = domen_iz(zayavka.get('site'))
     search_broken = ''
-    if cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
+    if site:
+        say('Сайт из анкеты: %s' % site)
+        word = site.split('.')[0]
+        if len(word) > 3 and word not in ('www', 'shop', 'site'):
+            c['names'].append(word)
+    elif cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
         say('Ищу сайт компании…')
         try:
             site = search_yandex.find_site(c['names'], c.get('city', ''),
@@ -395,7 +523,14 @@ def as_text(data):
 
     if data['rivals']:
         lines.append('')
-        lines.append('Чаще называют: ' + ', '.join(n for n, _ in data['rivals'][:3]) + '.')
+        chasto = [n for n, k in data['rivals'] if k > 0][:3]
+        if chasto:
+            lines.append('Чаще называют: ' + ', '.join(chasto) + '.')
+        # Конкурент из анкеты, которого не назвали ни разу, — это
+        # не пустая строка, а довод в разговоре: их тоже не знают.
+        molchat = [n for n, k in data['rivals'] if k == 0]
+        if molchat:
+            lines.append('Не назвали ни разу: ' + ', '.join(molchat[:3]) + '.')
 
     # По каждой нейросети отдельно: если одна не ответила совсем,
     # общее число «0 из 12» вводит в заблуждение — кажется, что
