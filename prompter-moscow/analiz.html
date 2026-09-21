@@ -73,6 +73,17 @@
           <p class="frm__e" data-err="company" hidden>Укажите название компании</p>
         </div>
 
+        <!-- ИНН спрашиваем в любой заявке. По нему проверка берёт город и
+             официальное название и не путает клиента с десятком однофамильцев
+             в реестре: без этого разбор уходит не про ту компанию. Раньше
+             поле было необязательным и показывалось только у бесплатного
+             анализа. -->
+        <div class="frm__f" id="f-inn-wrap">
+          <label class="frm__l" for="f-inn">ИНН компании</label>
+          <input class="frm__i" id="f-inn" name="inn" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="10 или 12 цифр" required>
+          <p class="frm__e" data-err="inn" hidden>Укажите ИНН: в нём 10 цифр у компании или 12 у ИП</p>
+        </div>
+
         <div class="frm__f">
           <label class="frm__l" for="f-field">Род деятельности</label>
           <input class="frm__i" id="f-field" name="field" type="text" maxlength="90" placeholder="Например: стоматология, доставка цветов" required>
@@ -96,7 +107,6 @@
           <p class="frm__e" data-err="dm" hidden>Выберите один из вариантов</p>
         </fieldset>
 
-
         <!-- Необязательная часть. Ради неё страница и существует:
              в окне заявки на главной этих полей нет, чтобы окно не
              разрасталось, а тем, кому нужен разбор по локации и
@@ -104,12 +114,6 @@
         <div class="dop">
           <h3 class="dop__h">Данные для углублённого анализа</h3>
           <p class="dop__d">Заполните то, что знаете. Каждое поле делает разбор точнее, но ни одно не обязательно — заявку примем и без них.</p>
-        <div class="frm__f" id="f-inn-wrap">
-          <label class="frm__l" for="f-inn">ИНН компании <span class="frm__opt">необязательно</span></label>
-          <input class="frm__i" id="f-inn" name="inn" type="text" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="10 или 12 цифр">
-          <p class="frm__why">По ИНН проверка берёт официальное название и город и не путает вас с однофамильцами из реестра.</p>
-          <p class="frm__e" data-err="inn" hidden>Проверьте ИНН: в нём 10 цифр у компании или 12 у ИП</p>
-        </div>
 
         <div class="frm__f" id="f-city-wrap">
           <label class="frm__l" for="f-city">Город и районы работы <span class="frm__opt">необязательно</span></label>
@@ -187,7 +191,7 @@
   </p>
 </main>
 
-<script src="form.js?v=9"></script>
+<script src="form.js?v=10"></script>
 
 </body>
 </html>

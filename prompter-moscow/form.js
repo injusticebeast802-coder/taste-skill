@@ -108,13 +108,13 @@
     if (modalTitle) modalTitle.textContent = ttl || defTitle;
     if (modalSub) modalSub.textContent = sub || defSub;
 
-    // ИНН нужен только бесплатному анализу: по нему проверка узнаёт
-    // город и отличает клиента от десятка однофамильцев в реестре.
-    // В обычной заявке поле лишнее и только удлиняет форму.
-    if (fInnWrap) {
-      fInnWrap.hidden = !(opener && opener.getAttribute('data-form-inn'));
-      if (fInnWrap.hidden && fInn) fInn.value = '';
-    }
+    // ИНН спрашиваем в любой заявке. По нему проверка берёт город и
+    // официальное название и не путает клиента с десятком
+    // однофамильцев в реестре — без этого разбор уходит не про ту
+    // компанию. Поле было необязательным и пряталось во всех заявках,
+    // кроме бесплатного анализа; теперь оно обязательное и видно
+    // всегда.
+    if (fInnWrap) fInnWrap.hidden = false;
 
     // Плашка про углублённый разбор — там же, где бесплатный анализ:
     // в обычной заявке предлагать разбор по локации незачем.
@@ -358,7 +358,9 @@
   function validInn() {
     if (!fInn || !fInnWrap || fInnWrap.hidden) return true;
     var raw = fInn.value.trim();
-    var ok = raw === '' || innValid(raw);
+    // Пустое поле больше не проходит: без ИНН проверка не отличит
+    // клиента от однофамильцев и разберёт чужую компанию.
+    var ok = innValid(raw);
     setError(fInn, 'inn', !ok);
     return ok;
   }
@@ -453,7 +455,7 @@
         email: fEmail.value.trim(),
         company: fCompany.value.trim(),
         field: fField.value.trim(),
-        inn: (fInn && fInnWrap && !fInnWrap.hidden) ? fInn.value.trim() : '',
+        inn: fInn ? fInn.value.trim() : '',
         dm: dmValue(),
         source: leadSource()
       };
@@ -543,6 +545,7 @@
     bad_email: 'Проверьте адрес почты',
     bad_company: 'Проверьте название компании',
     bad_field: 'Проверьте род деятельности',
+    bad_inn: 'Проверьте ИНН: 10 цифр у компании или 12 у ИП',
     bad_dm: 'Отметьте, принимаете ли вы решения'
   };
 

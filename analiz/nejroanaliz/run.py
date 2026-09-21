@@ -134,15 +134,28 @@ def domen_iz(znach):
     return t
 
 
-def pervyj_gorod(znach):
-    """Из «Москва, ЮЗАО и Одинцово» берём «Москва».
+def razdelit_mesto(znach):
+    """Из «Москва, ЮЗАО и Одинцово» делает («Москва», ['ЮЗАО', 'Одинцово']).
 
-    Город подставляется прямо в вопрос нейросети. Список районов там
-    превращает вопрос в кашу, а первое слово — это почти всегда
-    основной город, его и спрашиваем.
+    Первое — город: он подставляется прямо в вопрос нейросети, и весь
+    список там превратил бы вопрос в кашу. Остальное — районы, и они
+    нужны отдельно: по ним ищем, кто работает рядом, и задаём часть
+    вопросов «стоматология, ЮЗАО Москва».
     """
-    chast = spisok(znach, 1)
-    return chast[0] if chast else ''
+    chasti = []
+    for kusok in str(znach or '').replace(';', ',').split(','):
+        for x in kusok.split(' и '):
+            x = ' '.join(x.split()).strip(' .')
+            if x and x.lower() not in [y.lower() for y in chasti]:
+                chasti.append(x)
+    if not chasti:
+        return '', []
+    return chasti[0], chasti[1:4]
+
+
+def pervyj_gorod(znach):
+    """Только город, без районов. Оставлено для простых вызовов."""
+    return razdelit_mesto(znach)[0]
 
 
 def parse_request(raw):
@@ -170,7 +183,7 @@ def parse_request(raw):
             digits = ''
         brand = zayavka.get('brand', '')
         kind = zayavka.get('kind', '')
-        city = pervyj_gorod(zayavka.get('city', ''))
+        city, _rajony = razdelit_mesto(zayavka.get('city', ''))
         if not city:
             kind, iz_teksta = vydelit_gorod(kind)
             city = iz_teksta
@@ -277,8 +290,35 @@ def analyze(raw_inn, cfg, progress=None):
         say('Спрошу словами из анкеты: %s' % ', '.join(own_q))
     known_rivals = spisok(zayavka.get('rivals'), 5)
     if known_rivals:
-        c['known_rivals'] = known_rivals
         say('Конкуренты из анкеты: %s' % ', '.join(known_rivals))
+
+    # Районы работы. Если человек назвал конкретный район, конкурентов
+    # можно не угадывать по ответам нейросетей, а прямо спросить
+    # поиск: «стоматология ЮЗАО Москва». Выдача по такому запросу —
+    # это и есть те, к кому уходит клиент, когда его не называют.
+    _gorod_iz_ankety, rajony = razdelit_mesto(zayavka.get('city', ''))
+    if rajony:
+        c['rajony'] = rajony
+    sosedi = []
+    if rajony and cfg.get('yandex_folder_id') and cfg.get('yandex_search_key'):
+        kind_dlya_poiska = c.get('kind') or c.get('industry') or ''
+        say('Смотрю, кто работает рядом: %s, %s…' % (kind_dlya_poiska, rajony[0]))
+        sosedi = search_yandex.sosedi(
+            kind_dlya_poiska, rajony[0], c.get('city', ''),
+            cfg['yandex_folder_id'], cfg['yandex_search_key'],
+            svoi=c['names'], limit=5)
+        if sosedi:
+            say('Рядом нашлись: %s' % ', '.join(sosedi))
+        else:
+            say('Рядом никого не нашли — проверю только по ответам нейросетей.')
+
+    # Названные клиентом идут первыми: он знает, с кем себя сравнивает.
+    vse_rivals = list(known_rivals)
+    for imya in sosedi:
+        if imya.lower() not in [x.lower() for x in vse_rivals]:
+            vse_rivals.append(imya)
+    if vse_rivals:
+        c['known_rivals'] = vse_rivals[:6]
 
     if c.get('status') and c['status'] != 'ACTIVE':
         say('Внимание: по справочнику компания не действующая.')
@@ -394,6 +434,8 @@ def analyze(raw_inn, cfg, progress=None):
         path = os.path.join(out_dir, 'otchet-%s-%s-%s.png' % (digits, stamp, brand))
         report.draw_png(data, path, brand=brand)
         pngs[brand] = path
+    data['sosedi'] = sosedi
+    data['rajony'] = rajony
     data['png'] = pngs['genii']          # для старых вызовов
     data['pngs'] = pngs
     return data
@@ -520,6 +562,14 @@ def as_text(data):
         for r in mesta:
             lines.append('  %s — %s' % (
                 r['query'], ('%d-е' % r['position']) if r.get('position') else 'нет в топ-20'))
+
+    # Кого нашли рядом по указанному району. Отдельной строкой, потому
+    # что это не догадка из ответов, а живая выдача поиска: с этими
+    # компаниями клиент и делит район.
+    if data.get('sosedi'):
+        lines.append('')
+        gde = ', '.join(data.get('rajony') or []) or 'рядом'
+        lines.append('Работают там же (%s): %s.' % (gde, ', '.join(data['sosedi'])))
 
     if data['rivals']:
         lines.append('')

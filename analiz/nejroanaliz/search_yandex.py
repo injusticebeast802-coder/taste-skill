@@ -194,7 +194,7 @@ def find_site(names, city, folder_id, api_key, kind=''):
     svoi, luchshij, luchshie_ochki = [], '', None
     for i, d in enumerate(docs[:10]):
         host = matching.domain_of(d['url'])
-        if not host or any(bad in host for bad in AGGREGATORS):
+        if not host or spravochnik(host):
             continue
         svoi.append(host)
         o = _ochki(i, host, d['title'], d['text'], names, kind)
@@ -249,6 +249,33 @@ AGGREGATORS = (
 )
 
 
+def spravochnik(host):
+    """Справочник, карта, соцсеть или маркетплейс, а не сайт компании.
+
+    Сравнивать простым вхождением подстроки нельзя. В списке есть
+    «ya.ru», и по нему в справочники попадал zubfeya.ru — сайт
+    детской стоматологии «Зубная фея». Так же терялся бы любой домен,
+    внутри которого случайно оказалось чужое имя.
+
+    Поэтому: записи с точкой на конце («yandex.») — это имя одного
+    уровня домена, ищем его среди частей. Записи без точки
+    («vk.com») — полное имя, годится оно само или его поддомен.
+    """
+    h = (host or '').lower().strip('.')
+    if h.startswith('www.'):
+        h = h[4:]
+    if not h:
+        return False
+    chasti = h.split('.')
+    for a in AGGREGATORS:
+        if a.endswith('.'):
+            if a[:-1] in chasti:
+                return True
+        elif h == a or h.endswith('.' + a):
+            return True
+    return False
+
+
 def position_of(query, site, names, folder_id, api_key):
     """На каком месте компания по этому запросу.
 
@@ -271,3 +298,135 @@ def position_of(query, site, names, folder_id, api_key):
             if matching.mentioned_any(d['title'] + ' ' + d['text'], names):
                 return i, d['url']
     return None, ''
+
+# ---------------------------------------------------------------------
+# Кто ещё работает рядом
+#
+# Когда в анкете указан не только город, но и конкретный район, мы
+# можем не гадать о конкурентах, а просто спросить поиск: «стоматология
+# ЮЗАО Москва». Выдача по такому запросу — это и есть список тех, к
+# кому клиент уходит, когда его самого не называют.
+#
+# Дальше эти названия проверяются по ответам нейросетей наравне с
+# теми, что клиент вписал сам.
+
+# Слова, по которым видно, что в заголовке не название компании, а
+# подпись к списку: «Стоматологии в ЮЗАО — 45 клиник, цены, отзывы».
+# Если после вычёркивания таких слов не осталось ничего своего, это
+# не компания.
+OBSHIE = (
+    'цена', 'цены', 'ценам', 'стоимость', 'отзыв', 'отзывы', 'отзывам',
+    'рейтинг', 'лучший', 'лучшие', 'лучших', 'топ', 'каталог', 'список',
+    'адрес', 'адреса', 'адресам', 'официальный', 'сайт', 'сайты',
+    'запись', 'записаться', 'онлайн', 'услуга', 'услуги', 'услуг',
+    'недорого', 'дёшево', 'дешево', 'круглосуточно', 'телефон', 'телефоны',
+    'акция', 'акции', 'скидка', 'скидки', 'рядом', 'метро', 'район',
+    'районе', 'районы', 'округ', 'округе', 'город', 'городе',
+    'все', 'всё', 'где', 'как', 'что', 'купить', 'заказать', 'выбрать',
+    'обзор', 'сравнение', 'подбор', 'найти', 'поиск', 'бесплатно',
+    'отзывов', 'фото', 'карте', 'карта', 'ближайший', 'ближайшие',
+    'москва', 'москве', 'спб', 'питер', 'россии', 'года', 'год',
+)
+
+# Заголовок режем по этим знакам: дальше идёт приписка поисковика.
+RAZDELY = ('—', '–', '|', '·', ':', '»', '/', ' - ', ' — ')
+
+
+# Слова, с которых заголовок начинается, когда это не компания, а
+# подборка: «Цены на имплантацию…», «Рейтинг клиник…». Название так
+# не начинается никогда, и одно это правило отсекает почти все
+# страницы-списки.
+NACHALA = ('цена', 'цены', 'стоимость', 'рейтинг', 'лучший', 'лучшие',
+           'лучших', 'топ', 'все', 'всё', 'где', 'как', 'что', 'сколько',
+           'каталог', 'список', 'обзор', 'сравнение', 'подбор', 'отзывы')
+
+
+def _golova(zagolovok):
+    """Первая часть заголовка — обычно там и стоит название."""
+    t = ' '.join((zagolovok or '').split())
+    for znak in RAZDELY:
+        if znak in t:
+            t = t.split(znak)[0]
+    t = t.strip(' .,;"\'')
+    # Закрывающая кавычка обрезается вместе с точкой, а открывающая
+    # остаётся внутри: «Стоматология «Дента-Люкс». Возвращаем пару.
+    t = t.strip('»').strip()
+    if t.count('«') > t.count('»'):
+        t += '»'
+    return t.strip(' .,;')
+
+
+def _pohozhe_na_nazvanie(golova, kind, mesta):
+    """Осталось ли в заголовке хоть одно своё слово.
+
+    Вычёркиваем общие слова, род занятий и названия мест. Если после
+    этого ничего не осталось — перед нами подпись к списку, а не
+    компания.
+    """
+    if not (2 <= len(golova) <= 50):
+        return False
+    slova = golova.lower().replace('«', ' ').replace('»', ' ').split()
+    if not slova or len(slova) > 6:
+        return False
+
+    # Подборка, а не компания.
+    pervoe = slova[0].strip('.,:;()"\'')
+    if any(pervoe.startswith(n[:5]) for n in NACHALA):
+        return False
+
+    lishnee = set(OBSHIE)
+    for istochnik in [kind] + list(mesta or []):
+        for w in (istochnik or '').lower().replace(',', ' ').split():
+            if len(w) > 2:
+                lishnee.add(w)
+
+    for w in slova:
+        w = w.strip('.,:;()"\'0123456789')
+        if len(w) < 3 or w.isdigit():
+            continue
+        # Слово считаем своим, если оно не общее и не однокоренное
+        # с родом занятий: «стоматология» и «стоматологии» — одно и то же.
+        if any(w.startswith(l[:5]) or l.startswith(w[:5]) for l in lishnee):
+            continue
+        return True
+    return False
+
+
+def sosedi(kind, rajon, gorod, folder_id, api_key, svoi=(), limit=5):
+    """Кто работает в этой же нише в указанном районе.
+
+    Возвращает список названий. Ошибку поиска наружу не пускаем:
+    соседи — приятное дополнение к отчёту, но ради них ронять всю
+    проверку незачем.
+    """
+    kind = ' '.join((kind or '').split())
+    rajon = ' '.join((rajon or '').split())
+    if not kind or not rajon:
+        return []
+
+    query = ' '.join(x for x in (kind, rajon, gorod) if x)
+    try:
+        docs = raw_search(query, folder_id, api_key)
+    except (SearchError, requests.exceptions.RequestException):
+        return []
+
+    mesta = [rajon, gorod]
+    out, vzyato = [], set()
+    for d in docs[:20]:
+        host = matching.domain_of(d['url'])
+        if not host or spravochnik(host):
+            continue
+        imya = _golova(d['title'])
+        if not _pohozhe_na_nazvanie(imya, kind, mesta):
+            continue
+        # Себя в список конкурентов не пишем.
+        if svoi and matching.mentioned_any(imya, [x for x in svoi if x]):
+            continue
+        klyuch = matching.fold(imya)
+        if not klyuch or klyuch in vzyato:
+            continue
+        vzyato.add(klyuch)
+        out.append(imya)
+        if len(out) >= limit:
+            break
+    return out
