@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Короткая общая презентация «Промптер. Москва» — семь слайдов.
+"""Короткая общая презентация «Промптер. Москва» — девять слайдов.
 
 Это презентация, а не сайт в слайдах. Разница простая: на сайте
 человек читает сам, поэтому там плотные карточки и абзацы. На слайде
@@ -9,7 +9,7 @@
   - одна мысль на слайд;
   - крупный шрифт и много воздуха;
   - слов ровно столько, сколько нельзя не написать;
-  - вместо карточек с текстом — большие цифры, схема и фотографии.
+  - вместо плотных абзацев — большие цифры, значки и фотографии.
 
 Палитра, шрифты и значки взяты с сайта prompter-ai.moscow: цвета из
 style.css, шрифты те же файлы, значки вырезаны из спрайта index.html.
@@ -31,10 +31,18 @@ IR  = ('Inter', 'r')
 IM  = ('Inter', 'm')
 IS  = ('Inter', 's')
 
-VSEGO = 7
+VSEGO = 9
 SAJT    = 'https://prompter-ai.moscow'
 ZAYAVKA = SAJT + '/zayavka.html?from=presentation-obshchaya'
 ANALIZ  = SAJT + '/zayavka.html?from=presentation-analiz'
+
+# Контакты стоят в одном месте: их подставляют и на обложку, и на
+# последний слайд. Презентацию ведут менеджеры, поэтому телефон, почту
+# и аккаунт меняют здесь и пересобирают — либо правят прямо в
+# PowerPoint, это обычные надписи.
+TELEFON = '+7 906 758-77-77'
+POCHTA  = 'prompter.moscow@mail.ru'
+AKKAUNT = '@Prompter_mos'
 
 MALO = []     # сюда попадает всё, что не влезло: печатаем в конце сборки
 
@@ -143,7 +151,7 @@ def slajd_1(prs):
          IR, 12, font=BODY, lead=1.3)
     blok(sl, PAD, H - 0.96, 11.0,
          [('prompter-ai.moscow', {'color': WHITE, 'bold': True}),
-          ('     +7 906 758-77-77     prompter.moscow@mail.ru', {'color': MUTED2})],
+          ('     %s     %s' % (TELEFON, POCHTA), {'color': MUTED2})],
          IS, 13, font=BODY, lead=1.3)
 
 
@@ -173,73 +181,138 @@ def slajd_2(prs):
          kegli=[21, 19, 17], max_strok=2)
 
 
-# =============================================== 3. КАК РАБОТАЕТ ПЛАТФОРМА
+# ================================================= 3. ПЯТЬ ИИ-АГЕНТОВ
 
-# Девять шагов идут змейкой: верхний ряд слева направо, нижний справа
-# налево, слева внизу стрелка возвращает к началу. Только номер и
-# название: на слайде это схема, которую рассказывают, а не текст,
-# который читают.
-CIKL = ['Информация о компании', 'Исследование', 'Стратегия', 'Контент-план',
-        'Текст', 'Визуал', 'Проверка', 'Публикация', 'Статистика']
+# Те же пять агентов, что и на сайте, и в том же порядке. На слайде от
+# каждого остаётся одна строка: роль и что человек перестаёт делать
+# руками. Пятый — сценарист с оператором — появился в платформе
+# последним, поэтому он отмечен зелёным, как и всё новое в этой сборке.
+AGENTY = [
+    ('pencil',  'AI-копирайтер',  'Тексты и посты в стиле бренда для всех площадок'),
+    ('target',  'AI-маркетолог',  'Ниша, конкуренты и запросы, по которым вас ищут'),
+    ('send',    'AI СММ-менеджер', 'Проверка, публикация и контроль выдачи'),
+    ('palette', 'AI-дизайнер',    'Визуал под требования каждой площадки'),
+    ('video',   'AI-сценарист и оператор',
+     'Сценарий и готовый ролик по описанию сцены'),
+]
 
 
 def slajd_3(prs):
     sl = novyj(prs); nomer(sl, 3)
-    y = blok(sl, PAD, 0.72, CW, 'Платформа ведёт весь цикл сама',
+    y = blok(sl, PAD, 0.72, CW, '5 ИИ-агентов вместо digital-агентства',
              UB, 32, font=DISP, color=WHITE, bold=True, lead=1.18,
              kegli=[32, 29, 26], max_strok=1)
-    y = blok(sl, PAD, y + 0.26, 9.6,
-             'От сбора данных о компании до публикации и отчёта. '
-             'Ни одной задачи с вашей стороны.',
-             IR, 15, color=MUTED, lead=1.5, max_strok=2, max_h=0.7)
+    blok(sl, PAD, y + 0.26, 9.6,
+         'Каждый закрывает роль, за которую в агентстве платят отдельному '
+         'человеку с отдельной зарплатой.',
+         IR, 15, color=MUTED, lead=1.5, max_strok=2, max_h=0.7)
 
-    y += 0.58
-    kol, zaz = 5, 0.22
-    cw = (CW - zaz * (kol - 1)) / kol
-    ch = 1.32
-    ry = [y, y + ch + 0.56]
+    y = 2.42
+    zaz = 0.22
+    cw = (CW - zaz * (len(AGENTY) - 1)) / len(AGENTY)
+    ch = 3.42
+    pad_v = 0.26
 
-    def karta(i, cx, cy):
-        vyhod = i >= 7                      # публикация и статистика
-        c = GREEN if vyhod else LBLUE
-        plitka(sl, cx, cy, cw, ch, fill=CARD, line=(GREEN if vyhod else LINE),
-               radius=0.16, lw=(1.4 if vyhod else 1.0))
-        blok(sl, cx + 0.26, cy + 0.24, 0.8, str(i + 1), UB, 15, font=DISP,
-             color=c, bold=True, lead=1.0)
-        blok(sl, cx + 0.26, cy + 0.64, cw - 0.52, CIKL[i], UB, 12.5, font=DISP,
-             color=WHITE, bold=True, lead=1.22, max_strok=2, max_h=0.52,
-             chto='цикл, шаг %d' % (i + 1))
-
-    for i in range(5):
+    for i, (ik, t, d) in enumerate(AGENTY):
+        novoe = i == len(AGENTY) - 1
+        cvet = '4ADE80' if novoe else '7FC4FF'
         cx = PAD + i * (cw + zaz)
-        karta(i, cx, ry[0])
-        if i < 4:
-            strelka(sl, cx + cw - 0.02, ry[0], ch)
+        plitka(sl, cx, y, cw, ch, fill=CARD,
+               line=(GREEN if novoe else LINE), radius=0.16,
+               lw=(1.4 if novoe else 1.0))
+        znak(sl, cx + pad_v, y + 0.28, 0.72, ik, cvet, fill=CARD2, pad=0.19)
 
-    for poz, i in enumerate([8, 7, 6, 5]):
-        cx = PAD + (poz + 1) * (cw + zaz)
-        karta(i, cx, ry[1])
-        strelka(sl, cx - zaz - 0.04, ry[1], ch, nazad=True)
+        if novoe:
+            # Метка «новое» — тем же зелёным, что и выгода на слайде цены.
+            bw, bh = 0.82, 0.28
+            plitka(sl, cx + cw - pad_v - bw, y + 0.5, bw, bh,
+                   fill=GREEN, line=None, radius=bh / 2)
+            tf = nadpis(sl, cx + cw - pad_v - bw, y + 0.5, bw, bh,
+                        anchor=MSO_ANCHOR.MIDDLE)
+            abzac(tf, 'новое', 9, font=BODY, color=BG, bold=True, lead=1.0,
+                  align=PP_ALIGN.CENTER, first=True)
 
-    vx, vy = PAD, ry[1]
-    plitka(sl, vx, vy, cw, ch, fill=None, line=LINE2, radius=0.16)
-    znak(sl, vx + (cw - 0.56) / 2, vy + 0.24, 0.56, 'refresh', '7FC4FF', pad=0.05)
-    blok(sl, vx + 0.2, vy + 0.9, cw - 0.4, 'Новый цикл', UB, 12.5, font=DISP,
-         color=LBLUE, bold=True, lead=1.2, align=PP_ALIGN.CENTER)
+        gnezdo = 0.86                    # место под название, у всех одно
+        blok(sl, cx + pad_v, y + 1.24, cw - pad_v * 2, t, UB, 13.5, font=DISP,
+             color=(GREEN if novoe else WHITE), bold=True, lead=1.22,
+             max_strok=3, max_h=gnezdo, chto='агент %s' % t)
+        blok(sl, cx + pad_v, y + 1.24 + gnezdo + 0.18, cw - pad_v * 2, d,
+             IR, 12, color=MUTED, lead=1.5, max_strok=5, max_h=1.2,
+             chto='агент, подпись %s' % t)
 
-    # Поворот потока с верхнего ряда на нижний. Рисуем стрелкой из
-    # набора сайта, а не знаком из шрифта: знака «галочка вниз» нет ни
-    # в Unbounded, ни в Inter, и у клиента на его месте был бы квадрат.
-    kartinka(sl, ikonka('arrow-right', '3E5C9C', povorot=90),
-             W - PAD - 0.36, ry[0] + ch + 0.04, 0.32, 0.32)
-
-    blok(sl, PAD, ry[1] + ch + 0.42, CW,
-         [('Цикл ведут 217 ИИ-модулей и повторяют его неделя за неделей. ', {'color': MUTED}),
-          ('Результат обычно виден на третьем месяце.', {'color': WHITE, 'bold': True})],
+    blok(sl, PAD, y + ch + 0.5, CW,
+         [('Все пятеро работают внутри одной подписки: ', {'color': MUTED}),
+          ('нанимать, ставить задачи и согласовывать не нужно.',
+           {'color': WHITE, 'bold': True})],
          IR, 13.5, font=BODY, lead=1.4)
 
 
-# ========================================================= 4. НОВОЕ В ПЛАТФОРМЕ
+# ==================================================== 4. АВТОПУБЛИКАЦИЯ
+
+# Площадки перечислены плитками, без фирменных значков: рисовать чужие
+# логотипы от руки нельзя, а похожие «почти логотипы» на слайде
+# выглядят хуже, чем честное название.
+PLOSHCHADKI = ['Telegram', 'Instagram*', 'VK', 'Яндекс Дзен',
+               'Одноклассники', 'Max']
+
+GRAFIK = [
+    'Публикации 5 дней в неделю',
+    '2 экспертные статьи в месяц',
+    'Формат и размер — под каждую площадку',
+]
+
+
+def slajd_4(prs):
+    sl = novyj(prs); nomer(sl, 4)
+    y = blok(sl, PAD, 0.72, CW, 'Платформа публикует сама',
+             UB, 32, font=DISP, color=WHITE, bold=True, lead=1.18,
+             kegli=[32, 29], max_strok=1)
+    blok(sl, PAD, y + 0.26, 9.6,
+         'Готовый материал уходит на площадки по расписанию. '
+         'Ни выгрузок, ни ручного постинга, ни напоминаний.',
+         IR, 15, color=MUTED, lead=1.5, max_strok=2, max_h=0.7)
+
+    y = 2.5
+    lw = 3.9
+    vy = blok(sl, PAD, y - 0.16, lw, '6', UB, 96, font=DISP, color=LBLUE,
+              bold=True, lead=1.0, max_strok=1, max_h=1.5)
+    vy = blok(sl, PAD, vy + 0.08, lw, 'площадок в одной подписке',
+              UB, 17, font=DISP, color=WHITE, bold=True, lead=1.25,
+              max_strok=2, max_h=0.62)
+    vy += 0.46
+    for t in GRAFIK:
+        n = len(perenos(t, IR, 13, (lw - 0.36) * 0.96))
+        vys = n * 13 * 1.45 / 72.0
+        kartinka(sl, ikonka('check', '4ADE80'), PAD, vy + 0.05, 0.2, 0.2)
+        tf = nadpis(sl, PAD + 0.36, vy, lw - 0.36, vys + 0.08)
+        abzac(tf, t, 13, font=BODY, color=MUTED, lead=1.45, first=True)
+        vy += vys + 0.24
+
+    rx = PAD + lw + 0.7
+    rw = W - PAD - rx
+    zaz = 0.24
+    cw = (rw - zaz) / 2
+    ch = 1.05
+    # Две колонки, а не три: «Одноклассники» — длинное слово, и в узкой
+    # плитке оно либо разрывается посередине, либо мельчает до нечитаемого.
+    for i, p in enumerate(PLOSHCHADKI):
+        cx = rx + (i % 2) * (cw + zaz)
+        cy = y + (i // 2) * (ch + zaz)
+        plitka(sl, cx, cy, cw, ch, fill=CARD, line=LINE, radius=0.16)
+        pt, lines = podobrat(p, UB, [19, 18, 17, 16, 15], cw - 0.4, 0.7, 1.2, 1)
+        vys = len(lines) * pt * 1.2 / 72.0
+        tf = nadpis(sl, cx + 0.2, cy + (ch - vys) / 2, cw - 0.4, vys + 0.08)
+        abzac(tf, p, pt, font=DISP, color=WHITE, bold=True, lead=1.2,
+              align=PP_ALIGN.CENTER, first=True)
+
+    # Сноска обязательна при любом упоминании Instagram в России.
+    blok(sl, PAD, H - 0.62, CW,
+         '* Instagram принадлежит компании Meta, признанной экстремистской '
+         'организацией и запрещённой на территории Российской Федерации.',
+         IR, 8.5, color=MUTED2, lead=1.3)
+
+
+# ========================================================= 5. НОВОЕ В ПЛАТФОРМЕ
 
 NOVOE = [
     ('new-video.jpg',   'Видео по сценарию', 'Опишите сцену — ролик соберётся сам'),
@@ -249,8 +322,8 @@ NOVOE = [
 ]
 
 
-def slajd_4(prs):
-    sl = novyj(prs); nomer(sl, 4)
+def slajd_5(prs):
+    sl = novyj(prs); nomer(sl, 5)
     y = blok(sl, PAD, 0.72, CW, 'Новое в платформе',
              UB, 32, font=DISP, color=WHITE, bold=True, lead=1.18,
              kegli=[32, 29], max_strok=1)
@@ -274,7 +347,65 @@ def slajd_4(prs):
              chto='новое, подпись %s' % t)
 
 
-# ============================================================== 5. ВЫГОДЫ
+# ============================================================= 6. ДЛЯ КОГО
+
+# Девять ниш — те же, что на сайте, и с теми же значками. Под ними
+# полоса «без ограничений по отраслям»: она снимает главный вопрос
+# зала — «а у нас ниша другая».
+NISHI = [
+    ('cup',      'HoReCa'),
+    ('scissors', 'Салоны красоты'),
+    ('tooth',    'Стоматология'),
+    ('flower',   'Цветочные салоны'),
+    ('bag',      'Розница и услуги'),
+    ('home',     'Товары для дома'),
+    ('toy',      'Детские товары'),
+    ('car',      'Авто и мотоиндустрия'),
+    ('tools',    'Строительство и ремонт'),
+]
+
+
+def slajd_6(prs):
+    sl = novyj(prs); nomer(sl, 6)
+    y = blok(sl, PAD, 0.72, CW, 'Для кого',
+             UB, 32, font=DISP, color=WHITE, bold=True, lead=1.18,
+             kegli=[32, 29], max_strok=1)
+    blok(sl, PAD, y + 0.26, 9.6,
+         'Для каждой из этих ниш есть отдельная презентация с примерами '
+         'запросов и цифрами.',
+         IR, 15, color=MUTED, lead=1.5, max_strok=2, max_h=0.7)
+
+    y = 2.26
+    zaz = 0.2
+    cw = (CW - zaz * 2) / 3
+    ch = 0.92
+    for i, (ik, t) in enumerate(NISHI):
+        cx = PAD + (i % 3) * (cw + zaz)
+        cy = y + (i // 3) * (ch + zaz)
+        plitka(sl, cx, cy, cw, ch, fill=CARD, line=LINE, radius=0.16)
+        znak(sl, cx + 0.2, cy + (ch - 0.56) / 2, 0.56, ik, '7FC4FF',
+             fill=CARD2, pad=0.14)
+        pt, lines = podobrat(t, UB, [15, 14, 13.5, 13, 12.5], cw - 1.1, 0.62,
+                             1.22, 2)
+        vys = len(lines) * pt * 1.22 / 72.0
+        tf = nadpis(sl, cx + 0.92, cy + (ch - vys) / 2, cw - 1.1, vys + 0.08)
+        abzac(tf, t, pt, font=DISP, color=WHITE, bold=True, lead=1.22,
+              first=True)
+
+    py = y + ch * 3 + zaz * 2 + 0.28
+    ph = 1.06
+    plitka(sl, PAD, py, CW, ph, fill=CARD, line=GREEN, radius=0.16, lw=1.4)
+    znak(sl, PAD + 0.2, py + (ph - 0.56) / 2, 0.56, 'grid', '4ADE80',
+         fill=CARD2, pad=0.14)
+    ty = blok(sl, PAD + 0.92, py + 0.22, CW - 1.2, 'Без ограничений по отраслям',
+              UB, 15, font=DISP, color=GREEN, bold=True, lead=1.22,
+              max_strok=1, max_h=0.36)
+    blok(sl, PAD + 0.92, ty + 0.12, CW - 1.2,
+         'Модули изучают любую нишу с нуля — отрасль может быть узкой или редкой.',
+         IR, 12.5, color=MUTED, lead=1.45, max_strok=1, max_h=0.28)
+
+
+# ============================================================== 7. ВЫГОДЫ
 
 VYGODY = [
     ('в 4 раза',  'меньше вашего времени', 'Ни техзаданий, ни согласований'),
@@ -283,8 +414,8 @@ VYGODY = [
 ]
 
 
-def slajd_5(prs):
-    sl = novyj(prs); nomer(sl, 5)
+def slajd_7(prs):
+    sl = novyj(prs); nomer(sl, 7)
     blok(sl, PAD, 0.72, CW, 'Что это даёт бизнесу',
          UB, 32, font=DISP, color=WHITE, bold=True, lead=1.18,
          kegli=[32, 29], max_strok=1)
@@ -308,7 +439,7 @@ def slajd_5(prs):
              chto='выгода, подпись %s' % v)
 
 
-# =============================================================== 6. ЦЕНА
+# =============================================================== 8. ЦЕНА
 
 VHODIT = [
     'Полный цикл: тема, текст, картинка, видео, проверка, публикация',
@@ -320,24 +451,24 @@ VHODIT = [
 ]
 
 
-def slajd_6(prs):
-    sl = novyj(prs); nomer(sl, 6)
+def slajd_8(prs):
+    sl = novyj(prs); nomer(sl, 8)
     blok(sl, PAD, 0.72, CW, 'Одна подписка вместо агентства',
          UB, 32, font=DISP, color=WHITE, bold=True, lead=1.18,
          kegli=[32, 29, 26], max_strok=1)
 
     y = 2.3
     lw = 5.5
-    vy = blok(sl, PAD, y, lw, '29 500 ₽', UB, 60, font=DISP, color=WHITE,
+    vy = blok(sl, PAD, y, lw, '39 500 ₽', UB, 60, font=DISP, color=WHITE,
               bold=True, lead=1.08, max_strok=1, max_h=1.1)
     vy = blok(sl, PAD, vy + 0.16, lw, 'в месяц, цена фиксированная',
               IR, 15, color=MUTED2, lead=1.4)
     vy = blok(sl, PAD, vy + 0.46, lw,
               [('Экономия ', {'color': MUTED}),
-               ('70 000 ₽', {'color': GREEN, 'bold': True}),
+               ('70 500 ₽', {'color': GREEN, 'bold': True}),
                (' каждый месяц', {'color': MUTED})],
               IS, 19, font=BODY, lead=1.3)
-    blok(sl, PAD, vy + 0.18, lw, 'SEO-агентство за ту же работу — 100 000 ₽ в месяц',
+    blok(sl, PAD, vy + 0.18, lw, 'SEO-агентство за ту же работу — 110 000 ₽ в месяц',
          IR, 13, color=MUTED2, lead=1.4)
 
     rx = PAD + lw + 0.8
@@ -360,9 +491,9 @@ def slajd_6(prs):
          IR, 8.5, color=MUTED2, lead=1.3)
 
 
-# ============================================================ 7. КОНТАКТЫ
+# ============================================================ 9. КОНТАКТЫ
 
-def slajd_7(prs):
+def slajd_9(prs):
     sl = novyj(prs)
     kartinka(sl, kadr(IMG + '/hero-bg.jpg', W, H, 'final.png',
                       dark=0.46, left_wash=0.74), 0, 0, W, H)
@@ -380,23 +511,25 @@ def slajd_7(prs):
     abzac(tf, 'Откроется форма\nна сайте «Промптера»', 10.5, color=MUTED2,
           lead=1.35, first=True)
 
-    # Справа — человек, с которым клиент будет говорить.
+    # Справа — офис, а не конкретный человек: презентацию ведут
+    # разные менеджеры, и каждый подставляет свой телефон, почту и
+    # аккаунт — на обложке и здесь.
     kx = PAD + 7.5
     kw = W - PAD - kx
-    ky, kh = 1.6, 4.35
+    ky, kh = 1.5, 4.5
     plitka(sl, kx, ky, kw, kh, fill=CARD, line=LINE2, radius=0.22)
     fw = kw - 0.84
-    kartinka(sl, kadr(IMG + '/director.jpg', fw, 1.6, 'direktor.png', radius=0.16),
+    kartinka(sl, kadr(IMG + '/team.jpg', fw, 1.6, 'ofis.png', radius=0.16),
              kx + 0.42, ky + 0.42, fw, 1.6)
-    ty = blok(sl, kx + 0.42, ky + 2.2, fw, 'Руслан Демин', UB, 17, font=DISP,
+    ty = blok(sl, kx + 0.42, ky + 2.2, fw, 'Офис в Москве', UB, 17, font=DISP,
               color=WHITE, bold=True, lead=1.2, max_strok=1, max_h=0.42)
-    ty = blok(sl, kx + 0.42, ty + 0.1, fw, 'Управляющий партнёр, офис в Москве',
-              IR, 11.5, color=MUTED2, lead=1.35, max_h=0.46)
+    ty = blok(sl, kx + 0.42, ty + 0.1, fw, 'Официальный партнёр по Москве и МО',
+              IR, 11.5, color=MUTED2, lead=1.35, max_strok=1, max_h=0.26)
 
     ty += 0.34
-    for ik, t, url in [('phone', '+7 906 758-77-77', 'tel:+79067587777'),
-                       ('mail', 'prompter.moscow@mail.ru', 'mailto:prompter.moscow@mail.ru'),
-                       ('tg', '@Prompter_mos', 'https://t.me/Prompter_mos')]:
+    for ik, t, url in [('phone', TELEFON, 'tel:' + TELEFON.replace(' ', '').replace('-', '')),
+                       ('mail', POCHTA, 'mailto:' + POCHTA),
+                       ('tg', AKKAUNT, 'https://t.me/' + AKKAUNT.lstrip('@'))]:
         kartinka(sl, ikonka(ik, '7FC4FF'), kx + 0.42, ty + 0.04, 0.22, 0.22)
         tf = nadpis(sl, kx + 0.76, ty, fw - 0.34, 0.3)
         abzac(tf, t, 12.5, font=BODY, color=WHITE, lead=1.2, first=True)
