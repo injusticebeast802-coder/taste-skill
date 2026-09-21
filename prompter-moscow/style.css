@@ -303,6 +303,11 @@ section[id]{scroll-margin-top:84px}
 }
 .hero__copy{min-width:0}
 
+/* Заголовок первого экрана набираем мельче общего .h1 и включаем
+   balance: после «с помощью ИИ» строка стала четвёртой и «ИИ»
+   повисало на ней в одиночку. То же сделано на ГенИИ. */
+.hero .h1{font-size:clamp(28px,4.5vw,46px);text-wrap:balance}
+
 .plate{
   display:inline-flex;align-items:center;gap:8px;
   margin:0 0 20px;padding:9px 17px;
