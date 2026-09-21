@@ -757,14 +757,15 @@
              анализа. -->
         <div class="frm__f" id="f-inn-wrap">
           <label class="frm__l" for="f-inn">ИНН компании</label>
-          <input class="frm__i" id="f-inn" name="inn" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="10 или 12 цифр" required>
+          <input class="frm__i" id="f-inn" name="inn" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="10 цифр у компании, 12 у ИП" required>
           <p class="frm__e" data-err="inn" hidden>Укажите ИНН: в нём 10 цифр у компании или 12 у ИП</p>
         </div>
 
 
         <div class="frm__f">
           <label class="frm__l" for="f-field">Род деятельности</label>
-          <input class="frm__i" id="f-field" name="field" type="text" maxlength="90" placeholder="Например: стоматология, доставка цветов" required>
+          <input class="frm__i" id="f-field" name="field" type="text" maxlength="90" placeholder="Например: доставка цветов" required>
+          <p class="frm__why">Пишите как можно точнее: «строительство деревянных домов и бань» вместо «строительство». Этими словами мы и спросим нейросети — по общему слову они назовут крупные компании отрасли, а не такие, как ваша.</p>
           <p class="frm__e" data-err="field" hidden>Укажите род деятельности</p>
         </div>
 
@@ -824,7 +825,7 @@
 <script src="script.js?v=1"></script>
 <!-- Логика формы вынесена отдельно: тот же файл подключает страница
      zayavka.html. Правила проверки и адрес отправки едины для обеих. -->
-<script src="form.js?v=4"></script>
+<script src="form.js?v=5"></script>
 
 </body>
 </html>
