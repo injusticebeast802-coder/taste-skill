@@ -72,6 +72,7 @@ rm -rf "$DIR/nejroanaliz" "$DIR/cloudflare" "$DIR/hosting" "$DIR/shrifty"
 # системных шрифтов может не быть, и кириллица выйдет квадратиками.
 cp -r "$SRC/nejroanaliz" "$SRC/cloudflare" "$SRC/hosting" "$SRC/shrifty" "$DIR/"
 cp "$SRC/bot.py" "$SRC/proverka.py" "$SRC/proverka_marshruta.py" \
+   "$SRC/proverka_hoda.py" "$SRC/proverka_otcheta.py" \
    "$SRC/requirements.txt" \
    "$SRC/config.example.ini" "$SRC/README.md" "$DIR/"
 chmod +x "$DIR/hosting/bot.sh"
@@ -118,6 +119,25 @@ if (cd "$DIR" && "$DIR/venv/bin/python" "$DIR/proverka_marshruta.py" >/dev/null 
 else
   echo "ВНИМАНИЕ: бот принимает не то, что обещает его справка."
   echo "Подробности:  $DIR/venv/bin/python $DIR/proverka_marshruta.py"
+fi
+
+# Сколько сообщений уходит за одну проверку. Один раз их стало
+# двенадцать, и отчёт терялся среди «…6 из 24».
+if (cd "$DIR" && "$DIR/venv/bin/python" "$DIR/proverka_hoda.py" >/dev/null 2>&1); then
+  echo "ход проверки укладывается в одно сообщение"
+else
+  echo "ВНИМАНИЕ: бот снова сыплет сообщениями."
+  echo "Подробности:  $DIR/venv/bin/python $DIR/proverka_hoda.py"
+fi
+
+# Что отчёт говорит клиенту. Цифры бывают верные, а читаются наоборот:
+# «1-е место в поиске» рядом с «не называют ни разу» клиент понимал
+# как «у меня и так всё хорошо».
+if (cd "$DIR" && "$DIR/venv/bin/python" "$DIR/proverka_otcheta.py" >/dev/null 2>&1); then
+  echo "отчёт говорит то, что задумано"
+else
+  echo "ВНИМАНИЕ: отчёт читается не так, как задумано."
+  echo "Подробности:  $DIR/venv/bin/python $DIR/proverka_otcheta.py"
 fi
 
 echo

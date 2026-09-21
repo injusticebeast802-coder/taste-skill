@@ -19,7 +19,10 @@
 /* getMe только называет имя бота и ничего не меняет. Нужен, чтобы
    программа при запуске сказала, за кого её принимает телеграм: без
    этого перепутанный токен выглядит как полная тишина. */
-const MOZHNO = ['getUpdates', 'sendMessage', 'sendPhoto', 'getMe'];
+// editMessageText нужен, чтобы бот писал ход проверки в одно
+// сообщение и правил его, а не сыпал десяток отдельных.
+const MOZHNO = ['getUpdates', 'sendMessage', 'editMessageText',
+                'sendPhoto', 'getMe'];
 
 export default {
   async fetch(request, env) {
