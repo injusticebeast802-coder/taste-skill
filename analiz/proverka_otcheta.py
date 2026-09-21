@@ -29,7 +29,7 @@ from nejroanaliz import report                    # noqa: E402
 from nejroanaliz import run as runner             # noqa: E402
 
 BOLSHIE = '1. Теремъ\n2. Зодчий\n3. Good Wood\n4. Русские Хоромы\n5. Эко-Дом\n'
-MESTNYE = '1. Теремъ\n2. Котельники-Строй\n'
+MESTNYE = '1. Теремъ\n2. Котельники-Строй\n3. Северный Дом\n4. ДомЛюкс\n'
 
 
 def dannye(sosedi=('Котельники-Строй', 'Эко-Дом', 'Дом Ладный'), nazvali=0):
@@ -72,11 +72,17 @@ def main():
     if d['search_v_top10'] != 2:
         plohо.append('в топ-10 насчитали %d вместо 2' % d['search_v_top10'])
 
-    # --- сколько мест в ответе ---
+    # --- крупное число: сколько разных компаний прозвучало ---
+    # «Сколько в одном ответе» тут уже было и не прижилось: оно почти
+    # всегда около пяти, от проверки к проверке не меняется и потому
+    # заказчику отчёта ничего не говорит.
     print()
-    print('Мест в одном ответе нейросети: %d' % d['nazyvayut_v_otvete'])
-    if d['nazyvayut_v_otvete'] < 2:
-        plohо.append('не посчитали, сколько компаний называет нейросеть')
+    print('Разных компаний за проверку: %d' % d['raznyh_kompanij'])
+    print('В одном ответе (для строки про поиск): %d' % d['nazyvayut_v_otvete'])
+    if d['raznyh_kompanij'] < 5:
+        plohо.append('разных компаний насчитали всего %d' % d['raznyh_kompanij'])
+    if d['raznyh_kompanij'] <= d['nazyvayut_v_otvete']:
+        plohо.append('разных компаний должно быть больше, чем в одном ответе')
 
     # --- соседи отдельно от крупных, без повторов ---
     verhnie = [imya for imya, _ in d['rivals']]
@@ -133,6 +139,24 @@ def main():
             plohо.append('места поиска для %r+%r: вышло %r, надо %r'
                          % (rajony, gorod, bylo, nado))
     print('  наборов мест проверено: %d' % len(mesta))
+
+    # Имя соседа должно быть названием, а не обрезанной фразой.
+    # «Деревянные дома-бани под» однажды попало в отчёт как компания.
+    print()
+    from nejroanaliz import search_yandex as sy_mod
+    imena = [
+        ('Деревянные дома-бани под ключ в Котельниках', False),
+        ('Строительство деревянных домов под', False),
+        ('Котельники-Строй', True),
+        ('Ангарский Дом', True),
+        ('Дом на Века', True),
+    ]
+    for imya, nado_tak in imena:
+        if sy_mod._pohozhe_na_nazvanie(imya, 'строительство деревянных домов',
+                                       ['Котельники']) != nado_tak:
+            plohо.append('«%s» сочли %s' % (
+                imya, 'названием' if not nado_tak else 'обрезком'))
+    print('  имён соседей проверено: %d' % len(imena))
 
     # --- картинка рисуется и не падает ---
     put = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'otchety')

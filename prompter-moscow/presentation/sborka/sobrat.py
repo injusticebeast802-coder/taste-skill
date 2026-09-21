@@ -227,10 +227,11 @@ def slajd_3(prs):
     blok(sl, vx + 0.2, vy + 0.9, cw - 0.4, 'Новый цикл', UB, 12.5, font=DISP,
          color=LBLUE, bold=True, lead=1.2, align=PP_ALIGN.CENTER)
 
-    tf = nadpis(sl, W - PAD - 0.42, ry[0] + ch + 0.02, 0.42, 0.52,
-                anchor=MSO_ANCHOR.MIDDLE)
-    abzac(tf, '⌄', 22, font=BODY, color=LINE2, bold=True, lead=1.0,
-          align=PP_ALIGN.CENTER, first=True)
+    # Поворот потока с верхнего ряда на нижний. Рисуем стрелкой из
+    # набора сайта, а не знаком из шрифта: знака «галочка вниз» нет ни
+    # в Unbounded, ни в Inter, и у клиента на его месте был бы квадрат.
+    kartinka(sl, ikonka('arrow-right', '3E5C9C', povorot=90),
+             W - PAD - 0.36, ry[0] + ch + 0.04, 0.32, 0.32)
 
     blok(sl, PAD, ry[1] + ch + 0.42, CW,
          [('Цикл ведут 217 ИИ-модулей и повторяют его неделя за неделей. ', {'color': MUTED}),
@@ -411,12 +412,51 @@ def slajd_7(prs):
 
 # ============================================================== СБОРКА
 
+def proverit_znaki(prs):
+    """Все ли знаки презентации есть в шрифтах.
+
+    Один раз уже попался знак «галочка вниз»: в предпросмотре он
+    рисовался подставным шрифтом и выглядел нормально, а у клиента
+    вышел бы квадратик. Теперь сборка проверяет каждый знак по файлам
+    шрифтов и ругается сразу.
+    """
+    import glob
+    from fontTools.ttLib import TTFont
+
+    karty = {os.path.basename(p): TTFont(p).getBestCmap()
+             for p in glob.glob(os.path.join(SHRIFTY, '*.ttf'))}
+    znaki = set()
+    for sl in prs.slides:
+        for sh in sl.shapes:
+            if sh.has_text_frame:
+                for p in sh.text_frame.paragraphs:
+                    for r in p.runs:
+                        znaki |= set(r.text)
+
+    net = []
+    for z in sorted(znaki):
+        if z in ' \n\t':
+            continue
+        gde = [imya for imya, cm in karty.items() if ord(z) not in cm]
+        if gde:
+            net.append('%r (U+%04X) нет в: %s' % (z, ord(z), ', '.join(gde)))
+    return net
+
+
 def main():
     prs = Presentation()
     prs.slide_width = Inches(W)
     prs.slide_height = Inches(H)
     for i in range(1, VSEGO + 1):
         globals()['slajd_%d' % i](prs)
+    net = proverit_znaki(prs)
+    if net:
+        print('ЗНАКИ БЕЗ БУКВ В ШРИФТЕ:')
+        for x in net:
+            print('  -', x)
+    else:
+        print('все знаки есть в шрифтах')
+
     put = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'obshchaya.pptx')
     prs.save(put)
     if MALO:

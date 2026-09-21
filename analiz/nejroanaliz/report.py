@@ -202,8 +202,14 @@ def build(company, site, ai_results, search_results):
         # картина по поиску: одно лучшее место из пяти запросов ничего
         # не говорит об остальных четырёх.
         'search_v_top10': len([p for p in s_positions if p <= 10]),
-        # Сколько компаний нейросеть называет в одном ответе.
+        # Сколько компаний нейросеть называет в одном ответе. Нужно
+        # для строки про поиск, в крупные числа отчёта не идёт: оно
+        # почти всегда около пяти.
         'nazyvayut_v_otvete': skolko_nazyvayut(ai_results),
+        # А вот это — крупным числом. Сколько разных компаний
+        # прозвучало за всю проверку: у каждой ниши своё.
+        'raznyh_kompanij': skolko_raznyh(
+            ai_results, company.get('names') or [company.get('name', '')]),
         'ai_results': ai_results,
         'search_results': search_results,
         'rivals': _rivals(ai_results, company.get('names') or [company.get('name', '')],
@@ -284,6 +290,30 @@ def imena_v_otvete(text):
         if _looks_like_name(cand):
             out.append(cand)
     return out
+
+
+def skolko_raznyh(ai_results, own_names):
+    """Сколько разных компаний нейросети назвали за всю проверку.
+
+    Это число заменило «сколько компаний в одном ответе». То было
+    почти всегда около пяти — от проверки к проверке не менялось и
+    потому ничего не говорило тому, кто заказал отчёт.
+
+    А вот сколько всего разных имён прозвучало за двадцать четыре
+    ответа — у каждой ниши своё, и число сразу читается: столько
+    компаний нейросети назвали вашим клиентам, и вашей среди них нет.
+    """
+    from . import matching
+
+    vidno = set()
+    for r in ai_results:
+        for cand in imena_v_otvete(r.get('answer') or ''):
+            if matching.mentioned_any(cand, own_names or []):
+                continue
+            klyuch = matching.fold(cand)
+            if klyuch:
+                vidno.add(klyuch)
+    return len(vidno)
 
 
 def skolko_nazyvayut(ai_results):
@@ -527,6 +557,21 @@ def search_line(data):
     return ('В поиске Яндекса сайт %s. Но выдачу человек листает сам, а нейросеть сразу называет несколько компаний — и выбирает за него.' % gde)
 
 
+def _v_stroku(draw, text, font, width):
+    """Имя в одну строку. Не влезает — обрезаем многоточием.
+
+    Раньше брали первую строку переноса и остальное теряли молча:
+    в отчёт попало «Деревянные дома-бани под» — обрубок, по которому
+    не понять, о какой компании речь.
+    """
+    t = ' '.join((text or '').split())
+    if draw.textlength(t, font=font) <= width:
+        return t
+    while t and draw.textlength(t + '…', font=font) > width:
+        t = t[:-1]
+    return (t.rstrip(' ,.-') + '…') if t else ''
+
+
 def _wrap(draw, text, font, width):
     words, lines, cur = (text or '').split(), [], ''
     for w in words:
@@ -687,23 +732,28 @@ def draw_png(data, path, brand='genii'):
     # поясняют главное, а не спорят с ним.
     px = PAD + int(SHIR * 0.66)
     py = verh
-    # Второе число — сколько компаний нейросеть называет в одном
-    # ответе. Раньше здесь стояло лучшее место сайта в поиске Яндекса,
+    # Второе число — сколько разных компаний нейросети назвали за всю
+    # проверку. Раньше здесь стояло лучшее место сайта в поиске Яндекса,
     # и рядом с «не называют ни разу» оно читалось как «да всё у меня
     # хорошо»: клиент видел единицу и успокаивался. Смысл разбора
     # ровно обратный — поиск и нейросеть это два разных списка, и
     # место в одном ничего не говорит о втором. Число мест в ответе
     # бьёт в ту же точку и не требует оговорок: вот столько компаний
-    # услышит ваш клиент, и вас среди них нет.
-    skolko = data.get('nazyvayut_v_otvete') or 0
+    # услышали ваши клиенты, и вас среди них нет.
+    #
+    # Сначала здесь стояло «сколько компаний в одном ответе», но оно
+    # почти всегда около пяти и от проверки к проверке не менялось —
+    # заказчику отчёта такое число ничего не говорит. Число разных
+    # имён за всю проверку у каждой ниши своё.
+    raznyh = data.get('raznyh_kompanij') or 0
     pары = [
         (('%d-е' % data['ai_best_position']) if data['ai_best_position'] else '—',
          'место в списке нейросети', cvet_mesta(data['ai_best_position']),
          38 if data['ai_best_position'] else 24),
-        (str(skolko) if skolko else '—',
-         '%s нейросеть называет в одном ответе'
-         % sklonenie(skolko, 'компанию', 'компании', 'компаний'),
-         TEXT if skolko else MUTED, 38 if skolko else 24),
+        (str(raznyh) if raznyh else '—',
+         '%s нейросети назвали вашим клиентам' % sklonenie(
+             raznyh, 'разную компанию', 'разные компании', 'разных компаний'),
+         TEXT if raznyh else MUTED, 38 if raznyh else 24),
     ]
     for i, (bolshoe, podpis, cvet, kegl) in enumerate(pары):
         if i:
@@ -757,8 +807,8 @@ def draw_png(data, path, brand='genii'):
         y += 32
         maks = max([n for _, n in rivals] + [named]) or 1
         for imya, n in rivals:
-            for line in _wrap(d, imya, _font(20), 320)[:1]:
-                d.text((PAD, y), line, font=_font(20), fill=TEXT)
+            d.text((PAD, y), _v_stroku(d, imya, _font(20), 320),
+                   font=_font(20), fill=TEXT)
             _polosa(d, PAD + 340, y + 7, 420, 10, n / maks, cvet_doli(n / maks), b['track'])
             d.text((PAD + 790, y), str(n), font=_font(19), fill=MUTED)
             y += 36
@@ -768,7 +818,7 @@ def draw_png(data, path, brand='genii'):
             d.rectangle([PAD, y, PAD + 810, y + 1], fill=LINE)
             y += 18
             svoe = c.get('brand') or c.get('name') or 'ваша компания'
-            d.text((PAD, y), _wrap(d, svoe, _font(20, 'semi'), 320)[0],
+            d.text((PAD, y), _v_stroku(d, svoe, _font(20, 'semi'), 320),
                    font=_font(20, 'semi'), fill=head_color)
             _polosa(d, PAD + 340, y + 7, 420, 10, named / maks,
                     cvet_doli(named / maks), b['track'])
@@ -789,8 +839,8 @@ def draw_png(data, path, brand='genii'):
         y += 32
         maks_s = max([n for _, n in sosedi] + [named]) or 1
         for imya, n in sosedi:
-            for line in _wrap(d, imya, _font(20), 320)[:1]:
-                d.text((PAD, y), line, font=_font(20), fill=TEXT)
+            d.text((PAD, y), _v_stroku(d, imya, _font(20), 320),
+                   font=_font(20), fill=TEXT)
             _polosa(d, PAD + 340, y + 7, 420, 10, n / maks_s,
                     cvet_doli(n / maks_s), b['track'])
             d.text((PAD + 790, y), str(n), font=_font(19), fill=MUTED)
@@ -800,7 +850,7 @@ def draw_png(data, path, brand='genii'):
         d.rectangle([PAD, y, PAD + 810, y + 1], fill=LINE)
         y += 18
         svoe = c.get('brand') or c.get('name') or 'ваша компания'
-        d.text((PAD, y), _wrap(d, svoe, _font(20, 'semi'), 320)[0],
+        d.text((PAD, y), _v_stroku(d, svoe, _font(20, 'semi'), 320),
                font=_font(20, 'semi'), fill=head_color)
         _polosa(d, PAD + 340, y + 7, 420, 10, named / maks_s,
                 cvet_doli(named / maks_s), b['track'])

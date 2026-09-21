@@ -75,6 +75,9 @@ cp -r "$SRC/assets" "$SRC/img" "$SRC/fonts" "$DIR/"
 # сами файлы .pptx.
 mkdir -p "$DIR/presentations"
 cp "$SRC/presentation/"*.pptx "$DIR/presentations/"
+# Общая презентация лежит ещё и в pdf: его открывает любой телефон и
+# любой мессенджер, а .pptx в них показывается через раз.
+cp "$SRC/presentation/"*.pdf "$DIR/presentations/" 2>/dev/null || true
 cp "$SRC/hosting-ru/lead.php" "$DIR/"
 # Посредник для программы проверки по ИНН: работает, только если в
 # config.php заполнен TG_RELAY_KEY. Без него файл отвечает отказом.
@@ -105,6 +108,7 @@ ls -1A "$DIR"
 
 echo
 echo "Презентаций выложено: $(ls -1 "$DIR"/presentations/*.pptx 2>/dev/null | wc -l)"
+echo "В pdf из них: $(ls -1 "$DIR"/presentations/*.pdf 2>/dev/null | wc -l)"
 
 # ---------- Проверка страницы «не найдено» ----------
 # Её легче всего потерять при обновлении: файл один, строка в .htaccess

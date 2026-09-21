@@ -26,9 +26,16 @@ def _sprajt():
     return _simvoly
 
 
-def ikonka(imya, cvet, px=192, tolshchina=1.5):
-    """Отрисовывает значок спрайта в png. cvet — строка вида '7FC4FF'."""
-    fajl = os.path.join(KUDA, '%s-%s-%d.png' % (imya, cvet, px))
+def ikonka(imya, cvet, px=192, tolshchina=1.5, povorot=0):
+    """Отрисовывает значок спрайта в png. cvet — строка вида '7FC4FF'.
+
+    povorot — на сколько градусов повернуть. Нужен, чтобы получить
+    стрелку вниз из стрелки вправо: своей стрелки вниз в наборе нет,
+    а рисовать её знаком из шрифта нельзя — знака «галочка вниз» в
+    наших шрифтах не оказалось, и на чужом компьютере на его месте
+    выходил квадратик.
+    """
+    fajl = os.path.join(KUDA, '%s-%s-%d-%d.png' % (imya, cvet, px, povorot))
     if os.path.exists(fajl):
         return fajl
     telo = _sprajt()['i-' + imya]
@@ -39,6 +46,9 @@ def ikonka(imya, cvet, px=192, tolshchina=1.5):
         % (px, px, cvet, tolshchina, telo))
     cairosvg.svg2png(bytestring=svg.encode('utf-8'), write_to=fajl,
                      output_width=px, output_height=px)
+    if povorot:
+        from PIL import Image
+        Image.open(fajl).rotate(-povorot, expand=True).save(fajl)
     return fajl
 
 
