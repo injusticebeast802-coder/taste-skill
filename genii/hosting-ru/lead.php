@@ -191,10 +191,33 @@ function sourceLabel($value) {
 }
 $sourcePretty = sourceLabel($source);
 
-// ИНН приходит только с бесплатного анализа и только цифрами:
-// всё остальное отсекаем, строка попадает в текст сообщения.
+/* ---------- ИНН ----------
+   Поле стало обязательным: без него проверка не отличит клиента от
+   однофамильцев в реестре и разберёт чужую компанию. Проверяем не
+   только длину, но и контрольные цифры — опечатка в номере выдала бы
+   существующую, но совсем другую фирму. Правило то же, что в форме на
+   сайте: две проверки не должны расходиться. */
+function innOk($d) {
+  if (!is_string($d)) return false;
+  $len = strlen($d);
+  $summa = function ($vesa) use ($d) {
+    $t = 0;
+    foreach ($vesa as $i => $v) $t += ((int) $d[$i]) * $v;
+    return $t % 11 % 10;
+  };
+  if ($len === 10) {
+    return $summa(array(2, 4, 10, 3, 5, 9, 4, 6, 8)) === (int) $d[9];
+  }
+  if ($len === 12) {
+    return $summa(array(7, 2, 4, 10, 3, 5, 9, 4, 6, 8)) === (int) $d[10]
+        && $summa(array(3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8)) === (int) $d[11];
+  }
+  return false;
+}
+
 $innRaw = preg_replace('/\D/', '', (string) field($body, 'inn'));
-$inn    = (strlen($innRaw) === 10 || strlen($innRaw) === 12) ? $innRaw : '';
+if (!innOk($innRaw)) reply(400, array('ok' => false, 'error' => 'bad_inn'));
+$inn = $innRaw;
 
 /* ---------- читаемый вид кириллического адреса ----------
    Поле с типом email заставляет браузер переписывать нелатинский домен
@@ -374,7 +397,7 @@ $text =
   "📞 Телефон: $phone\n" .
   "📧 Почта: $emailPretty\n" .
   "🏢 Компания: $company\n" .
-  ($inn !== '' ? "🔢 ИНН: $inn\n" : '') .
+  "🔢 ИНН: $inn\n" .
   "📦 Род деятельности: $fieldOf\n" .
   "👔 ЛПР: $dm\n" .
   "📍 Источник: $sourcePretty\n" .
@@ -458,7 +481,7 @@ $mailed = sendMail(
     'Почта'            => $emailPretty,
     'Компания'         => $company,
     'Род деятельности' => $fieldOf,
-    'ИНН'              => ($inn !== '' ? $inn : '—'),
+    'ИНН'              => $inn,
     'ЛПР'              => $dm,
     'Источник'         => $sourcePretty,
     'Время'            => $stamp,

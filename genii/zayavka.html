@@ -73,6 +73,17 @@
           <p class="frm__e" data-err="company" hidden>Укажите название компании</p>
         </div>
 
+        <!-- ИНН спрашиваем в любой заявке. По нему проверка берёт город и
+             официальное название и не путает клиента с десятком однофамильцев
+             в реестре: без этого разбор уходит не про ту компанию. Раньше
+             поле было необязательным и показывалось только у бесплатного
+             анализа. -->
+        <div class="frm__f" id="f-inn-wrap">
+          <label class="frm__l" for="f-inn">ИНН компании</label>
+          <input class="frm__i" id="f-inn" name="inn" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="10 или 12 цифр" required>
+          <p class="frm__e" data-err="inn" hidden>Укажите ИНН: в нём 10 цифр у компании или 12 у ИП</p>
+        </div>
+
         <div class="frm__f">
           <label class="frm__l" for="f-field">Род деятельности</label>
           <input class="frm__i" id="f-field" name="field" type="text" maxlength="90" placeholder="Например: стоматология, доставка цветов" required>
@@ -135,6 +146,6 @@
   </p>
 </main>
 
-<script src="form.js?v=2"></script>
+<script src="form.js?v=3"></script>
 </body>
 </html>

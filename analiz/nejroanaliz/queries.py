@@ -303,39 +303,58 @@ def build(company, limit=12):
 
     patterns = patterns_for(company.get('kind') or company.get('industry'))
 
-    def ask(subjects, want):
+    def ask(subjects, want, mesto):
         """Сначала первый вопрос ко всем темам, потом второй ко всем:
         так каждая тема успевает прозвучать, даже если вопросов мало."""
         out = []
         for pattern in patterns:
             for sub in subjects:
-                q = pattern % ('%s, %s' % (sub, city) if city else sub)
+                q = pattern % ('%s, %s' % (sub, mesto) if mesto else sub)
                 if q not in out:
                     out.append(q)
                 if len(out) >= want:
                     return out
         return out
 
-    if not narrow:
-        return ask(wide, limit)[:limit]
+    # Район из анкеты. Четверть вопросов задаём про него: людей
+    # интересует то, что рядом с домом, и по району нейросеть нередко
+    # называет совсем другие компании, чем по городу целиком.
+    rajon = ([r for r in (company.get('rajony') or []) if r] or [''])[0]
+    mesto_rajona = ' '.join(x for x in (rajon, city) if x) if rajon else ''
+    n_rajon = max(1, int(round(limit * 0.25))) if mesto_rajona else 0
+    osnovnyh = limit - n_rajon
 
-    # Две трети вопросов — про то, чем компания занимается на самом
-    # деле, треть — про рынок вообще.
-    n_narrow = limit if not wide else max(1, int(round(limit * 0.7)))
-    out = ask(narrow, n_narrow)
-    left = limit - len(out)
-    if left > 0 and wide:
-        out += [q for q in ask(wide, left) if q not in out][:left]
+    if not narrow:
+        out = ask(wide, osnovnyh, city)
+    else:
+        # Две трети вопросов — про то, чем компания занимается на самом
+        # деле, треть — про рынок вообще.
+        n_narrow = osnovnyh if not wide else max(1, int(round(osnovnyh * 0.7)))
+        out = ask(narrow, n_narrow, city)
+        left = osnovnyh - len(out)
+        if left > 0 and wide:
+            out += [q for q in ask(wide, left, city) if q not in out][:left]
+
+    if n_rajon:
+        temy = narrow or wide
+        out += [q for q in ask(temy, n_rajon, mesto_rajona) if q not in out][:n_rajon]
     return out[:limit]
 
 
 def search_queries(company, limit=6):
     """Запросы для обычного поиска: там пишут не вопросами, а коротко."""
     city = (company.get('city') or '').strip()
+    rajon = ([r for r in (company.get('rajony') or []) if r] or [''])[0]
     narrow, wide = subjects_for(company)
     out = []
     for sub in narrow + wide:
         q = '%s %s' % (sub, city) if city else sub
         if q not in out:
             out.append(q)
+    # Один запрос по району: место в выдаче «рядом» ближе к правде,
+    # чем место по городу целиком.
+    if rajon and narrow + wide:
+        q = ' '.join(x for x in ((narrow + wide)[0], rajon, city) if x)
+        if q not in out:
+            out.insert(1, q)
     return out[:limit]
