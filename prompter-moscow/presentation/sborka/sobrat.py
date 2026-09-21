@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Короткая общая презентация «Промптер. Москва» — девять слайдов.
+"""Короткая общая презентация «Промптер. Москва» — восемь слайдов.
 
 Это презентация, а не сайт в слайдах. Разница простая: на сайте
 человек читает сам, поэтому там плотные карточки и абзацы. На слайде
@@ -31,7 +31,7 @@ IR  = ('Inter', 'r')
 IM  = ('Inter', 'm')
 IS  = ('Inter', 's')
 
-VSEGO = 9
+VSEGO = 8
 SAJT    = 'https://prompter-ai.moscow'
 ZAYAVKA = SAJT + '/zayavka.html?from=presentation-obshchaya'
 ANALIZ  = SAJT + '/zayavka.html?from=presentation-analiz'
@@ -183,6 +183,16 @@ def slajd_2(prs):
 
 # ================================================= 3. ПЯТЬ ИИ-АГЕНТОВ
 
+# Три числа с бывшего слайда «Что это даёт бизнесу»: он ушёл, а выгода
+# осталась — полосой под карточками агентов, мельче и без третьей
+# строки-пояснения.
+VYGODY = [
+    ('в 4 раза',  'меньше вашего времени'),
+    ('в 3 раза',  'ниже расходы на СММ'),
+    ('0 человек', 'нанимать не нужно'),
+]
+
+
 # Те же пять агентов, что и на сайте, и в том же порядке. На слайде от
 # каждого остаётся одна строка: роль и что человек перестаёт делать
 # руками. Пятый — сценарист с оператором — появился в платформе
@@ -207,10 +217,10 @@ def slajd_3(prs):
          'человеку с отдельной зарплатой.',
          IR, 15, color=MUTED, lead=1.5, max_strok=2, max_h=0.7)
 
-    y = 2.42
+    y = 2.36
     zaz = 0.22
     cw = (CW - zaz * (len(AGENTY) - 1)) / len(AGENTY)
-    ch = 3.42
+    ch = 3.0
     pad_v = 0.26
 
     for i, (ik, t, d) in enumerate(AGENTY):
@@ -232,19 +242,27 @@ def slajd_3(prs):
             abzac(tf, 'новое', 9, font=BODY, color=BG, bold=True, lead=1.0,
                   align=PP_ALIGN.CENTER, first=True)
 
-        gnezdo = 0.86                    # место под название, у всех одно
-        blok(sl, cx + pad_v, y + 1.24, cw - pad_v * 2, t, UB, 13.5, font=DISP,
+        gnezdo = 0.72                    # место под название, у всех одно
+        blok(sl, cx + pad_v, y + 1.08, cw - pad_v * 2, t, UB, 13.5, font=DISP,
              color=(GREEN if novoe else WHITE), bold=True, lead=1.22,
-             max_strok=3, max_h=gnezdo, chto='агент %s' % t)
-        blok(sl, cx + pad_v, y + 1.24 + gnezdo + 0.18, cw - pad_v * 2, d,
-             IR, 12, color=MUTED, lead=1.5, max_strok=5, max_h=1.2,
+             max_strok=2, max_h=gnezdo, chto='агент %s' % t)
+        blok(sl, cx + pad_v, y + 1.08 + gnezdo + 0.16, cw - pad_v * 2, d,
+             IR, 12, color=MUTED, lead=1.5, max_strok=4, max_h=0.92,
              chto='агент, подпись %s' % t)
 
-    blok(sl, PAD, y + ch + 0.5, CW,
-         [('Все пятеро работают внутри одной подписки: ', {'color': MUTED}),
-          ('нанимать, ставить задачи и согласовывать не нужно.',
-           {'color': WHITE, 'bold': True})],
-         IR, 13.5, font=BODY, lead=1.4)
+    # Выгода стоит здесь же, под агентами: отдельный слайд с тремя
+    # числами только оттягивал ответ на вопрос «и что мне с этого».
+    vy = y + ch + 0.46
+    vzaz = 0.7
+    vw = (CW - vzaz * 2) / 3
+    for i, (v, t) in enumerate(VYGODY):
+        cx = PAD + i * (vw + vzaz)
+        if i:
+            cherta(sl, cx - vzaz / 2, vy + 0.04, 0.012, 0.66)
+        blok(sl, cx, vy, vw, v, UB, 23, font=DISP, color=LBLUE, bold=True,
+             lead=1.12, max_strok=1, max_h=0.42, chto='выгода %s' % v)
+        blok(sl, cx, vy + 0.46, vw, t, IR, 12.5, color=MUTED, lead=1.4,
+             max_strok=2, max_h=0.52, chto='выгода, подпись %s' % v)
 
 
 # ==================================================== 4. АВТОПУБЛИКАЦИЯ
@@ -405,41 +423,7 @@ def slajd_6(prs):
          IR, 12.5, color=MUTED, lead=1.45, max_strok=1, max_h=0.28)
 
 
-# ============================================================== 7. ВЫГОДЫ
-
-VYGODY = [
-    ('в 4 раза',  'меньше вашего времени', 'Ни техзаданий, ни согласований'),
-    ('в 3 раза',  'ниже расходы на СММ',   'Цена известна заранее и не растёт'),
-    ('0 человек', 'нанимать не нужно',     'Копирайтер, SEO и дизайнер — это модули'),
-]
-
-
-def slajd_7(prs):
-    sl = novyj(prs); nomer(sl, 7)
-    blok(sl, PAD, 0.72, CW, 'Что это даёт бизнесу',
-         UB, 32, font=DISP, color=WHITE, bold=True, lead=1.18,
-         kegli=[32, 29], max_strok=1)
-
-    # Ни одной карточки: три числа, разделённые тонкой чертой. На слайде
-    # число должно быть видно с последнего ряда.
-    y = 2.7
-    zaz = 0.7
-    cw = (CW - zaz * 2) / 3
-    for i, (v, t, d) in enumerate(VYGODY):
-        cx = PAD + i * (cw + zaz)
-        if i:
-            cherta(sl, cx - zaz / 2, y + 0.1, 0.012, 2.5)
-        gn_v, gn_t = 0.78, 0.62        # места под число и под подпись
-        blok(sl, cx, y, cw, v, UB, 46, font=DISP, color=LBLUE, bold=True,
-             lead=1.1, max_strok=1, max_h=gn_v, chto='выгода %s' % v)
-        blok(sl, cx, y + gn_v + 0.26, cw, t, UB, 17, font=DISP, color=WHITE,
-             bold=True, lead=1.25, max_strok=2, max_h=gn_t)
-        blok(sl, cx, y + gn_v + 0.26 + gn_t + 0.22, cw, d, IR, 13,
-             color=MUTED2, lead=1.5, max_strok=3, max_h=0.9,
-             chto='выгода, подпись %s' % v)
-
-
-# =============================================================== 8. ЦЕНА
+# =============================================================== 7. ЦЕНА
 
 VHODIT = [
     'Полный цикл: тема, текст, картинка, видео, проверка, публикация',
@@ -451,8 +435,8 @@ VHODIT = [
 ]
 
 
-def slajd_8(prs):
-    sl = novyj(prs); nomer(sl, 8)
+def slajd_7(prs):
+    sl = novyj(prs); nomer(sl, 7)
     blok(sl, PAD, 0.72, CW, 'Одна подписка вместо агентства',
          UB, 32, font=DISP, color=WHITE, bold=True, lead=1.18,
          kegli=[32, 29, 26], max_strok=1)
@@ -491,9 +475,9 @@ def slajd_8(prs):
          IR, 8.5, color=MUTED2, lead=1.3)
 
 
-# ============================================================ 9. КОНТАКТЫ
+# ============================================================ 8. КОНТАКТЫ
 
-def slajd_9(prs):
+def slajd_8(prs):
     sl = novyj(prs)
     kartinka(sl, kadr(IMG + '/hero-bg.jpg', W, H, 'final.png',
                       dark=0.46, left_wash=0.74), 0, 0, W, H)
