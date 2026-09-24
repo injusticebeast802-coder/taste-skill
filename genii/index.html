@@ -40,7 +40,7 @@
      и скрипты держит час (правило в .htaccess). Поменяли style.css,
      script.js или form.js — увеличьте номер здесь, в zayavka.html
      и в privacy.html. -->
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 
 <!-- Если JavaScript выключен, показываем весь контент сразу. -->
 <noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
@@ -621,13 +621,14 @@
          от которой до контактов ещё полтора экрана. -->
     <div class="chans reveal" id="contacts">
       <p class="chans__t">Наши площадки</p>
-      <!-- У значков нет href, пока не появились адреса каналов:
-           с пустой ссылкой «#» нажатие уносило страницу наверх.
-           Чтобы включить, достаточно дописать href каждому. -->
+      <!-- Значок без href не притворяется ссылкой: не даёт курсор-палец
+           и не приподнимается при наведении, а стоит приглушённым. Так
+           площадка видна, но нажать на пустоту нельзя. Появится адрес —
+           достаточно дописать href, остальное сделает стиль. -->
       <ul class="chans__list">
-        <li><a class="chan" aria-label="Telegram"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-tg"/></svg></a></li>
-        <li><a class="chan" aria-label="ВКонтакте"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-vk"/></svg></a></li>
-        <li><a class="chan" aria-label="Яндекс Дзен"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-dzen"/></svg></a></li>
+        <li><a class="chan" href="https://t.me/geniimoscow" target="_blank" rel="noopener" aria-label="Telegram"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-tg"/></svg></a></li>
+        <li><a class="chan" href="https://vk.ru/idgeniiai" target="_blank" rel="noopener" aria-label="ВКонтакте"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-vk"/></svg></a></li>
+        <li><a class="chan" href="https://dzen.ru/user/p4zbadqj7lu4qz7plfrix717jjs" target="_blank" rel="noopener" aria-label="Яндекс Дзен"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-dzen"/></svg></a></li>
         <li><a class="chan" aria-label="Одноклассники"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-ok"/></svg></a></li>
         <li><a class="chan" aria-label="Max"><svg class="chan__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-max"/></svg></a></li>
       </ul>
