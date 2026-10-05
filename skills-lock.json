@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "audiocraft-audio-generation": {
+      "source": "firecrawl/ai-research-skills",
+      "sourceType": "github",
+      "skillPath": "18-multimodal/audiocraft/SKILL.md",
+      "computedHash": "5d6959faf51129c408ffc2af5b32660e39b0a46df7ae6ff5e0ccdcfb23f1f773"
+    },
     "brandkit": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
