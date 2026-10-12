@@ -1388,3 +1388,49 @@ section[id]{scroll-margin-top:84px}
   .fpage{padding:26px 14px 34px;gap:20px}
   .fpage__logo .logo__txt{font-size:15px}
 }
+
+/* Кнопка бесплатной проверки с подписью под ней: подпись объясняет,
+   что разбор для подписчиков, до нажатия, а не после. */
+.check__go{display:flex;flex-direction:column;align-items:center;gap:10px;flex:none}
+.check__note{
+  margin:0;max-width:30ch;text-align:center;
+  color:var(--muted-2);font-size:13.5px;line-height:1.45;
+}
+
+/* Страница-переходник в телеграм.
+   Фон страницы тёмный, а карточка на нём — белая, как и окно заявки.
+   Красить по переменным сайта тут нельзя: они заведены для тёмного
+   фона, и светло-синий текст на белой карточке пропадает. Поэтому
+   цвета берём те же, что у соседей внутри карточки. */
+.razbor__go{margin:4px 0 18px}
+.razbor__alt{margin:0 0 10px;color:#54596E;font-size:15px;line-height:1.55}
+.razbor__name{margin:0 0 14px}
+.razbor__zapas{
+  margin:0 0 18px;padding:16px 18px;border-radius:var(--r-sm);
+  background:#F2F5FF;border:1px solid #DFE5FA;
+}
+.razbor__zapas .razbor__alt:last-child{margin-bottom:0}
+.razbor__zapas a{color:#3563F0;font-weight:600}
+.razbor__name code,.razbor__kanal code{
+  display:inline-block;padding:7px 12px;border-radius:10px;
+  background:#EEF2FF;border:1px solid #DCE3FA;
+  color:#1B2035;font-size:16px;font-weight:600;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* Имя бота люди переписывают руками в поиск приложения — даём
+     выделить его одним касанием. */
+  user-select:all;
+}
+.razbor__kanal{margin:0 0 22px;color:#54596E;font-size:15px}
+.razbor__kanal code{font-size:15px;padding:5px 10px}
+.razbor__back{margin:0;font-size:15px}
+.razbor__back a{color:#3563F0;font-weight:600}
+
+/* Подсказка про бота на странице расширенной анкеты. Стоит над
+   формой: предложить короткий путь после того, как человек заполнил
+   половину полей, — издевательство. */
+.fpage__bot{
+  margin:0 0 22px;padding:12px 16px;border-radius:var(--r-sm);
+  background:#F2F5FF;border:1px solid #DFE5FA;
+  color:#3C4254;font-size:14.5px;line-height:1.5;
+}
+.fpage__bot a{color:#3563F0;font-weight:600}
