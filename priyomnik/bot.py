@@ -54,6 +54,33 @@ ZHIVET = 24 * 60 * 60
 
 # ------------------------------------------------------------ настройки
 
+def ochistit(tekst):
+    """Готовит содержимое config.ini к разбору.
+
+    Файл правят руками в nano прямо на хостинге, и он оттуда выходит
+    побитым: длинный комментарий переносится на вторую строку уже без
+    точки с запятой, в файл случайно попадает команда запуска из
+    буфера. Для разборщика настроек это мусор, и бот падал с
+    непонятной ошибкой про отсутствие заголовка секции.
+
+    Поэтому выкидываем всё до первой строки в квадратных скобках и
+    всё, в чём нет знака равенства. Настройки от этого не страдают:
+    в них всегда есть «=», а пояснения всё равно лежат в
+    config.example.ini и в README.
+    """
+    stroki = tekst.splitlines()
+    nachalo = next((i for i, s in enumerate(stroki)
+                    if s.strip().startswith('[')), None)
+    if nachalo is None:
+        return tekst
+    godnye = [stroki[nachalo]]
+    for s in stroki[nachalo + 1:]:
+        golo = s.strip()
+        if not golo or golo.startswith((';', '#')) or golo.startswith('[') or '=' in golo:
+            godnye.append(s)
+    return '\n'.join(godnye) + '\n'
+
+
 def nastrojki():
     put = os.path.join(TUT, 'config.ini')
     if not os.path.exists(put):
@@ -62,7 +89,7 @@ def nastrojki():
         sys.exit(1)
 
     razbor = configparser.ConfigParser()
-    razbor.read(put, encoding='utf-8')
+    razbor.read_string(ochistit(open(put, encoding='utf-8').read()))
     cfg = dict(razbor['keys']) if razbor.has_section('keys') else {}
 
     cherez_sajt = bool((cfg.get('telegram_api') or '').strip())
