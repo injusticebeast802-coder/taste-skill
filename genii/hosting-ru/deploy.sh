@@ -69,7 +69,8 @@ echo "Очищаю папку сайта..."
 find "$DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
 echo "Раскладываю файлы..."
-cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/analiz.html" "$SRC/404.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
+cp "$SRC/index.html" "$SRC/privacy.html" "$SRC/zayavka.html" "$SRC/analiz.html" \
+   "$SRC/razbor.html" "$SRC/404.html" "$SRC/style.css" "$SRC/script.js" "$SRC/form.js" "$DIR/"
 # Карта сайта, которая собирается на лету.
 cp "$SRC/sitemap.php" "$DIR/"
 # Раздел статей: в папке лежат и сами статьи, и страница со списком.
