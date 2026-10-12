@@ -138,30 +138,16 @@ chmod 600 "$INI"
 
 # ---------- проверка дороги ----------
 # Спрашиваем у телеграма имя бота через ту самую дорогу, которой
-# дальше пойдёт бот. Пришло имя — работает всё: и пароль посредника,
-# и токен, и ход с хостинга наружу.
+# дальше пойдёт бот.
+#
+# И сверяем, ЧЕЙ бот ответил. Это главное: посредник общий с ботом
+# отчётов, и старый посредник на нашу пометку b=priyom не смотрит —
+# он ответит, всё будет выглядеть исправным, а клиенту напишет не тот
+# бот, в котором он спрашивал. Сверять есть с чем: номер бота — это
+# начало его токена, до двоеточия.
 echo
 echo "Проверяю дорогу: бот -> $SAJT_IMYA -> телеграм…"
-OTVET=$("$PY" - "$ADRES" <<'EOF'
-import json, sys, urllib.request
-adres = sys.argv[1] + '&m=getMe&b=priyom'
-try:
-    with urllib.request.urlopen(adres, timeout=40) as svyaz:
-        telo = svyaz.read().decode('utf-8', 'replace')
-except Exception as e:
-    print('НЕТ: до посредника не достучался — %s' % e)
-    sys.exit(0)
-try:
-    razbor = json.loads(telo)
-except ValueError:
-    print('НЕТ: посредник ответил не по-телеграмски — %s' % telo[:300])
-    sys.exit(0)
-if razbor.get('ok'):
-    print('ДА: %s' % (razbor['result'].get('username') or razbor['result'].get('id')))
-else:
-    print('НЕТ: %s' % razbor.get('description'))
-EOF
-)
+OTVET=$("$PY" "$DIR/hosting/proverit_dorogu.py" "$ADRES" "$TOKEN")
 
 case "$OTVET" in
   "ДА: "*)
@@ -171,6 +157,25 @@ case "$OTVET" in
     echo
     echo "Через полминуты посмотрите журнал:"
     echo "  sh $DIR/hosting/bot.sh log"
+    ;;
+  "ЧУЖОЙ: "*)
+    echo "Посредник ответил не от приёмщика, а от бота @${OTVET#ЧУЖОЙ: }."
+    echo
+    echo "Значит запрос уходит через работника Cloudflare, и работник"
+    echo "там старый: про второго бота он не знает и подставляет свой"
+    echo "единственный токен. Клиент спросил бы у одного бота, а ответил"
+    echo "бы ему другой — тот, что разговаривает только с менеджерами."
+    echo
+    echo "Что сделать (минут пять, в панели Cloudflare):"
+    echo "  1. Открыть работника -> Edit code."
+    echo "  2. Вставить туда свежий tg-worker.js из analiz/cloudflare."
+    echo "  3. Settings -> Variables: добавить Secret TG_TOKEN_PRIYOM"
+    echo "     со значением токена приёмщика из $INI."
+    echo "  4. Deploy, потом запустить эту команду ещё раз."
+    echo
+    echo "Подробнее — analiz/cloudflare/KAK-NASTROIT.md."
+    echo "Бота не перезапускаю: он отвечал бы клиентам не тем ботом."
+    exit 1
     ;;
   *)
     echo "$OTVET"
