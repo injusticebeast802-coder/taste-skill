@@ -242,6 +242,85 @@ def proverka_razgovora():
         b.ANKETY = staroe
 
 
+def proverka_poteri_zayavki():
+    """Чат менеджеров не принял заявку — ответы человека не пропадают.
+
+    Шесть вопросов о своей компании человек отвечает один раз. Если в
+    этот момент у нас не вышло с рабочим чатом, предлагать ему /start
+    нельзя: /start стирает анкету, и он набирал бы всё заново из-за
+    нашей беды, а не своей.
+    """
+    poslano = []
+    chat_menedzherov = '-100500'
+
+    def pritvorno(cfg, metod, **params):
+        poslano.append((metod, params))
+        if metod == 'getChatMember':
+            return {'ok': True, 'result': {'status': 'member'}}
+        if (metod == 'sendMessage'
+                and str(params.get('chat_id')) == chat_menedzherov):
+            return {'ok': False, 'description': 'Bad Request: chat not found'}
+        return {'ok': True, 'result': {'message_id': len(poslano)}}
+
+    nastoyashchij = b.api
+    staroe = b.ANKETY
+    b.api = pritvorno
+    b.ANKETY = os.path.join(os.path.dirname(staroe), 'anketa-poterya.json')
+    cfg = {'kanal': '@k', 'kanal_ssylka': 'https://t.me/k',
+           'sajt_anketa': 'https://genii-ai.ru/analiz', 'sekret_ssylki': '',
+           'chat_zayavok': chat_menedzherov}
+    kto = {'id': 777, 'first_name': 'Иван'}
+    chat = {'id': 777}
+    sostoyanie = {}
+
+    try:
+        b.obrabotat_soobshchenie(cfg, sostoyanie, {
+            'chat': chat, 'from': kto, 'text': '/start'})
+        b.obrabotat_knopku(cfg, sostoyanie, {
+            'id': 'a1', 'from': kto, 'message': {'chat': chat},
+            'data': 'anketa_tut'})
+        for otvet in ('Брусина', 'стройка', 'Одинцово', 'brusina.ru',
+                      '9702020445', '+7 906 758-77-77'):
+            b.obrabotat_soobshchenie(cfg, sostoyanie, {
+                'chat': chat, 'from': kto, 'text': otvet})
+        b.obrabotat_knopku(cfg, sostoyanie, {
+            'id': 'a2', 'from': kto, 'message': {'chat': chat}, 'data': 'lpr:sam'})
+
+        b.obrabotat_knopku(cfg, sostoyanie, {
+            'id': 'a3', 'from': kto, 'message': {'chat': chat}, 'data': 'otpravit'})
+
+        ravno('777' in sostoyanie, True, 'анкета стёрлась, хотя заявка не ушла')
+        ravno(sostoyanie['777']['otvety'].get('nazvanie'), 'Брусина',
+              'ответы пропали после неудачной отправки')
+
+        posledneye = [p for m, p in poslano
+                      if m == 'sendMessage' and str(p.get('chat_id')) == '777'][-1]
+        ravno('/start' in posledneye['text'], False,
+              'человека отправили на /start, а он стирает анкету')
+        knopki = __import__('json').loads(posledneye.get('reply_markup') or '{}')
+        imena = [k['text'] for ryad in knopki.get('inline_keyboard', [])
+                 for k in ryad]
+        ravno(imena, ['Отправить ещё раз'], 'нет кнопки повторной отправки')
+
+        # Со второго раза чат отвечает — заявка уходит, анкета стирается.
+        def teper_prinimaet(cfg, metod, **params):
+            if (metod == 'sendMessage'
+                    and str(params.get('chat_id')) == chat_menedzherov):
+                poslano.append((metod, params))
+                return {'ok': True, 'result': {'message_id': 1}}
+            return pritvorno(cfg, metod, **params)
+
+        b.api = teper_prinimaet
+        b.obrabotat_knopku(cfg, sostoyanie, {
+            'id': 'a4', 'from': kto, 'message': {'chat': chat}, 'data': 'otpravit'})
+        ravno('777' in sostoyanie, False, 'после удачной отправки анкета осталась')
+    finally:
+        b.api = nastoyashchij
+        if os.path.exists(b.ANKETY):
+            os.remove(b.ANKETY)
+        b.ANKETY = staroe
+
+
 def proverka_posrednika():
     """Через посредника бот ходит со своим токеном, а не с чужим.
 
@@ -345,7 +424,7 @@ if __name__ == '__main__':
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
                      proverka_bitogo_fajla, proverka_kanala,
                      proverka_razgovora,
-                     proverka_posrednika, proverka_dorogi):
+                     proverka_poteri_zayavki, proverka_posrednika, proverka_dorogi):
         proverka()
 
     if oshibki:
