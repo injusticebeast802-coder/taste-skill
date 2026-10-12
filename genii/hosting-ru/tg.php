@@ -59,15 +59,36 @@ if (!hash_equals(TG_RELAY_KEY, $klyuch)) {
    сможет и переписку бота вычитать, и рассылку с него сделать. */
 // editMessageText нужен, чтобы бот писал ход проверки в одно
 // сообщение и правил его, а не сыпал десяток отдельных.
+// getChatMember, getChatAdministrators и answerCallbackQuery нужны
+// боту-приёмщику: он спрашивает телеграм, подписан ли человек на
+// канал, и снимает кружок ожидания с нажатой кнопки.
 $mozhno = array('getUpdates', 'sendMessage', 'editMessageText',
-                'sendPhoto', 'getMe', 'proverka');
+                'sendPhoto', 'getMe', 'getChatMember',
+                'getChatAdministrators', 'answerCallbackQuery', 'proverka');
 $metod  = isset($_GET['m']) ? $_GET['m'] : '';
 if (!in_array($metod, $mozhno, true)) {
     otkaz(404, 'Команда не разрешена: ' . $metod);
 }
 
-if (!defined('TG_TOKEN') || TG_TOKEN === '' || TG_TOKEN === '...') {
-    otkaz(503, 'В config.php не заполнен TG_TOKEN.');
+/* Чей токен подставлять. Ботов два: один считает отчёты, другой
+   принимает заявки от клиентов. Посредник у них общий — ход наружу с
+   хостинга один на всех, — а токены разные, и перепутать их нельзя:
+   человек спросит у одного бота, а ответит ему другой.
+
+   Без b= берём токен бота отчётов, как было до появления второго. */
+$bot = isset($_GET['b']) ? $_GET['b'] : '';
+if ($bot === 'priyom') {
+    if (!defined('TG_TOKEN_PRIYOM') || TG_TOKEN_PRIYOM === '' || TG_TOKEN_PRIYOM === '...') {
+        otkaz(503, 'В config.php не заполнен TG_TOKEN_PRIYOM — токен бота-приёмщика.');
+    }
+    $token = TG_TOKEN_PRIYOM;
+} elseif ($bot === '' || $bot === 'otchet') {
+    if (!defined('TG_TOKEN') || TG_TOKEN === '' || TG_TOKEN === '...') {
+        otkaz(503, 'В config.php не заполнен TG_TOKEN.');
+    }
+    $token = TG_TOKEN;
+} else {
+    otkaz(404, 'Неизвестный бот: ' . $bot);
 }
 
 /* Отправка с повторами.
@@ -244,14 +265,17 @@ if ($metod === 'proverka') {
 $cherez_rabotnika = defined('TG_WORKER') && TG_WORKER !== '';
 
 if ($cherez_rabotnika) {
+    /* b= передаём работнику как есть: токены обоих ботов лежат у
+       него, наши сюда не подставляются. */
     $url = TG_WORKER . (strpos(TG_WORKER, '?') === false ? '?' : '&')
-         . 'k=' . rawurlencode(TG_RELAY_KEY) . '&m=' . rawurlencode($metod);
+         . 'k=' . rawurlencode(TG_RELAY_KEY) . '&m=' . rawurlencode($metod)
+         . ($bot !== '' ? '&b=' . rawurlencode($bot) : '');
 } else {
-    $url = 'https://api.telegram.org/bot' . TG_TOKEN . '/' . $metod;
+    $url = 'https://api.telegram.org/bot' . $token . '/' . $metod;
 }
 
 $parametry = $_GET;
-unset($parametry['k'], $parametry['m']);
+unset($parametry['k'], $parametry['m'], $parametry['b']);
 if ($parametry) {
     $url .= (strpos($url, '?') === false ? '?' : '&') . http_build_query($parametry);
 }

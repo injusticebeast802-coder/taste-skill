@@ -242,11 +242,76 @@ def proverka_razgovora():
         b.ANKETY = staroe
 
 
+def proverka_posrednika():
+    """Через посредника бот ходит со своим токеном, а не с чужим.
+
+    Посредник общий с ботом отчётов, и токены у них разные. Забыть
+    сказать, чей брать, — значит отвечать человеку от имени не того
+    бота, в котором он спрашивал: такое не поймаешь глазами, оно
+    выглядит как «бот ответил», только бот другой.
+    """
+    cherez_sajt = {'telegram_api': 'https://genii-ai.ru/tg.php?k=parol'}
+    adres = b.tg_url(cherez_sajt, 'getChatMember')
+    ravno('m=getChatMember' in adres, True, 'метод не попал в адрес: %s' % adres)
+    ravno('b=priyom' in adres, True, 'посреднику не сказано, чей токен: %s' % adres)
+
+    rabotnik = {'telegram_api': 'https://tg.l.workers.dev/?k=parol'}
+    ravno('&m=sendMessage&b=priyom' in b.tg_url(rabotnik, 'sendMessage'), True,
+          'адрес работника собрался неверно')
+
+    pryamo = b.tg_url({'telegram_token': '123:ABC'}, 'getMe')
+    ravno(pryamo, 'https://api.telegram.org/bot123:ABC/getMe',
+          'прямой адрес собрался неверно')
+
+    # Методы, без которых приёмщик не работает, должны быть разрешены
+    # у обоих посредников: закрытый список — ровно то место, где
+    # второй бот молча упирается в «команда не разрешена».
+    nuzhno = ('getUpdates', 'sendMessage', 'getChatMember',
+              'getChatAdministrators', 'answerCallbackQuery')
+    ryadom = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    posredniki = [
+        os.path.join(ryadom, 'genii', 'hosting-ru', 'tg.php'),
+        os.path.join(ryadom, 'analiz', 'cloudflare', 'tg-worker.js'),
+    ]
+    for put in posredniki:
+        if not os.path.exists(put):
+            continue
+        ishodnik = open(put, encoding='utf-8').read()
+        spisok = ishodnik.split('MOZHNO', 1)[-1] if 'MOZHNO' in ishodnik else \
+            ishodnik.split('$mozhno', 1)[-1]
+        spisok = spisok[:spisok.index(';')]
+        for metod in nuzhno:
+            if "'%s'" % metod not in spisok:
+                oshibki.append('%s не разрешает %s'
+                               % (os.path.basename(put), metod))
+        if 'TG_TOKEN_PRIYOM' not in ishodnik:
+            oshibki.append('%s не знает токена приёмщика'
+                           % os.path.basename(put))
+
+
+def proverka_vybora_adresov():
+    """Когда ходим через посредника, версию адресов не выбираем.
+
+    Проверять связь с api.telegram.org в этом случае бессмысленно: мы
+    туда и не ходим. Лишняя проверка добавила бы секунд к запуску и
+    напугала бы надписью «нет связи» там, где всё работает.
+    """
+    bylo = b.urllib3.util.connection.allowed_gai_family
+    try:
+        ravno(b.nastroit_svyaz({'telegram_api': 'https://genii-ai.ru/tg.php?k=p'}),
+              None, 'через посредника выбрали версию адресов')
+        ravno(b.urllib3.util.connection.allowed_gai_family is bylo, True,
+              'через посредника подменили выбор адресов')
+    finally:
+        b.urllib3.util.connection.allowed_gai_family = bylo
+
+
 if __name__ == '__main__':
     for proverka in (proverka_polej, proverka_inn_chistitsya, proverka_poryadka,
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
                      proverka_bitogo_fajla, proverka_kanala,
-                     proverka_razgovora):
+                     proverka_razgovora,
+                     proverka_posrednika, proverka_vybora_adresov):
         proverka()
 
     if oshibki:
