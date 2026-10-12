@@ -127,6 +127,8 @@ def nastrojki():
 
     if not (cfg.get('sajt_anketa') or '').strip():
         cfg['sajt_anketa'] = 'https://genii-ai.ru/analiz'
+    if not (cfg.get('sajt_anketa_prompter') or '').strip():
+        cfg['sajt_anketa_prompter'] = 'https://prompter-ai.moscow/analiz'
 
     kanal = cfg['kanal'].strip()
     if not kanal.startswith('@') and not kanal.lstrip('-').isdigit():
@@ -274,9 +276,28 @@ def klyuch_dlya(cfg, user_id):
     return '%s.%s' % (telo, podpis)
 
 
+def adres_ankety(cfg, metka):
+    """Анкета того сайта, с которого человек пришёл.
+
+    Сайтов два — «ГенИИ» и «Промптер», — а бот и канал у них общие:
+    заводить второго бота ради второго сайта незачем. Но вернуть
+    человека надо туда, откуда он пришёл: клиент «Промптера», попавший
+    на чужой для него сайт, закроет вкладку на первом же незнакомом
+    логотипе.
+
+    Откуда пришёл, видно по метке в ссылке: razbor.html на промптере
+    ставит from=prompter-…, на ГенИИ — from=sajt-…
+    """
+    if (metka or '').startswith('prompter'):
+        drugoj = (cfg.get('sajt_anketa_prompter') or '').strip()
+        if drugoj:
+            return drugoj
+    return cfg['sajt_anketa']
+
+
 def ssylka_na_anketu(cfg, user_id, metka):
     k = klyuch_dlya(cfg, user_id)
-    adres = cfg['sajt_anketa']
+    adres = adres_ankety(cfg, metka)
     hvost = 'from=%s' % (metka or 'bot')
     if k:
         hvost += '&k=' + k

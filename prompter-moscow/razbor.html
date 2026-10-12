@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Получить разбор — Промптер</title>
+<meta name="description" content="Бесплатный разбор видимости компании в ответах нейросетей. Открывается в Telegram.">
+<link rel="canonical" href="https://prompter-ai.moscow/razbor">
+
+<!-- Страница-переходник, в поиске ей делать нечего. -->
+<meta name="robots" content="noindex, follow">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Промптер">
+<meta property="og:url" content="https://prompter-ai.moscow/razbor">
+<meta property="og:title" content="Получить разбор — Промптер">
+<meta property="og:description" content="Бесплатный разбор видимости компании в ответах нейросетей.">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:image" content="https://prompter-ai.moscow/assets/og.png?v=2">
+<meta name="theme-color" content="#0A0A0E">
+<meta name="color-scheme" content="dark">
+
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+
+<link rel="preload" href="fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/unbounded-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=20">
+</head>
+<body>
+
+<!--
+  Зачем эта страница вообще нужна.
+
+  Прямая ссылка t.me на телефоне открывает приложение сама, а в
+  браузере на компьютере она сначала грузит веб-страницу телеграма —
+  и без VPN человек видит белый экран вместо бота. Поэтому кнопка
+  на сайте ведёт сюда: наш домен открывается всегда.
+
+  Отсюда есть три пути, и хотя бы один сработает у каждого:
+  ссылка tg:// отдаёт человека установленному приложению, минуя
+  любые веб-страницы; обычная t.me остаётся для тех, у кого
+  приложения нет; и просто имя бота, которое можно вбить в поиск
+  внутри телеграма руками.
+-->
+
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
+  <symbol id="s-tg" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="24" fill="#2AABEE"/>
+    <path fill="#fff" d="M9.6 22.9 36 12.7c1.2-.4 2.3.3 1.9 2.1l-4.5 21.2c-.3 1.5-1.2 1.8-2.4 1.1l-6.7-5-3.2 3.1c-.4.4-.7.7-1.4.7l.5-7.1 12.9-11.6c.6-.5-.1-.8-.9-.3L16.3 24.4l-6.8-2.1c-1.5-.5-1.5-1.5.1-1.6z"/>
+  </symbol>
+</svg>
+
+<main class="fpage">
+  <a class="fpage__logo" href="/" aria-label="Промптер, на главную">
+    <img src="assets/logo.png" alt="" width="34" height="34">
+    <span class="logo__txt">Prompter <b>Moscow</b></span>
+  </a>
+
+  <div class="fpage__win modal__win">
+    <div class="modal__body">
+      <h1 class="modal__t">Разбор открывается в Telegram</h1>
+      <p class="modal__sub">Бот спросит шесть коротких вопросов о компании и передаст их менеджеру. Разбор бесплатный для подписчиков канала — подписку бот проверит сам.</p>
+
+      <a class="btn btn--grad btn--lg btn--full razbor__go" id="razbor-go"
+         href="tg://resolve?domain=Geniipodpiskabot&amp;start=prompter">
+        <span class="btn__label">Открыть бота в Telegram</span>
+        <svg class="ic btn__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </a>
+
+      <!-- Запасные пути показываем не сразу: у кого телеграм стоит,
+           тот уйдёт в приложение с первой кнопки, и лишние объяснения
+           ему только мешают. Блок открывается, если через полторы
+           секунды человек всё ещё здесь. -->
+      <div class="razbor__zapas" id="razbor-zapas" hidden>
+        <p class="razbor__alt">Приложение не открылось? Найдите бота в Telegram по имени:</p>
+        <p class="razbor__name"><code>@Geniipodpiskabot</code></p>
+        <p class="razbor__alt">Или <a id="razbor-web" href="https://t.me/Geniipodpiskabot?start=prompter" target="_blank" rel="noopener">откройте через браузер</a> — этот путь работает не везде.</p>
+      </div>
+
+      <p class="razbor__kanal">Канал, на который нужна подписка: <code>@geniimoscow</code> — это наш канал про нейросети и бизнес, «Промптер» и «ГенИИ» делает одна команда.</p>
+
+      <p class="razbor__back"><a href="/">Вернуться на сайт</a></p>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  // Метка источника едет с главной: razbor.html?from=sajt-glavnaya.
+  // По ней в карточке у менеджера видно, какая кнопка привела человека.
+  var metka = 'prompter';
+  try {
+    var iz = new URLSearchParams(location.search).get('from');
+    if (iz) metka = iz.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'prompter';
+  } catch (e) {}
+
+  var prilozhenie = 'tg://resolve?domain=Geniipodpiskabot&start=' + metka;
+  var brauzer = 'https://t.me/Geniipodpiskabot?start=' + metka;
+
+  var knopka = document.getElementById('razbor-go');
+  var web = document.getElementById('razbor-web');
+  var zapas = document.getElementById('razbor-zapas');
+  if (knopka) knopka.href = prilozhenie;
+  if (web) web.href = brauzer;
+
+  // Сами никуда не уводим. Переход на tg:// без нажатия браузер
+  // считает подозрительным: страница повисает в ожидании обработчика
+  // протокола, и человек смотрит в пустоту вместо объяснения. Пусть
+  // решает нажатие — оно же разрешает браузеру открыть приложение.
+  //
+  // После нажатия ждём полторы секунды. Ушёл в приложение — вкладка
+  // спряталась, и мы ничего не делаем. Остался здесь — значит
+  // телеграма на этом устройстве нет, и мы показываем запасные пути.
+  if (knopka && zapas) {
+    knopka.addEventListener('click', function () {
+      setTimeout(function () {
+        if (document.hidden) return;
+        zapas.hidden = false;
+      }, 1500);
+    });
+  }
+}());
+</script>
+
+</body>
+</html>

@@ -244,6 +244,42 @@ def proverka_razgovora():
         b.ANKETY = staroe
 
 
+def proverka_dvuh_sajtov():
+    """Человека возвращают на тот сайт, с которого он пришёл.
+
+    Бот и канал у сайтов общие, а анкеты разные. Отправить клиента
+    «Промптера» доделывать анкету на «ГенИИ» — значит потерять его на
+    первом же незнакомом логотипе.
+    """
+    cfg = {'sajt_anketa': 'https://genii-ai.ru/analiz',
+           'sajt_anketa_prompter': 'https://prompter-ai.moscow/analiz',
+           'sekret_ssylki': 'sekret-dlya-proverki-40-znakov-abcdefgh'}
+
+    ravno(b.adres_ankety(cfg, 'prompter-glavnaya'),
+          'https://prompter-ai.moscow/analiz', 'клиента промптера увели на чужой сайт')
+    ravno(b.adres_ankety(cfg, 'prompter'), 'https://prompter-ai.moscow/analiz',
+          'короткая метка промптера не узнана')
+    ravno(b.adres_ankety(cfg, 'sajt-glavnaya'), 'https://genii-ai.ru/analiz',
+          'клиента ГенИИ увели на чужой сайт')
+    ravno(b.adres_ankety(cfg, 'бот'), 'https://genii-ai.ru/analiz',
+          'без метки берём адрес по умолчанию')
+    ravno(b.adres_ankety(cfg, ''), 'https://genii-ai.ru/analiz',
+          'пустая метка уронила выбор адреса')
+
+    # Второй адрес не заполнен — ведём на тот, что есть, а не в никуда.
+    ravno(b.adres_ankety({'sajt_anketa': 'https://genii-ai.ru/analiz',
+                          'sajt_anketa_prompter': ''}, 'prompter-glavnaya'),
+          'https://genii-ai.ru/analiz', 'пустой второй адрес не подменился первым')
+
+    # В ссылке едут и метка, и ключ подписки: по метке менеджер видит
+    # источник, по ключу сайт понимает, что подписка проверена.
+    ssylka = b.ssylka_na_anketu(cfg, 777000123, 'prompter-anketa')
+    ravno(ssylka.startswith('https://prompter-ai.moscow/analiz?'), True,
+          'ссылка собралась не на тот сайт: %s' % ssylka)
+    ravno('from=prompter-anketa' in ssylka, True, 'метка потерялась: %s' % ssylka)
+    ravno('&k=777000123.' in ssylka, True, 'ключ подписки потерялся: %s' % ssylka)
+
+
 def proverka_chata_zayavok():
     """Бот сам называет номер чата и записывает его себе в настройки.
 
@@ -506,7 +542,8 @@ if __name__ == '__main__':
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
                      proverka_bitogo_fajla, proverka_kanala,
                      proverka_razgovora,
-                     proverka_chata_zayavok, proverka_poteri_zayavki, proverka_posrednika, proverka_dorogi):
+                     proverka_dvuh_sajtov, proverka_chata_zayavok,
+                     proverka_poteri_zayavki, proverka_posrednika, proverka_dorogi):
         proverka()
 
     if oshibki:

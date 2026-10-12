@@ -29,9 +29,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bot as b
 
 SEKRET = 'proverochnyj-sekret-40-znakov-dlinoj-abc'
-LEAD = os.path.abspath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    '..', 'genii', 'hosting-ru', 'lead.php'))
+# Сайтов два, и ключ проверяет каждый у себя. Разойтись они могут
+# незаметно: правку перенесли на один сайт и забыли про второй, а
+# заметно это станет только по заявкам без отметки о подписке.
+KOREN = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SAJTY = [
+    ('ГенИИ', os.path.join(KOREN, 'genii', 'hosting-ru', 'lead.php')),
+    ('Промптер', os.path.join(KOREN, 'prompter-moscow', 'hosting-ru', 'lead.php')),
+]
 
 oshibki = []
 
@@ -68,33 +73,50 @@ def main():
     if not shutil.which('php'):
         print('php не найден — проверку пропускаю')
         return 0
-    if not os.path.exists(LEAD):
+    est = [(imya, put) for imya, put in SAJTY if os.path.exists(put)]
+    if not est:
         print('lead.php рядом нет — проверку пропускаю')
         return 0
 
-    funkciya = vyrezat_funkciyu(open(LEAD, encoding='utf-8').read(),
-                                'podpiskaPoKlyuchu')
-    if not funkciya:
-        print('в lead.php не нашлась функция podpiskaPoKlyuchu')
-        return 1
+    for imya, put in est:
+        funkciya = vyrezat_funkciyu(open(put, encoding='utf-8').read(),
+                                    'podpiskaPoKlyuchu')
+        if not funkciya:
+            oshibki.append('%s: в lead.php нет функции podpiskaPoKlyuchu' % imya)
+            continue
+        proverit_sajt(imya, funkciya)
 
+    if oshibki:
+        print('ОШИБКИ:')
+        for o in oshibki:
+            print('  -', o)
+        return 1
+    print('бот и сайты понимают ключ одинаково: %s'
+          % ', '.join(imya for imya, _ in est))
+    return 0
+
+
+def proverit_sajt(imya, funkciya):
     cfg = {'sekret_ssylki': SEKRET}
+
+    def plohо(chto):
+        oshibki.append('%s: %s' % (imya, chto))
 
     # 1. Свежий ключ сайт принимает и возвращает номер человека.
     klyuch = b.klyuch_dlya(cfg, 777000123)
     otvet = sprosit_php(klyuch, funkciya)
     if otvet != '777000123':
-        oshibki.append('свежий ключ не принят: php ответил %r' % otvet)
+        plohо('свежий ключ не принят: php ответил %r' % otvet)
 
     # 2. Подделанный ключ отвергается.
     porchenyj = klyuch[:-1] + ('A' if klyuch[-1] != 'A' else 'B')
     if sprosit_php(porchenyj, funkciya) != '':
-        oshibki.append('подделанный ключ прошёл проверку')
+        plohо('подделанный ключ прошёл проверку')
 
     # 3. Чужой секрет не подходит.
     chuzhoj = b.klyuch_dlya({'sekret_ssylki': 'drugoj-sekret'}, 777000123)
     if sprosit_php(chuzhoj, funkciya) != '':
-        oshibki.append('ключ с чужим секретом прошёл проверку')
+        plohо('ключ с чужим секретом прошёл проверку')
 
     # 4. Просроченный ключ виден как просроченный, а не как чужой:
     #    менеджеру это разные новости.
@@ -105,24 +127,16 @@ def main():
                         .decode('ascii').rstrip('=')[:27])
     otvet = sprosit_php(staryj, funkciya)
     if otvet != 'prosrochen':
-        oshibki.append('просроченный ключ: php ответил %r' % otvet)
+        plohо('просроченный ключ: php ответил %r' % otvet)
 
     # 5. Пустой ключ — просто нет отметки, не ошибка.
     if sprosit_php('', funkciya) != '':
-        oshibki.append('пустой ключ дал отметку о подписке')
+        plohо('пустой ключ дал отметку о подписке')
 
     # 6. Мусор вместо ключа не роняет php.
     for musor in ('abc', '1.2', '..', '1.2.3.4', 'a.b.c'):
         if sprosit_php(musor, funkciya) != '':
-            oshibki.append('мусор %r прошёл проверку' % musor)
-
-    if oshibki:
-        print('ОШИБКИ:')
-        for o in oshibki:
-            print('  -', o)
-        return 1
-    print('бот и сайт понимают ключ одинаково')
-    return 0
+            plohо('мусор %r прошёл проверку' % musor)
 
 
 if __name__ == '__main__':
