@@ -27,7 +27,7 @@
 // боту-приёмщику: он спрашивает телеграм, подписан ли человек на
 // канал, и снимает кружок ожидания с нажатой кнопки.
 const MOZHNO = ['getUpdates', 'sendMessage', 'editMessageText',
-                'sendPhoto', 'getMe', 'getChatMember',
+                'sendPhoto', 'getMe', 'getChat', 'getChatMember',
                 'getChatAdministrators', 'answerCallbackQuery'];
 
 export default {

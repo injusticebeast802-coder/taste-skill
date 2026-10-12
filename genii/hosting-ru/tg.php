@@ -63,7 +63,7 @@ if (!hash_equals(TG_RELAY_KEY, $klyuch)) {
 // боту-приёмщику: он спрашивает телеграм, подписан ли человек на
 // канал, и снимает кружок ожидания с нажатой кнопки.
 $mozhno = array('getUpdates', 'sendMessage', 'editMessageText',
-                'sendPhoto', 'getMe', 'getChatMember',
+                'sendPhoto', 'getMe', 'getChat', 'getChatMember',
                 'getChatAdministrators', 'answerCallbackQuery', 'proverka');
 $metod  = isset($_GET['m']) ? $_GET['m'] : '';
 if (!in_array($metod, $mozhno, true)) {
