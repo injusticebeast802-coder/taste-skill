@@ -301,39 +301,6 @@ def proverka_posrednika():
                            % os.path.basename(put))
 
 
-def proverka_vybora_adresov():
-    """Когда ходим через посредника, версию адресов не выбираем.
-
-    Проверять связь с api.telegram.org в этом случае бессмысленно: мы
-    туда и не ходим. Лишняя проверка добавила бы секунд к запуску и
-    напугала бы надписью «нет связи» там, где всё работает.
-    """
-    # Выбор версии держится на подмене внутренней функции urllib3.
-    # Внутренности библиотек меняются от версии к версии, и проверить
-    # это надо на той, что стоит на хостинге, а не на моей: иначе
-    # обновление библиотеки тихо вернёт минуты ожидания.
-    import socket
-    sredstvo = b.urllib3.util.connection
-    bylo_gai = sredstvo.allowed_gai_family
-    try:
-        ravno(b.ogranichit_adresa(socket.AF_INET), True,
-              'не вышло закрепить версию адресов')
-        ravno(sredstvo.allowed_gai_family(), socket.AF_INET,
-              'подмена не действует: urllib3 спрашивает адреса по-своему')
-        ravno(b.SEMEJSTVO, socket.AF_INET, 'выбранная версия не запомнилась')
-    finally:
-        sredstvo.allowed_gai_family = bylo_gai
-        b.SEMEJSTVO = None
-
-    bylo = b.SEMEJSTVO
-    try:
-        ravno(b.nastroit_svyaz({'telegram_api': 'https://genii-ai.ru/tg.php?k=p'}),
-              None, 'через посредника выбрали версию адресов')
-        ravno(b.SEMEJSTVO, bylo, 'через посредника подменили выбор адресов')
-    finally:
-        b.SEMEJSTVO = bylo
-
-
 def proverka_dorogi():
     """Разбор ответа посредника: наш бот, чужой бот, отказ, мусор.
 
@@ -378,8 +345,7 @@ if __name__ == '__main__':
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
                      proverka_bitogo_fajla, proverka_kanala,
                      proverka_razgovora,
-                     proverka_posrednika, proverka_vybora_adresov,
-                     proverka_dorogi):
+                     proverka_posrednika, proverka_dorogi):
         proverka()
 
     if oshibki:

@@ -14,8 +14,16 @@
 #   3. спрашивает у телеграма через эту дорогу имя бота — если имя
 #      пришло, дорога рабочая.
 #
+# Нужна она не всегда: обычно бот достаёт до телеграма сам, пусть и
+# медленно. Сначала посмотрите в журнал — если там «Связь с
+# телеграмом» с каким-то числом секунд, прямая дорога работает, и
+# трогать ничего не надо.
+#
 # Запуск:
 #   sh ~/priyomnik/hosting/cherez-sajt.sh
+#
+# Вернуть прямую дорогу:
+#   sh ~/priyomnik/hosting/cherez-sajt.sh otmenit
 #
 # Если сайт лежит не в ~/www/genii-ai.ru:
 #   SITE_DIR=/полный/путь sh ~/priyomnik/hosting/cherez-sajt.sh
@@ -25,6 +33,31 @@ set -e
 
 DIR="${PRIYOMNIK_DIR:-$HOME/priyomnik}"
 INI="$DIR/config.ini"
+
+# ---------- отмена ----------
+# Вернуть прямую дорогу: бот снова ходит в телеграм сам. Нужно, если
+# через сайт вышло хуже, чем напрямую, — так и было, когда работник
+# Cloudflare знал только одного бота и отвечал клиентам не от того.
+if [ "$1" = "otmenit" ]; then
+  [ -f "$INI" ] || { echo "Нет $INI."; exit 1; }
+  PY="$DIR/venv/bin/python"
+  [ -x "$PY" ] || PY=$(command -v python3) || { echo "Нет python."; exit 1; }
+  "$PY" - "$INI" <<'EOF'
+import io, re, sys
+put = sys.argv[1]
+tekst = io.open(put, encoding='utf-8').read()
+novyj, skolko = re.subn(r'(?m)^telegram_api\s*=.*$', 'telegram_api =',
+                        tekst, count=1)
+io.open(put, 'w', encoding='utf-8').write(novyj)
+print('Посредник убран.' if skolko else 'Посредник и так не был вписан.')
+EOF
+  chmod 600 "$INI"
+  sh "$DIR/hosting/bot.sh" restart
+  echo
+  echo "Бот снова ходит в телеграм напрямую."
+  echo "Через полминуты: sh $DIR/hosting/bot.sh log"
+  exit 0
+fi
 
 # ---------- где сайт ----------
 if [ -n "$SITE_DIR" ]; then
