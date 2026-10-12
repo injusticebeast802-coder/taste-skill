@@ -25,14 +25,23 @@
 
 <link rel="preload" href="fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/unbounded-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
-<!-- Из общего спрайта сайта здесь нужна одна иконка — галочка
-     в чекбоксах согласий и на экране «Заявка отправлена». -->
+<!-- Из общего спрайта сайта здесь нужны галочка — в чекбоксах
+     согласий и на экране «Заявка отправлена» — и значки каналов:
+     с этого экрана человек уходит к нам в Telegram и ВКонтакте. -->
 <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="s-tg" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="24" fill="#2AABEE"/>
+    <path fill="#fff" d="M9.6 22.9 36 12.7c1.2-.4 2.3.3 1.9 2.1l-4.5 21.2c-.3 1.5-1.2 1.8-2.4 1.1l-6.7-5-3.2 3.1c-.4.4-.7.7-1.4.7l.5-7.1 12.9-11.6c.6-.5-.1-.8-.9-.3L16.3 24.4l-6.8-2.1c-1.5-.5-1.5-1.5.1-1.6z"/>
+  </symbol>
+  <symbol id="s-vk" viewBox="0 0 48 48">
+    <rect width="48" height="48" rx="13" fill="#0077FF"/>
+    <path fill="#fff" d="M25.3 34.4c-9.9 0-15.6-6.8-15.8-18.1h5c.2 8.3 3.8 11.8 6.7 12.5V16.3h4.6v7.1c2.9-.3 5.9-3.6 6.9-7.1h4.6c-.8 4.4-4.1 7.7-6.4 9 2.3 1.1 6 4 7.4 9.1h-5.1c-1.1-3.4-3.9-6-7.4-6.4v6.4h-.5z"/>
+  </symbol>
 </svg>
 
 <main class="fpage">
@@ -138,6 +147,18 @@
       <span class="modal__ok" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
       <h2 class="modal__t">Заявка отправлена</h2>
       <p class="modal__sub">Специалист свяжется с вами в ближайшее время.</p>
+      <!-- Самый тёплый момент всей воронки: человек только что
+           оставил заявку и ждёт ответа. Вместо одной кнопки «закрыть»
+           показываем, зачем подписаться, и уводим в каналы. -->
+      <p class="modal__why">Пока ждёте — подпишитесь. Каждую неделю разбираем новую нишу Москвы: кого нейросети называют, а кого не знают вовсе.</p>
+      <div class="modal__chans">
+        <a class="chanbtn" href="https://t.me/geniimoscow" target="_blank" rel="noopener">
+          <svg class="chanbtn__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-tg"/></svg>Telegram
+        </a>
+        <a class="chanbtn" href="https://vk.ru/club242034132" target="_blank" rel="noopener">
+          <svg class="chanbtn__ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#s-vk"/></svg>ВКонтакте
+        </a>
+      </div>
       <a class="btn btn--ghost-dark" href="/">Перейти на сайт</a>
     </div>
   </div>
