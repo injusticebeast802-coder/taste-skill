@@ -1,0 +1,6 @@
+config.ini
+anketa.json
+bot.log
+bot.pid
+venv/
+__pycache__/

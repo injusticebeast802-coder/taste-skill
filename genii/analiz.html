@@ -25,7 +25,7 @@
 
 <link rel="preload" href="fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/unbounded-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -54,6 +54,13 @@
     <div class="modal__body" id="modal-body">
       <h1 class="modal__t" id="modal-t">Углублённый анализ нейровыдачи</h1>
       <p class="modal__sub">Мы проверяем, называют ли нейросети вашу компанию. Обязательных полей семь — по ним разбор уже будет. Ниже — необязательные: укажите район работы, и мы заодно посмотрим, кого нейросети называют из тех, кто работает рядом с вами.</p>
+
+      <!-- Короткий путь тем, кто сидит в телеграме: бот спрашивает
+           то же самое, но по одному вопросу и без набора на клавиатуре
+           в браузере. Заодно он проверяет подписку на канал — ради
+           неё разбор и отдаётся бесплатно. Страница остаётся для тех,
+           кому телеграм неудобен. -->
+      <p class="fpage__bot">Быстрее — <a href="https://t.me/Geniipodpiskabot?start=anketa" target="_blank" rel="noopener">в телеграме</a>: бот спросит то же самое по одному вопросу. Разбор бесплатный для подписчиков канала.</p>
 
       <!-- data-source — запасной вариант, если в ссылке нет ?from=…
            Строка попадает в сообщение боту как «Источник». -->
