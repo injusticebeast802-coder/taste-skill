@@ -21,7 +21,10 @@
 компьютере и на хостинге.
 """
 
+import base64
 import configparser
+import hashlib
+import hmac
 import html
 import json
 import os
@@ -99,6 +102,9 @@ def nastrojki():
         print('В config.ini не заполнено: %s' % ', '.join(net))
         sys.exit(1)
 
+    if not (cfg.get('sajt_anketa') or '').strip():
+        cfg['sajt_anketa'] = 'https://genii-ai.ru/analiz'
+
     kanal = cfg['kanal'].strip()
     if not kanal.startswith('@') and not kanal.lstrip('-').isdigit():
         kanal = '@' + kanal
@@ -165,6 +171,41 @@ def podpisan(cfg, user_id):
     if status == 'restricted':
         return bool(r['result'].get('is_member'))
     return False
+
+
+# --------------------------------------------------- ссылка на анкету
+
+# Сколько живёт ссылка. Сутки — чтобы человек успел вернуться вечером,
+# но подписка при этом оставалась свежей: отписался и пришёл через
+# неделю по старой ссылке — так не пойдёт.
+KLYUCH_ZHIVET = 24 * 3600
+
+
+def klyuch_dlya(cfg, user_id):
+    """Подписанный ключ: сайт по нему узнаёт, что подписка проверена.
+
+    Общей базы у бота и сайта нет и не нужно. Ключ подписан секретом,
+    который лежит в двух местах — в config.ini бота и в config.php
+    сайта. Сайт проверяет подпись арифметикой, а не запросом к боту:
+    подделать её, не зная секрета, нельзя, а бот при этом может лежать.
+    """
+    sekret = (cfg.get('sekret_ssylki') or '').strip()
+    if not sekret:
+        return ''
+    telo = '%d.%d' % (user_id, int(time.time()) + KLYUCH_ZHIVET)
+    syroe = hmac.new(sekret.encode('utf-8'), telo.encode('utf-8'),
+                     hashlib.sha256).digest()
+    podpis = base64.urlsafe_b64encode(syroe).decode('ascii').rstrip('=')[:27]
+    return '%s.%s' % (telo, podpis)
+
+
+def ssylka_na_anketu(cfg, user_id, metka):
+    k = klyuch_dlya(cfg, user_id)
+    adres = cfg['sajt_anketa']
+    hvost = 'from=%s' % (metka or 'bot')
+    if k:
+        hvost += '&k=' + k
+    return '%s%s%s' % (adres, '&' if '?' in adres else '?', hvost)
 
 
 # ------------------------------------------------------------ анкета
@@ -336,6 +377,33 @@ def pokazat_itog(cfg, chat_id, sostoyanie):
             ]))
 
 
+def predlozhit_put(cfg, chat_id, sostoyanie, metka, kto):
+    """Подписка есть — спрашиваем, где человеку удобнее отвечать.
+
+    В боте быстрее: один вопрос за раз, без набора в браузере. На сайте
+    привычнее тем, кто пришёл с компьютера и не хочет прыгать между
+    окнами. Какой путь выберут чаще — заранее не угадать, поэтому
+    показываем оба и смотрим по заявкам.
+    """
+    sostoyanie[str(chat_id)] = {
+        'shag': 'vybor',
+        'otvety': {},
+        'metka': metka,
+        'kto': kto,
+        'kogda': time.time(),
+    }
+    sohranit(sostoyanie)
+    napisat(cfg, chat_id,
+            'Подписка есть, спасибо. Осталось рассказать о компании — '
+            'шесть коротких вопросов.\n\n'
+            'Где удобнее ответить?',
+            knopki([
+                [{'text': 'Прямо здесь', 'callback_data': 'anketa_tut'}],
+                [{'text': 'На сайте, одной формой',
+                  'url': ssylka_na_anketu(cfg, (kto or {}).get('id', 0), metka)}],
+            ]))
+
+
 def nachat_anketu(cfg, chat_id, sostoyanie, metka, kto):
     sostoyanie[str(chat_id)] = {
         'shag': SHAGI[0][0],
@@ -417,7 +485,7 @@ def obrabotat_soobshchenie(cfg, sostoyanie, msg):
 
         est = podpisan(cfg, kto.get('id'))
         if est is True:
-            nachat_anketu(cfg, chat_id, sostoyanie, metka, kto)
+            predlozhit_put(cfg, chat_id, sostoyanie, metka, kto)
         elif est is False:
             sostoyanie[kluch] = {'shag': 'podpiska', 'otvety': {}, 'metka': metka,
                                  'kto': kto, 'kogda': time.time()}
@@ -439,6 +507,10 @@ def obrabotat_soobshchenie(cfg, sostoyanie, msg):
     # что-то своё — повторяем вопрос вместе с кнопками.
     if shag == 'podpiska':
         poprosit_podpisku(cfg, chat_id)
+        return
+    if shag == 'vybor':
+        predlozhit_put(cfg, chat_id, sostoyanie, anketa.get('metka', 'бот'),
+                       anketa.get('kto') or kto)
         return
     if shag in (SHAG_LPR, 'itog'):
         sprosit(cfg, chat_id, sostoyanie)
@@ -479,7 +551,7 @@ def obrabotat_knopku(cfg, sostoyanie, call):
         est = podpisan(cfg, kto.get('id'))
         if est is True:
             metka = (sostoyanie.get(kluch) or {}).get('metka', 'бот')
-            nachat_anketu(cfg, chat_id, sostoyanie, metka, kto)
+            predlozhit_put(cfg, chat_id, sostoyanie, metka, kto)
         elif est is False:
             napisat(cfg, chat_id,
                     'Пока не вижу вас среди подписчиков. Подпишитесь и нажмите '
@@ -497,6 +569,11 @@ def obrabotat_knopku(cfg, sostoyanie, call):
     anketa = sostoyanie.get(kluch)
     if not anketa:
         napisat(cfg, chat_id, 'Чтобы получить разбор, напишите /start.')
+        return
+
+    if dannye == 'anketa_tut':
+        nachat_anketu(cfg, chat_id, sostoyanie, anketa.get('metka', 'бот'),
+                      anketa.get('kto') or kto)
         return
 
     if dannye.startswith('lpr:'):
