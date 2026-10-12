@@ -33,8 +33,33 @@ import time
 import traceback
 
 import requests
+import urllib3
 
 import inn as inn_proverka
+
+# IPv6 отключаем до первого запроса. На хостинге api.telegram.org
+# нередко отвечает адресом IPv6, связи по нему нет, и попытка висит
+# до таймаута — минуту на запрос. Снаружи это выглядит так, будто бот
+# думает две-три минуты над нажатием кнопки. Браузеры и curl в такой
+# ситуации сами перескакивают на IPv4 за доли секунды, python так не
+# умеет: ему надо прямо сказать.
+urllib3.util.connection.HAS_IPV6 = False
+
+# Одно соединение на всю работу вместо нового на каждый запрос.
+# Рукопожатие TLS с телеграмом занимает заметно больше, чем сам
+# запрос, а бот делает их десятками.
+SVYAZ = requests.Session()
+
+# Сколько ждём ответа: сначала соединения, потом самого ответа.
+# Шестьдесят секунд, как было, — это не терпение, а три минуты
+# ожидания на двух попытках. Телеграм отвечает за доли секунды,
+# и если он молчит десять, он молчит.
+ZHDAT_SVYAZ = 10
+ZHDAT_OTVET = 20
+
+# Запрос дольше этого времени печатаем в журнал. Иначе «бот тормозит»
+# остаётся ощущением, а не цифрой, по которой можно что-то сделать.
+DOLGO = 3.0
 
 # Вывод в utf-8: на Windows консоль по умолчанию в cp866, и русские
 # сообщения превращались бы в мусор.
@@ -133,19 +158,29 @@ def tg_proxy(cfg):
     return {'http': url, 'https': url} if url else None
 
 
-def api(cfg, metod, **params):
+def api(cfg, metod, popytok=3, **params):
     """Один вызов телеграма. Сетевые сбои здесь обычны, поэтому ошибку
-    не роняем наружу: бот должен пережить обрыв связи, а не упасть."""
-    for popytka in (1, 2, 3):
+    не роняем наружу: бот должен пережить обрыв связи, а не упасть.
+
+    Число попыток разное не от настроения: потерять сообщение человеку
+    нельзя, а снять кружок ожидания с нажатой кнопки — мелочь, ради
+    которой человек не должен ждать. Поэтому у мелочей попытка одна.
+    """
+    for popytka in range(1, popytok + 1):
+        nachalo = time.time()
         try:
-            r = requests.post(tg_url(cfg, metod), data=params,
-                              proxies=tg_proxy(cfg), timeout=60)
+            r = SVYAZ.post(tg_url(cfg, metod), data=params,
+                           proxies=tg_proxy(cfg),
+                           timeout=(ZHDAT_SVYAZ, ZHDAT_OTVET))
+            proshlo = time.time() - nachalo
+            if proshlo > DOLGO:
+                print('долгий ответ телеграма: %s — %.1f с' % (metod, proshlo))
             return r.json()
         except requests.exceptions.RequestException as e:
-            if popytka == 3:
+            if popytka == popytok:
                 print('Телеграм не ответил (%s): %s' % (metod, e))
                 return {'ok': False, 'description': str(e)}
-            time.sleep(2 * popytka)
+            time.sleep(1)
 
 
 # ------------------------------------------------------------ подписка
@@ -545,7 +580,12 @@ def obrabotat_knopku(cfg, sostoyanie, call):
     kto = call.get('from') or {}
     kluch = str(chat_id)
 
-    api(cfg, 'answerCallbackQuery', callback_query_id=call['id'])
+    # Кружок на кнопке снимаем одной попыткой. Раньше этот вызов стоял
+    # первым с тремя попытками по минуте: при неладах со связью человек
+    # нажимал «Прямо здесь» и три минуты смотрел в тишину — бот ещё
+    # даже не дошёл до первого вопроса. Не сняли кружок — не беда,
+    # телеграм погасит его сам.
+    api(cfg, 'answerCallbackQuery', popytok=1, callback_query_id=call['id'])
 
     if dannye == 'proverit':
         est = podpisan(cfg, kto.get('id'))
@@ -607,7 +647,12 @@ def proverit_prava(cfg):
     телеграм отвечает отказом на любой вопрос о подписке, и бот молча
     отшивал бы всех подряд. Лучше увидеть это в окне запуска.
     """
+    nachalo = time.time()
     ya = api(cfg, 'getMe')
+    # Время первого запроса печатаем всегда. Оно же и время рукопожатия
+    # с телеграмом: дальше бот говорит по той же линии, и если здесь
+    # вышло полминуты, значит и каждый ответ человеку будет таким.
+    print('Связь с телеграмом: %.1f с.' % (time.time() - nachalo))
     if not ya.get('ok'):
         print('ВНИМАНИЕ: телеграм не принял токен — %s' % ya.get('description'))
         return
@@ -650,9 +695,10 @@ def glavnoe():
 
     while True:
         try:
-            r = requests.get(tg_url(cfg, 'getUpdates'),
-                             params={'timeout': ZHDAT, 'offset': offset},
-                             proxies=tg_proxy(cfg), timeout=ZHDAT + 15)
+            r = SVYAZ.get(tg_url(cfg, 'getUpdates'),
+                          params={'timeout': ZHDAT, 'offset': offset},
+                          proxies=tg_proxy(cfg),
+                          timeout=(ZHDAT_SVYAZ, ZHDAT + 10))
             dannye = r.json()
         except requests.exceptions.RequestException:
             print('Телеграм не отвечает, пробую снова через 5 секунд…')
@@ -666,6 +712,7 @@ def glavnoe():
 
         for upd in dannye.get('result', []):
             offset = upd['update_id'] + 1
+            vzyato = time.time()
             try:
                 if 'message' in upd:
                     obrabotat_soobshchenie(cfg, sostoyanie, upd['message'])
@@ -673,6 +720,9 @@ def glavnoe():
                     obrabotat_knopku(cfg, sostoyanie, upd['callback_query'])
             except Exception:
                 traceback.print_exc()
+            proshlo = time.time() - vzyato
+            if proshlo > DOLGO:
+                print('обработка заняла %.1f с' % proshlo)
 
         if time.time() - posle_chistki > 3600:
             if pochistit(sostoyanie):

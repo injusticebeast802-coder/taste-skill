@@ -133,10 +133,120 @@ def proverka_kanala():
           'ссылка на канал собралась неверно')
 
 
+def proverka_razgovora():
+    """Весь путь человека: /start, подписка, кнопка «Прямо здесь», ответы.
+
+    Кнопки — самое хрупкое место: нажатие приходит не сообщением, а
+    отдельным запросом, и ошибка в разборе выглядит как «бот не
+    отвечает». Поэтому проходим разговор целиком, подменив телеграм
+    записной книжкой: что бот отправил бы, то и проверяем.
+    """
+    poslano = []
+
+    def pritvorno(cfg, metod, **params):
+        poslano.append((metod, params))
+        if metod == 'getChatMember':
+            return {'ok': True, 'result': {'status': 'member'}}
+        if metod == 'getMe':
+            return {'ok': True, 'result': {'id': 1}}
+        return {'ok': True, 'result': {'message_id': len(poslano)}}
+
+    nastoyashchij = b.api
+    staroe = b.ANKETY
+    b.api = pritvorno
+    b.ANKETY = os.path.join(os.path.dirname(staroe), 'anketa-razgovor.json')
+    cfg = {'kanal': '@geniimoscow', 'kanal_ssylka': 'https://t.me/geniimoscow',
+           'sajt_anketa': 'https://genii-ai.ru/analiz', 'sekret_ssylki': '',
+           'chat_zayavok': '-100500'}
+    kto = {'id': 777, 'first_name': 'Иван', 'username': 'ivanov'}
+    chat = {'id': 777}
+    sostoyanie = {}
+
+    def teksty():
+        return [p.get('text', '') for m, p in poslano if m == 'sendMessage']
+
+    def knopki_poslednego():
+        for metod, params in reversed(poslano):
+            if metod == 'sendMessage' and params.get('reply_markup'):
+                razbor = __import__('json').loads(params['reply_markup'])
+                return [k for ryad in razbor['inline_keyboard'] for k in ryad]
+        return []
+
+    try:
+        # 1. /start с меткой сайта: подписка есть — предлагаем два пути.
+        b.obrabotat_soobshchenie(cfg, sostoyanie, {
+            'chat': chat, 'from': kto, 'text': '/start sajt-glavnaya'})
+        ravno(sostoyanie['777']['shag'], 'vybor', 'после /start не спросили о пути')
+        ravno(sostoyanie['777']['metka'], 'sajt-glavnaya', 'метка источника потерялась')
+        imena = [k['text'] for k in knopki_poslednego()]
+        ravno(imena, ['Прямо здесь', 'На сайте, одной формой'], 'кнопки выбора пути')
+        tut = knopki_poslednego()[0]
+        ravno(tut.get('callback_data'), 'anketa_tut', 'у кнопки нет данных для нажатия')
+
+        # 2. Нажатие «Прямо здесь» — то самое место, где бот молчал.
+        b.obrabotat_knopku(cfg, sostoyanie, {
+            'id': 'a1', 'from': kto, 'message': {'chat': chat},
+            'data': tut['callback_data']})
+        ravno(sostoyanie['777']['shag'], b.SHAGI[0][0],
+              'кнопка «Прямо здесь» не начала анкету')
+        ravno('1 из 7' in teksty()[-1], True,
+              'после кнопки не задан первый вопрос: %r' % teksty()[-1])
+
+        # 3. Шесть ответов подряд.
+        for otvet in ('Брусина', 'строительство домов', 'Одинцово',
+                      'brusina.ru', '9702020445', '+7 906 758-77-77'):
+            b.obrabotat_soobshchenie(cfg, sostoyanie, {
+                'chat': chat, 'from': kto, 'text': otvet})
+        ravno(sostoyanie['777']['shag'], b.SHAG_LPR, 'не дошли до вопроса про ЛПР')
+
+        # 4. Кнопка про ЛПР, сводка и отправка менеджеру.
+        b.obrabotat_knopku(cfg, sostoyanie, {
+            'id': 'a2', 'from': kto, 'message': {'chat': chat}, 'data': 'lpr:sam'})
+        ravno(sostoyanie['777']['shag'], 'itog', 'после ЛПР не показали сводку')
+
+        b.obrabotat_knopku(cfg, sostoyanie, {
+            'id': 'a3', 'from': kto, 'message': {'chat': chat}, 'data': 'otpravit'})
+        ravno('777' in sostoyanie, False, 'отправленная анкета осталась в памяти')
+
+        kartochka = [p for m, p in poslano
+                     if m == 'sendMessage' and str(p.get('chat_id')) == '-100500']
+        ravno(len(kartochka), 1, 'карточка менеджеру не ушла')
+        if kartochka:
+            telo = kartochka[0]['text']
+            for kusok in ('Брусина', '9702020445', 'sajt-glavnaya', 'ivanov'):
+                if kusok not in telo:
+                    oshibki.append('в карточке менеджеру нет %r' % kusok)
+
+        # 5. Нажатие на старую кнопку, когда анкеты уже нет, не роняет бота.
+        b.obrabotat_knopku(cfg, sostoyanie, {
+            'id': 'a4', 'from': kto, 'message': {'chat': chat}, 'data': 'anketa_tut'})
+        ravno('/start' in teksty()[-1], True, 'на старую кнопку бот не ответил')
+
+        # 6. Нет подписки — анкету не начинаем, зовём подписаться.
+        def nepodpisan(cfg, metod, **params):
+            if metod == 'getChatMember':
+                poslano.append((metod, params))
+                return {'ok': True, 'result': {'status': 'left'}}
+            return pritvorno(cfg, metod, **params)
+
+        b.api = nepodpisan
+        b.obrabotat_soobshchenie(cfg, sostoyanie, {
+            'chat': chat, 'from': kto, 'text': '/start'})
+        ravno(sostoyanie['777']['shag'], 'podpiska', 'неподписанного пустили в анкету')
+        ravno([k['text'] for k in knopki_poslednego()],
+              ['Подписаться на канал', 'Я подписался'], 'кнопки подписки')
+    finally:
+        b.api = nastoyashchij
+        if os.path.exists(b.ANKETY):
+            os.remove(b.ANKETY)
+        b.ANKETY = staroe
+
+
 if __name__ == '__main__':
     for proverka in (proverka_polej, proverka_inn_chistitsya, proverka_poryadka,
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
-                     proverka_bitogo_fajla, proverka_kanala):
+                     proverka_bitogo_fajla, proverka_kanala,
+                     proverka_razgovora):
         proverka()
 
     if oshibki:
