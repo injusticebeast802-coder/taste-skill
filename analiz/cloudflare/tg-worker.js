@@ -10,10 +10,12 @@
 
    Бесплатно: 100 000 запросов в сутки, нам нужно около тысячи.
 
-   ЧТО ЗАВЕСТИ в настройках работника (Settings -> Variables), обе
+   ЧТО ЗАВЕСТИ в настройках работника (Settings -> Variables), все
    строки — как Secret, чтобы не отображались:
-       TG_TOKEN     токен бота, вида 1234567890:AAG...
-       TG_RELAY_KEY тот же пароль, что в config.ini программы
+       TG_TOKEN        токен бота отчётов, вида 1234567890:AAG...
+       TG_RELAY_KEY    тот же пароль, что в config.ini программы
+       TG_TOKEN_PRIYOM токен бота-приёмщика заявок — если он тоже
+                       ходит через работника
    ========================================================= */
 
 /* getMe только называет имя бота и ничего не меняет. Нужен, чтобы
@@ -21,8 +23,12 @@
    этого перепутанный токен выглядит как полная тишина. */
 // editMessageText нужен, чтобы бот писал ход проверки в одно
 // сообщение и правил его, а не сыпал десяток отдельных.
+// getChatMember, getChatAdministrators и answerCallbackQuery нужны
+// боту-приёмщику: он спрашивает телеграм, подписан ли человек на
+// канал, и снимает кружок ожидания с нажатой кнопки.
 const MOZHNO = ['getUpdates', 'sendMessage', 'editMessageText',
-                'sendPhoto', 'getMe'];
+                'sendPhoto', 'getMe', 'getChatMember',
+                'getChatAdministrators', 'answerCallbackQuery'];
 
 export default {
   async fetch(request, env) {
@@ -55,14 +61,32 @@ export default {
       return otkaz(404, 'Команда не разрешена: ' + metod);
     }
 
+    /* Чей токен подставить. Ботов два: один считает отчёты, другой
+       принимает заявки от клиентов. Работник у них общий, токены
+       разные, и перепутать их нельзя: человек спросит у одного бота,
+       а ответит ему другой. Без b= берём бота отчётов — так было до
+       появления второго, и старые настройки менять не нужно. */
+    const bot = adres.searchParams.get('b') || '';
+    let token = env.TG_TOKEN;
+    if (bot === 'priyom') {
+      if (!env.TG_TOKEN_PRIYOM) {
+        return otkaz(503, 'В настройках работника нет TG_TOKEN_PRIYOM — '
+                        + 'токена бота-приёмщика.');
+      }
+      token = env.TG_TOKEN_PRIYOM;
+    } else if (bot !== '' && bot !== 'otchet') {
+      return otkaz(404, 'Неизвестный бот: ' + bot);
+    }
+
     /* Остальные параметры передаём Телеграму как есть: в них
        номер последнего сообщения и время ожидания. */
     const hvost = new URLSearchParams(adres.searchParams);
     hvost.delete('k');
     hvost.delete('m');
+    hvost.delete('b');
     const stroka = hvost.toString();
 
-    let cel = 'https://api.telegram.org/bot' + env.TG_TOKEN + '/' + metod;
+    let cel = 'https://api.telegram.org/bot' + token + '/' + metod;
     if (stroka) cel += '?' + stroka;
 
     /* Тело и его тип передаём нетронутыми. Картинка отчёта идёт

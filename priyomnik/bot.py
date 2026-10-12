@@ -28,6 +28,7 @@ import hmac
 import html
 import json
 import os
+import socket
 import sys
 import time
 import traceback
@@ -36,14 +37,6 @@ import requests
 import urllib3
 
 import inn as inn_proverka
-
-# IPv6 отключаем до первого запроса. На хостинге api.telegram.org
-# нередко отвечает адресом IPv6, связи по нему нет, и попытка висит
-# до таймаута — минуту на запрос. Снаружи это выглядит так, будто бот
-# думает две-три минуты над нажатием кнопки. Браузеры и curl в такой
-# ситуации сами перескакивают на IPv4 за доли секунды, python так не
-# умеет: ему надо прямо сказать.
-urllib3.util.connection.HAS_IPV6 = False
 
 # Одно соединение на всю работу вместо нового на каждый запрос.
 # Рукопожатие TLS с телеграмом занимает заметно больше, чем сам
@@ -139,17 +132,93 @@ def nastrojki():
     return cfg
 
 
+# -------------------------------------------------- версия адресов
+
+TELEGA = 'api.telegram.org'
+
+
+def dozvon(semejstvo, srok=4):
+    """Отвечает ли телеграм по адресам этой версии.
+
+    Возвращает, за сколько секунд удалось дозвониться, или None, если
+    ни один адрес не ответил.
+    """
+    try:
+        adresa = socket.getaddrinfo(TELEGA, 443, semejstvo, socket.SOCK_STREAM)
+    except OSError:
+        return None
+    for af, tip, proto, _, kuda in adresa:
+        nachalo = time.time()
+        gnezdo = socket.socket(af, tip, proto)
+        gnezdo.settimeout(srok)
+        try:
+            gnezdo.connect(kuda)
+            return time.time() - nachalo
+        except OSError:
+            continue
+        finally:
+            gnezdo.close()
+    return None
+
+
+def nastroit_svyaz(cfg):
+    """Выбирает версию адресов, которой бот будет ходить в телеграм.
+
+    api.telegram.org отвечает адресами обеих версий, и у разных
+    хостингов живыми оказываются разные: где-то ходит только
+    четвёртая, а на нашем — только шестая, по ней и уходят заявки с
+    форм сайта. Питон, в отличие от браузера и curl, версии быстро не
+    перебирает: он берёт адреса по порядку и на каждый мёртвый честно
+    ждёт срока. Отсюда и брались минуты ожидания над нажатой кнопкой.
+
+    Поэтому при запуске коротко пробуем обе и дальше ходим только той,
+    что ответила. Решать это раз и навсегда в коде нельзя: однажды так
+    и сделали — запретили шестую версию, ровно ту, которая на этом
+    хостинге единственная рабочая.
+    """
+    if (cfg.get('telegram_api') or '').strip():
+        print('Телеграм через свой сайт — версию адресов выбирать не нужно.')
+        return None
+
+    itog = []
+    zhivoe = None
+    for imya, semejstvo in (('IPv6', socket.AF_INET6), ('IPv4', socket.AF_INET)):
+        sek = dozvon(semejstvo)
+        itog.append('%s — %s' % (imya, 'нет связи' if sek is None
+                                 else '%.1f с' % sek))
+        if sek is not None and zhivoe is None:
+            zhivoe = semejstvo
+    print('Адреса телеграма: %s.' % ', '.join(itog))
+
+    if zhivoe is None:
+        print('ВНИМАНИЕ: до телеграма с этой машины хода нет ни по одной '
+              'версии адресов.')
+        print('Бот будет молчать. Заполните telegram_api или telegram_proxy '
+              'в config.ini — как, написано в README.')
+        urllib3.util.connection.allowed_gai_family = lambda: socket.AF_UNSPEC
+        return None
+
+    urllib3.util.connection.allowed_gai_family = lambda: zhivoe
+    SVYAZ.close()          # старые соединения могли быть к мёртвому адресу
+    return zhivoe
+
+
 def tg_url(cfg, metod):
     """Адрес, по которому обращаемся к телеграму.
 
     Обычно это api.telegram.org. Если он с этой машины закрыт — а у
     российских провайдеров он закрыт, — в config.ini вписывают
-    telegram_api: адрес файла tg.php на нашем же хостинге. Хостинг до
-    телеграма достаёт, заявки с форм сайта уходят именно так.
+    telegram_api: адрес посредника, файла tg.php на нашем хостинге или
+    работника Cloudflare. Туда ход есть, а оттуда есть ход в телеграм.
+
+    Посредник один на двух ботов: отчёты шлёт один, заявки принимает
+    другой, токены у них разные. Чей токен подставить, говорит
+    b=priyom — без него посредник возьмёт токен бота отчётов, и
+    человек получит ответ не от того бота, в котором спрашивал.
     """
     relay = (cfg.get('telegram_api') or '').strip()
     if relay:
-        return '%s%sm=%s' % (relay, '&' if '?' in relay else '?', metod)
+        return '%s%sm=%s&b=priyom' % (relay, '&' if '?' in relay else '?', metod)
     return API % (cfg['telegram_token'], metod)
 
 
@@ -688,10 +757,12 @@ def glavnoe():
     print('Остановить: Ctrl+C')
     print()
 
+    nastroit_svyaz(cfg)
     proverit_prava(cfg)
 
     offset = None
     posle_chistki = time.time()
+    sboev_podryad = 0
 
     while True:
         try:
@@ -701,9 +772,18 @@ def glavnoe():
                           timeout=(ZHDAT_SVYAZ, ZHDAT + 10))
             dannye = r.json()
         except requests.exceptions.RequestException:
+            sboev_podryad += 1
             print('Телеграм не отвечает, пробую снова через 5 секунд…')
+            # Адрес, который отвечал при запуске, мог умереть: у
+            # телеграма их несколько и они меняются. После трёх
+            # неудач подряд выбираем версию адресов заново, иначе бот
+            # будет стучаться в мёртвую дверь до перезапуска вручную.
+            if sboev_podryad % 3 == 0:
+                nastroit_svyaz(cfg)
             time.sleep(5)
             continue
+
+        sboev_podryad = 0
 
         if not dannye.get('ok'):
             print('Телеграм ответил отказом: %s' % dannye.get('description'))
