@@ -271,10 +271,14 @@ def proverka_posrednika():
     ryadom = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     # Файлы посредников читаем, только когда рядом лежит весь проект.
-    # На хостинге бот живёт один в своей папке, и соседние файлы там
-    # либо чужие, либо старые: ругаться на них — пугать человека тем,
-    # что к боту отношения не имеет.
-    if not os.path.exists(os.path.join(ryadom, 'priyomnik', 'bot.py')):
+    #
+    # Смотреть на «а есть ли рядом папка priyomnik» было нельзя: на
+    # хостинге бот и живёт в папке priyomnik, рядом с ним стоит
+    # analiz — и проверка добралась до развёрнутой копии работника,
+    # сказав «анкета сломана» про файл, который к анкете отношения не
+    # имеет. Признаком проекта берём то, чего на хостинге не бывает:
+    # исходники сайта лежат там развёрнутыми, а не папкой genii.
+    if not os.path.exists(os.path.join(ryadom, 'genii', 'hosting-ru', 'tg.php')):
         return
 
     posredniki = [
@@ -330,12 +334,52 @@ def proverka_vybora_adresov():
         b.SEMEJSTVO = bylo
 
 
+def proverka_dorogi():
+    """Разбор ответа посредника: наш бот, чужой бот, отказ, мусор.
+
+    Это та проверка, которой вчера не хватило. Посредник ответил
+    исправно, команда сказала «дорога рабочая» — и была неправа:
+    ответил бот отчётов, потому что старый работник Cloudflare на
+    пометку b=priyom не смотрит. Клиент спросил бы у приёмщика, а
+    написал бы ему другой бот, тот, что разговаривает только с
+    менеджерами. Глазами такое не ловится.
+    """
+    ryadom = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hosting')
+    if not os.path.exists(os.path.join(ryadom, 'proverit_dorogu.py')):
+        print('proverit_dorogu.py рядом нет — эту проверку пропускаю')
+        return
+    sys.path.insert(0, ryadom)
+    import proverit_dorogu as d
+
+    nash = '8946754103:AAHtestovyj'
+    svoj = '{"ok":true,"result":{"id":8946754103,"username":"Priyomshchik"}}'
+    chuzhoj = '{"ok":true,"result":{"id":111222333,"username":"Otchetnyj"}}'
+
+    ravno(d.razobrat(svoj, nash), 'ДА: Priyomshchik', 'свой бот не узнан')
+    ravno(d.razobrat(chuzhoj, nash), 'ЧУЖОЙ: Otchetnyj',
+          'чужой бот прошёл как свой — ровно вчерашняя ошибка')
+
+    otkaz = '{"ok":false,"description":"Команда не разрешена: getMe"}'
+    ravno(d.razobrat(otkaz, nash), 'НЕТ: Команда не разрешена: getMe',
+          'отказ посредника не разобран')
+
+    for musor in ('<html>404</html>', '', 'ok'):
+        otvet = d.razobrat(musor, nash)
+        ravno(otvet.startswith('НЕТ:'), True,
+              'мусор %r разобран как %r' % (musor, otvet))
+
+    # Бот без имени пользователя — редкость, но падать на нём нельзя.
+    ravno(d.razobrat('{"ok":true,"result":{"id":8946754103}}', nash),
+          'ДА: 8946754103', 'бот без имени не разобран')
+
+
 if __name__ == '__main__':
     for proverka in (proverka_polej, proverka_inn_chistitsya, proverka_poryadka,
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
                      proverka_bitogo_fajla, proverka_kanala,
                      proverka_razgovora,
-                     proverka_posrednika, proverka_vybora_adresov):
+                     proverka_posrednika, proverka_vybora_adresov,
+                     proverka_dorogi):
         proverka()
 
     if oshibki:
