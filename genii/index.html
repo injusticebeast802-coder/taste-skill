@@ -40,7 +40,7 @@
      и скрипты держит час (правило в .htaccess). Поменяли style.css,
      script.js или form.js — увеличьте номер здесь, в zayavka.html
      и в privacy.html. -->
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 
 <!-- Если JavaScript выключен, показываем весь контент сразу. -->
 <noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
@@ -277,11 +277,11 @@
      на вопрос «подписан ли этот человек» только боту-администратору
      канала.
 
-     Форма на сайте рядом остаётся: кто не хочет в телеграм, оставляет
-     обычную заявку, и менеджер связывается сам. Терять таких людей
-     ради чистоты механики незачем. Её источник помечается отдельно
-     (data-form-source), заголовок и подпись окна — из data-form-title
-     и data-form-sub. -->
+     Запасной ссылки «оставить заявку» здесь нет намеренно. Кнопка
+     «Оставить заявку» есть в шапке, в первом экране и в финальном
+     блоке — кому телеграм неудобен, нажмёт любую из них. А рядом с
+     разбором такая ссылка показывала бы лёгкий путь в обход подписки,
+     ради которой всё и затевалось. -->
   <div class="wrap check-wrap">
     <div class="check reveal">
       <div class="check__copy">
@@ -297,14 +297,6 @@
           <svg class="ic btn__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
         </a>
         <p class="check__note">Бесплатно для подписчиков канала. Бот проверит подписку и задаст шесть вопросов — это минута.</p>
-        <button class="check__alt"
-                data-open-form
-                data-form-source="analiz"
-                data-form-deep="yes"
-                data-form-title="Бесплатный анализ нейровыдачи"
-                data-form-sub="Заполните форму — проверим вашу нишу и пришлём разбор.">
-          Не пользуюсь телеграмом — оставить заявку
-        </button>
       </div>
     </div>
   </div>
