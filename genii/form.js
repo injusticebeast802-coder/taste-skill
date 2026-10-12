@@ -72,6 +72,21 @@
      а если его там нет — из атрибута data-source у формы. Значение
      режем по длине и оставляем только безопасные символы: оно
      попадает в текст сообщения. */
+  /* Ключ подписки из адреса: genii-ai.ru/analiz?k=…
+     Его выдаёт бот-приёмщик после того, как убедился, что человек
+     подписан на канал. Сайт ключ не разбирает — он только передаёт
+     его дальше, а подпись проверяет lead.php общим с ботом секретом.
+     Разбирать на стороне браузера было бы бессмысленно: секрет туда
+     отдавать нельзя, а без него подпись не проверить. */
+  function klyuchPodpiski() {
+    try {
+      var k = new URLSearchParams(window.location.search).get('k') || '';
+      return String(k).replace(/[^A-Za-z0-9._-]/g, '').slice(0, 120);
+    } catch (e) {
+      return '';
+    }
+  }
+
   function leadSource() {
     var raw = '';
 
@@ -457,7 +472,8 @@
         field: fField.value.trim(),
         inn: fInn ? fInn.value.trim() : '',
         dm: dmValue(),
-        source: leadSource()
+        source: leadSource(),
+        klyuch: klyuchPodpiski()
       };
 
       // Поля расширенной анкеты добавляем только если они на странице

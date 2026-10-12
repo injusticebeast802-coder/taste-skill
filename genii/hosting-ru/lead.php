@@ -150,6 +150,35 @@ $dm      = function_exists('mb_strtolower') ? mb_strtolower($dm, 'UTF-8') : strt
    Поле необязательное, на проверку заявки не влияет. */
 $source  = clean(field($body, 'source'), 40);
 
+/* ---------- ключ подписки ----------
+   Бот-приёмщик проверяет подписку на канал и выдаёт человеку ссылку
+   на анкету с ключом в адресе. Ключ подписан общим секретом, поэтому
+   сайту не нужна ни общая база с ботом, ни запрос к нему: подпись
+   сходится или нет. Подделать её, не зная секрета, нельзя.
+
+   Заявку без ключа не отклоняем: на анкету приходят и те, кто шёл
+   обычным путём с формы, и терять их незачем. Просто в сообщении
+   менеджеру видно, кому подписка подтверждена, а кому нет. */
+function podpiskaPoKlyuchu($k) {
+  if ($k === '') return '';
+  if (!defined('RAZBOR_SECRET') || RAZBOR_SECRET === '' || RAZBOR_SECRET === '...') return '';
+
+  $chasti = explode('.', $k);
+  if (count($chasti) !== 3) return '';
+  list($kto, $do, $podpis) = $chasti;
+  if (!ctype_digit($kto) || !ctype_digit($do)) return '';
+
+  $syroe = hash_hmac('sha256', $kto . '.' . $do, RAZBOR_SECRET, true);
+  $svoya = substr(rtrim(strtr(base64_encode($syroe), '+/', '-_'), '='), 0, 27);
+  if (!hash_equals($svoya, $podpis)) return '';
+
+  /* Ссылка живёт сутки. Отписался и пришёл через неделю по старой
+     ссылке — подписка уже не доказана, и менеджер это увидит. */
+  if ((int)$do < time()) return 'prosrochen';
+  return $kto;
+}
+$podpiska = podpiskaPoKlyuchu(clean(field($body, 'klyuch'), 120));
+
 $digits = preg_replace('/\D/', '', $phone);
 $nameLen = function_exists('mb_strlen') ? mb_strlen($name, 'UTF-8') : strlen($name);
 $compLen = function_exists('mb_strlen') ? mb_strlen($company, 'UTF-8') : strlen($company);
@@ -398,6 +427,10 @@ $text =
   "📦 Род деятельности: $fieldOf\n" .
   "👔 ЛПР: $dm\n" .
   "📍 Источник: $sourcePretty\n" .
+  ($podpiska === '' ? ''
+    : ($podpiska === 'prosrochen'
+        ? "✅ Подписка: подтверждалась, но ссылка просрочена\n"
+        : "✅ Подписка на канал: подтверждена (телеграм $podpiska)\n")) .
   ($dopText !== '' ? "\n— для углублённого анализа —\n" . $dopText : '') .
   "🕒 $stamp";
 
