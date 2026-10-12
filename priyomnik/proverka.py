@@ -9,7 +9,9 @@
 Запуск:  python proverka.py
 """
 
+import io
 import os
+import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -242,6 +244,86 @@ def proverka_razgovora():
         b.ANKETY = staroe
 
 
+def proverka_chata_zayavok():
+    """Бот сам называет номер чата и записывает его себе в настройки.
+
+    Это то место, на котором всё и встало: номер чата переписали у
+    другого бота, он оказался верным — а телеграм всё равно ответил
+    «chat not found», потому что право писать он выдаёт не номеру, а
+    участнику. Команда приходит из того самого чата, где бот уже
+    состоит, поэтому ошибиться там нечем.
+    """
+    import tempfile
+    poslano = []
+    nachalnik = {'id': 1, 'first_name': 'Хозяин'}
+    prohozhij = {'id': 2, 'first_name': 'Гость'}
+
+    def pritvorno(cfg, metod, **params):
+        poslano.append((metod, params))
+        if metod == 'getChatMember':
+            status = 'creator' if params.get('user_id') == 1 else 'member'
+            return {'ok': True, 'result': {'status': status}}
+        return {'ok': True, 'result': {'message_id': len(poslano)}}
+
+    nastoyashchij, staryj_tut = b.api, b.TUT
+    staroe_hranilishche = b.ANKETY
+    papka = tempfile.mkdtemp()
+    b.api = pritvorno
+    b.TUT = papka
+    b.ANKETY = os.path.join(papka, 'anketa.json')
+    ini = os.path.join(papka, 'config.ini')
+    io.open(ini, 'w', encoding='utf-8').write(
+        '; пояснение, которое нельзя потерять\n'
+        '[keys]\n'
+        'telegram_token = 123:ABC\n'
+        '; номер чата подскажет @userinfobot\n'
+        'chat_zayavok = -111\n'
+        'kanal = @k\n')
+
+    cfg = {'kanal': '@k', 'kanal_ssylka': 'https://t.me/k',
+           'chat_zayavok': '-111', 'sajt_anketa': '', 'sekret_ssylki': ''}
+    gruppa = {'id': -5376497048, 'type': 'supergroup'}
+    sostoyanie = {}
+
+    def posledneye():
+        return [p for m, p in poslano if m == 'sendMessage'][-1]['text']
+
+    try:
+        # 1. Номер чата бот называет кому угодно: это не секрет.
+        b.obrabotat_soobshchenie(cfg, sostoyanie, {
+            'chat': gruppa, 'from': prohozhij, 'text': '/chat'})
+        ravno('-5376497048' in posledneye(), True,
+              'бот не назвал номер чата: %r' % posledneye())
+
+        # 2. А менять настройку из группы может только администратор:
+        #    иначе любой, кого позвали в чат, уведёт заявки себе.
+        b.obrabotat_soobshchenie(cfg, sostoyanie, {
+            'chat': gruppa, 'from': prohozhij, 'text': '/zayavki_syuda'})
+        ravno(cfg['chat_zayavok'], '-111', 'посторонний сменил чат заявок')
+        ravno('администратор' in posledneye(), True,
+              'постороннему не объяснили отказ: %r' % posledneye())
+
+        # 3. Администратор — меняет, и настройка работает сразу.
+        b.obrabotat_soobshchenie(cfg, sostoyanie, {
+            'chat': gruppa, 'from': nachalnik, 'text': '/zayavki_syuda'})
+        ravno(cfg['chat_zayavok'], '-5376497048', 'чат заявок не сменился в памяти')
+
+        stalo = io.open(ini, encoding='utf-8').read()
+        ravno('chat_zayavok = -5376497048' in stalo, True,
+              'номер не записан в config.ini')
+        ravno('пояснение, которое нельзя потерять' in stalo, True,
+              'правка настройки съела комментарии')
+        ravno('telegram_token = 123:ABC' in stalo, True,
+              'правка настройки потеряла токен')
+        ravno(stalo.count('chat_zayavok ='), 1,
+              'строка чата задвоилась: %r' % stalo)
+    finally:
+        b.api = nastoyashchij
+        b.TUT = staryj_tut
+        b.ANKETY = staroe_hranilishche
+        shutil.rmtree(papka, ignore_errors=True)
+
+
 def proverka_poteri_zayavki():
     """Чат менеджеров не принял заявку — ответы человека не пропадают.
 
@@ -424,7 +506,7 @@ if __name__ == '__main__':
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
                      proverka_bitogo_fajla, proverka_kanala,
                      proverka_razgovora,
-                     proverka_poteri_zayavki, proverka_posrednika, proverka_dorogi):
+                     proverka_chata_zayavok, proverka_poteri_zayavki, proverka_posrednika, proverka_dorogi):
         proverka()
 
     if oshibki:

@@ -28,6 +28,7 @@ import hmac
 import html
 import json
 import os
+import re
 import sys
 import time
 import traceback
@@ -134,6 +135,43 @@ def nastrojki():
     if not (cfg.get('kanal_ssylka') or '').strip():
         cfg['kanal_ssylka'] = 'https://t.me/' + kanal.lstrip('@')
     return cfg
+
+
+def zapisat_nastrojku(imya, znachenie):
+    """Переписывает одну строку в config.ini, не трогая остальное.
+
+    Файл правят руками и читают глазами: там комментарии, пояснения,
+    порядок. Перечитать его разбором и записать обратно — значит
+    выбросить всё это. Поэтому меняем ровно одну строку.
+    """
+    put = os.path.join(TUT, 'config.ini')
+    tekst = open(put, encoding='utf-8').read()
+    stroka = '%s = %s' % (imya, znachenie)
+    novyj, skolko = re.subn(r'(?m)^[ \t]*%s[ \t]*=.*$' % re.escape(imya),
+                            stroka.replace('\\', '\\\\'), tekst, count=1)
+    if not skolko:
+        novyj = tekst.rstrip() + '\n' + stroka + '\n'
+    with open(put, 'w', encoding='utf-8') as f:
+        f.write(novyj)
+    try:
+        os.chmod(put, 0o600)
+    except OSError:
+        pass
+
+
+def hozyain(cfg, chat, kto):
+    """Можно ли этому человеку менять настройки из этого чата.
+
+    В личной переписке — да: это его собственный чат, и заявки он
+    направляет себе. В группе — только администратору: иначе любой,
+    кого позвали в чат, смог бы увести заявки себе.
+    """
+    if (chat.get('type') or 'private') == 'private':
+        return True
+    otvet = api(cfg, 'getChatMember', chat_id=chat['id'], user_id=kto.get('id'))
+    if not otvet.get('ok'):
+        return False
+    return (otvet.get('result') or {}).get('status') in ('creator', 'administrator')
 
 
 def tg_url(cfg, metod):
@@ -511,6 +549,38 @@ def obrabotat_soobshchenie(cfg, sostoyanie, msg):
     kto = msg.get('from') or {}
 
     if not tekst:
+        return
+
+    # Номер чата — то место, где настройка чаще всего и ломается:
+    # его переписывают из другого бота, а телеграм выдаёт право писать
+    # не номеру, а участнику. Поэтому бот умеет назвать номер того
+    # чата, где его спросили, и записать его себе в настройки. Это
+    # снимает и ошибку в цифрах, и забытое приглашение в чат: команда
+    # приходит оттуда, где бот уже состоит.
+    if tekst.startswith('/chat'):
+        napisat(cfg, chat_id,
+                'Номер этого чата: <code>%s</code>\n\n'
+                'Чтобы заявки приходили сюда, напишите здесь же '
+                '/zayavki_syuda' % chat_id)
+        return
+
+    if tekst.startswith('/zayavki_syuda'):
+        if not hozyain(cfg, msg.get('chat') or {}, kto):
+            napisat(cfg, chat_id,
+                    'Эту настройку меняют администраторы чата. '
+                    'Попросите того, кто создал чат.')
+            return
+        try:
+            zapisat_nastrojku('chat_zayavok', chat_id)
+        except OSError as e:
+            napisat(cfg, chat_id, 'Не вышло записать настройку: %s'
+                    % html.escape(str(e)))
+            return
+        cfg['chat_zayavok'] = str(chat_id)
+        print('Чат заявок сменён на %s' % chat_id)
+        napisat(cfg, chat_id,
+                'Готово. Заявки на разбор будут приходить сюда.\n\n'
+                'Перезапускать меня не нужно — настройка уже работает.')
         return
 
     if tekst.startswith('/otmena'):
