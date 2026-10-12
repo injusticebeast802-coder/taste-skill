@@ -40,7 +40,7 @@
      и скрипты держит час (правило в .htaccess). Поменяли style.css,
      script.js или form.js — увеличьте номер здесь, в zayavka.html
      и в privacy.html. -->
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 
 <!-- Если JavaScript выключен, показываем весь контент сразу. -->
 <noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
@@ -277,11 +277,18 @@
      на вопрос «подписан ли этот человек» только боту-администратору
      канала.
 
-     Форма на сайте рядом остаётся: кто не хочет в телеграм, оставляет
-     обычную заявку, и менеджер связывается сам. Терять таких людей
-     ради чистоты механики незачем. Её источник помечается отдельно
-     (data-form-source), заголовок и подпись окна — из data-form-title
-     и data-form-sub. -->
+     Кнопка ведёт не прямо в t.me, а на свою страницу razbor.html.
+     Причина простая: на телефоне t.me открывает приложение сам, а в
+     браузере на компьютере сначала грузит веб-страницу телеграма —
+     и без VPN человек видит белый экран вместо бота. Наш домен
+     открывается всегда, а дальше страница сама отдаёт человека
+     приложению.
+
+     Запасной ссылки «оставить заявку» здесь нет намеренно. Кнопка
+     «Оставить заявку» есть в шапке, в первом экране и в финальном
+     блоке — кому телеграм неудобен, нажмёт любую из них. А рядом с
+     разбором такая ссылка показывала бы лёгкий путь в обход подписки,
+     ради которой всё и затевалось. -->
   <div class="wrap check-wrap">
     <div class="check reveal">
       <div class="check__copy">
@@ -291,20 +298,11 @@
       </div>
       <div class="check__go">
         <a class="btn btn--red btn--hero check__btn"
-           href="https://t.me/Geniipodpiskabot?start=sajt-glavnaya"
-           target="_blank" rel="noopener">
+           href="razbor.html?from=sajt-glavnaya">
           <span class="btn__label">Получить разбор</span>
           <svg class="ic btn__arrow" aria-hidden="true"><use href="#i-arrow-right"/></svg>
         </a>
         <p class="check__note">Бесплатно для подписчиков канала. Бот проверит подписку и задаст шесть вопросов — это минута.</p>
-        <button class="check__alt"
-                data-open-form
-                data-form-source="analiz"
-                data-form-deep="yes"
-                data-form-title="Бесплатный анализ нейровыдачи"
-                data-form-sub="Заполните форму — проверим вашу нишу и пришлём разбор.">
-          Не пользуюсь телеграмом — оставить заявку
-        </button>
       </div>
     </div>
   </div>
