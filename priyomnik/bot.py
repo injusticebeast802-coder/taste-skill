@@ -28,13 +28,11 @@ import hmac
 import html
 import json
 import os
-import socket
 import sys
 import time
 import traceback
 
 import requests
-import urllib3
 
 import inn as inn_proverka
 
@@ -43,12 +41,18 @@ import inn as inn_proverka
 # запрос, а бот делает их десятками.
 SVYAZ = requests.Session()
 
-# Сколько ждём ответа: сначала соединения, потом самого ответа.
-# Шестьдесят секунд, как было, — это не терпение, а три минуты
-# ожидания на двух попытках. Телеграм отвечает за доли секунды,
-# и если он молчит десять, он молчит.
-ZHDAT_SVYAZ = 10
-ZHDAT_OTVET = 20
+# Сколько ждём соединения с телеграмом и сколько — ответа.
+#
+# Минута на соединение выглядит нелепо: телеграм отвечает за доли
+# секунды. Но до него тут не доходит прямая дорога, и рукопожатие
+# занимает десятки секунд — медленно, зато работает. Однажды я решил,
+# что десяти секунд хватит всякому, и отрезал этим единственный
+# рабочий путь: бот замолчал совсем. Больше так не делаем.
+#
+# Платим мы за это один раз: соединение держится открытым (SVYAZ
+# выше), и дальше запросы идут по нему уже без рукопожатия.
+ZHDAT_SVYAZ = 60
+ZHDAT_OTVET = 60
 
 # Запрос дольше этого времени печатаем в журнал. Иначе «бот тормозит»
 # остаётся ощущением, а не цифрой, по которой можно что-то сделать.
@@ -130,99 +134,6 @@ def nastrojki():
     if not (cfg.get('kanal_ssylka') or '').strip():
         cfg['kanal_ssylka'] = 'https://t.me/' + kanal.lstrip('@')
     return cfg
-
-
-# -------------------------------------------------- версия адресов
-
-TELEGA = 'api.telegram.org'
-
-# Какой версией адресов ходим: выбирается при запуске, None — пока не
-# выбрана или выбирать нечего (ходим через посредника).
-SEMEJSTVO = None
-
-
-def ogranichit_adresa(semejstvo):
-    """Велит библиотеке спрашивать адреса только этой версии.
-
-    Делаем это подменой внутренней функции urllib3 — другого способа у
-    неё нет. Внутренности библиотек меняются от версии к версии, и
-    если подмена не удалась, бот должен работать как работал, пусть и
-    медленнее: молчащий бот хуже медленного.
-    """
-    global SEMEJSTVO
-    try:
-        urllib3.util.connection.allowed_gai_family = lambda: semejstvo
-    except Exception as e:
-        print('Не вышло закрепить версию адресов (%s). Работаю как есть.' % e)
-        return False
-    SEMEJSTVO = None if semejstvo == socket.AF_UNSPEC else semejstvo
-    return True
-
-
-def dozvon(semejstvo, srok=4):
-    """Отвечает ли телеграм по адресам этой версии.
-
-    Возвращает, за сколько секунд удалось дозвониться, или None, если
-    ни один адрес не ответил.
-    """
-    try:
-        adresa = socket.getaddrinfo(TELEGA, 443, semejstvo, socket.SOCK_STREAM)
-    except OSError:
-        return None
-    for af, tip, proto, _, kuda in adresa:
-        nachalo = time.time()
-        gnezdo = socket.socket(af, tip, proto)
-        gnezdo.settimeout(srok)
-        try:
-            gnezdo.connect(kuda)
-            return time.time() - nachalo
-        except OSError:
-            continue
-        finally:
-            gnezdo.close()
-    return None
-
-
-def nastroit_svyaz(cfg):
-    """Выбирает версию адресов, которой бот будет ходить в телеграм.
-
-    api.telegram.org отвечает адресами обеих версий, и у разных
-    хостингов живыми оказываются разные: где-то ходит только
-    четвёртая, а на нашем — только шестая, по ней и уходят заявки с
-    форм сайта. Питон, в отличие от браузера и curl, версии быстро не
-    перебирает: он берёт адреса по порядку и на каждый мёртвый честно
-    ждёт срока. Отсюда и брались минуты ожидания над нажатой кнопкой.
-
-    Поэтому при запуске коротко пробуем обе и дальше ходим только той,
-    что ответила. Решать это раз и навсегда в коде нельзя: однажды так
-    и сделали — запретили шестую версию, ровно ту, которая на этом
-    хостинге единственная рабочая.
-    """
-    if (cfg.get('telegram_api') or '').strip():
-        print('Телеграм через свой сайт — версию адресов выбирать не нужно.')
-        return None
-
-    itog = []
-    zhivoe = None
-    for imya, semejstvo in (('IPv6', socket.AF_INET6), ('IPv4', socket.AF_INET)):
-        sek = dozvon(semejstvo)
-        itog.append('%s — %s' % (imya, 'нет связи' if sek is None
-                                 else '%.1f с' % sek))
-        if sek is not None and zhivoe is None:
-            zhivoe = semejstvo
-    print('Адреса телеграма: %s.' % ', '.join(itog))
-
-    if zhivoe is None:
-        print('ВНИМАНИЕ: до телеграма с этой машины хода нет ни по одной '
-              'версии адресов.')
-        print('Бот будет молчать. Заполните telegram_api или telegram_proxy '
-              'в config.ini — как, написано в README.')
-        ogranichit_adresa(socket.AF_UNSPEC)
-        return None
-
-    ogranichit_adresa(zhivoe)
-    SVYAZ.close()          # старые соединения могли быть к мёртвому адресу
-    return zhivoe
 
 
 def tg_url(cfg, metod):
@@ -779,7 +690,6 @@ def glavnoe():
     print('Остановить: Ctrl+C')
     print()
 
-    nastroit_svyaz(cfg)
     proverit_prava(cfg)
 
     offset = None
@@ -796,12 +706,11 @@ def glavnoe():
         except requests.exceptions.RequestException:
             sboev_podryad += 1
             print('Телеграм не отвечает, пробую снова через 5 секунд…')
-            # Адрес, который отвечал при запуске, мог умереть: у
-            # телеграма их несколько и они меняются. После трёх
-            # неудач подряд выбираем версию адресов заново, иначе бот
-            # будет стучаться в мёртвую дверь до перезапуска вручную.
-            if sboev_podryad % 3 == 0:
-                nastroit_svyaz(cfg)
+            # Долгое молчание — повод не гадать, а посмотреть журнал:
+            # там видно, сколько занимает рукопожатие.
+            if sboev_podryad == 10:
+                print('Телеграм молчит десять раз подряд. Если так и '
+                      'останется — смотрите README, раздел про связь.')
             time.sleep(5)
             continue
 
