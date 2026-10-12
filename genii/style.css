@@ -923,6 +923,13 @@ html{scroll-padding-top:84px}
   margin:0;font-size:13.5px;font-weight:700;letter-spacing:.1em;
   text-transform:uppercase;color:var(--muted-2);
 }
+/* Одной строкой объясняем, зачем подписываться: без неё значки —
+   просто украшение, и на них не нажимают. */
+.chans__d{
+  margin:4px 0 0;max-width:34ch;
+  color:var(--muted);font-size:14px;line-height:1.5;
+}
+.chans__col{display:flex;flex-direction:column}
 .chans__list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px}
 .chan{
   display:block;line-height:0;border-radius:14px;
@@ -1349,9 +1356,38 @@ html{scroll-padding-top:84px}
 /* text-wrap:balance выравнивает строки по длине, чтобы на последней
    не оставалось одинокое слово. */
 .modal__done .modal__sub{
-  margin:0 auto 28px;max-width:38ch;color:#5B6076;font-size:16.5px;
+  margin:0 auto 18px;max-width:38ch;color:#5B6076;font-size:16.5px;
   text-wrap:balance;
 }
+
+/* Человек только что оставил заявку — это самый тёплый момент всей
+   воронки, и он тут заканчивался кнопкой «закрыть». Теперь отсюда
+   уводим в каналы: подписка остаётся, даже если сделка случится
+   через месяц. */
+.modal__why{
+  margin:0 auto 16px;max-width:40ch;
+  color:#6A6F85;font-size:14.5px;line-height:1.5;text-wrap:balance;
+}
+.modal__chans{
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 0 22px;
+}
+.chanbtn{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:12px 20px;border-radius:14px;
+  border:1px solid #DCE0EA;background:#fff;
+  color:#2A2E40;font-size:15px;font-weight:600;text-decoration:none;
+  transition:transform .16s var(--ease),border-color .16s var(--ease),
+             box-shadow .16s var(--ease);
+}
+.chanbtn:hover{
+  transform:translateY(-2px);border-color:var(--accent-ink);
+  box-shadow:0 10px 22px rgba(42,46,64,.10);
+}
+.chanbtn:focus-visible{outline:2px solid var(--accent-ink);outline-offset:3px}
+.chanbtn__ic{width:22px;height:22px;display:block}
+/* На узком экране кнопки встают друг под друга во всю ширину:
+   две в ряд по 20 пикселей полей не помещаются. */
+@media (max-width:420px){.chanbtn{flex:1 1 100%;justify-content:center}}
 
 /* Кнопка закрытия: спокойная контурная, а не серая заливка. */
 .modal__done .btn--ghost-dark{
