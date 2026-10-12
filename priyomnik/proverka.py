@@ -269,6 +269,14 @@ def proverka_posrednika():
     nuzhno = ('getUpdates', 'sendMessage', 'getChatMember',
               'getChatAdministrators', 'answerCallbackQuery')
     ryadom = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # Файлы посредников читаем, только когда рядом лежит весь проект.
+    # На хостинге бот живёт один в своей папке, и соседние файлы там
+    # либо чужие, либо старые: ругаться на них — пугать человека тем,
+    # что к боту отношения не имеет.
+    if not os.path.exists(os.path.join(ryadom, 'priyomnik', 'bot.py')):
+        return
+
     posredniki = [
         os.path.join(ryadom, 'genii', 'hosting-ru', 'tg.php'),
         os.path.join(ryadom, 'analiz', 'cloudflare', 'tg-worker.js'),
@@ -296,14 +304,30 @@ def proverka_vybora_adresov():
     туда и не ходим. Лишняя проверка добавила бы секунд к запуску и
     напугала бы надписью «нет связи» там, где всё работает.
     """
-    bylo = b.urllib3.util.connection.allowed_gai_family
+    # Выбор версии держится на подмене внутренней функции urllib3.
+    # Внутренности библиотек меняются от версии к версии, и проверить
+    # это надо на той, что стоит на хостинге, а не на моей: иначе
+    # обновление библиотеки тихо вернёт минуты ожидания.
+    import socket
+    sredstvo = b.urllib3.util.connection
+    bylo_gai = sredstvo.allowed_gai_family
+    try:
+        ravno(b.ogranichit_adresa(socket.AF_INET), True,
+              'не вышло закрепить версию адресов')
+        ravno(sredstvo.allowed_gai_family(), socket.AF_INET,
+              'подмена не действует: urllib3 спрашивает адреса по-своему')
+        ravno(b.SEMEJSTVO, socket.AF_INET, 'выбранная версия не запомнилась')
+    finally:
+        sredstvo.allowed_gai_family = bylo_gai
+        b.SEMEJSTVO = None
+
+    bylo = b.SEMEJSTVO
     try:
         ravno(b.nastroit_svyaz({'telegram_api': 'https://genii-ai.ru/tg.php?k=p'}),
               None, 'через посредника выбрали версию адресов')
-        ravno(b.urllib3.util.connection.allowed_gai_family is bylo, True,
-              'через посредника подменили выбор адресов')
+        ravno(b.SEMEJSTVO, bylo, 'через посредника подменили выбор адресов')
     finally:
-        b.urllib3.util.connection.allowed_gai_family = bylo
+        b.SEMEJSTVO = bylo
 
 
 if __name__ == '__main__':

@@ -136,6 +136,28 @@ def nastrojki():
 
 TELEGA = 'api.telegram.org'
 
+# Какой версией адресов ходим: выбирается при запуске, None — пока не
+# выбрана или выбирать нечего (ходим через посредника).
+SEMEJSTVO = None
+
+
+def ogranichit_adresa(semejstvo):
+    """Велит библиотеке спрашивать адреса только этой версии.
+
+    Делаем это подменой внутренней функции urllib3 — другого способа у
+    неё нет. Внутренности библиотек меняются от версии к версии, и
+    если подмена не удалась, бот должен работать как работал, пусть и
+    медленнее: молчащий бот хуже медленного.
+    """
+    global SEMEJSTVO
+    try:
+        urllib3.util.connection.allowed_gai_family = lambda: semejstvo
+    except Exception as e:
+        print('Не вышло закрепить версию адресов (%s). Работаю как есть.' % e)
+        return False
+    SEMEJSTVO = None if semejstvo == socket.AF_UNSPEC else semejstvo
+    return True
+
 
 def dozvon(semejstvo, srok=4):
     """Отвечает ли телеграм по адресам этой версии.
@@ -195,10 +217,10 @@ def nastroit_svyaz(cfg):
               'версии адресов.')
         print('Бот будет молчать. Заполните telegram_api или telegram_proxy '
               'в config.ini — как, написано в README.')
-        urllib3.util.connection.allowed_gai_family = lambda: socket.AF_UNSPEC
+        ogranichit_adresa(socket.AF_UNSPEC)
         return None
 
-    urllib3.util.connection.allowed_gai_family = lambda: zhivoe
+    ogranichit_adresa(zhivoe)
     SVYAZ.close()          # старые соединения могли быть к мёртвому адресу
     return zhivoe
 
