@@ -40,7 +40,7 @@ zhiv() {
   #
   # Поэтому смотрим, чем этот процесс на самом деле занят.
   if [ -r "/proc/$p/cmdline" ]; then
-    tr '\0' ' ' < "/proc/$p/cmdline" 2>/dev/null | grep -q 'bot\.py' || return 1
+    tr '\0' '\n' < "/proc/$p/cmdline" 2>/dev/null | grep -Fxq "$DIR/bot.py" || return 1
     grep -q '^State:.*Z' "/proc/$p/status" 2>/dev/null && return 1
     return 0
   fi
@@ -52,15 +52,38 @@ zhiv() {
 # от прошлой установки. А запустить второго бота на том же токене
 # нельзя ни в коем случае: два бота забирают сообщения по очереди,
 # каждый видит половину, и человек не получает ответа на свой вопрос.
-najti() {
+najti_vse() {
+  najdeno=""
   for d in /proc/[0-9]*; do
     [ -r "$d/cmdline" ] || continue
-    tr '\0' ' ' < "$d/cmdline" 2>/dev/null | grep -q "$DIR/bot.py" || continue
+    # Строку запуска разбираем по аргументам, а не ищем в ней
+    # подстроку. Путь к боту может просто упоминаться в командной
+    # строке соседа — у nano, у команды запуска, у самой этой
+    # проверки, — и по подстроке мы остановили бы что угодно. Такое я
+    # уже один раз сделал: проверка убила оболочку, из которой её и
+    # запустили. Поэтому: первым аргументом должен быть python, а
+    # среди остальных — ровно наш bot.py, целиком.
+    argv0=$(tr '\0' '\n' < "$d/cmdline" 2>/dev/null | head -n 1)
+    case "$argv0" in *python*) ;; *) continue ;; esac
+    tr '\0' '\n' < "$d/cmdline" 2>/dev/null | grep -Fxq "$DIR/bot.py" || continue
     grep -q '^State:.*Z' "$d/status" 2>/dev/null && continue
-    echo "${d#/proc/}"
-    return 0
+    najdeno="$najdeno ${d#/proc/}"
   done
-  return 1
+  najdeno=$(echo $najdeno)
+  [ -n "$najdeno" ] || return 1
+  echo "$najdeno"
+}
+
+najti() {
+  najti_vse | awk '{print $1}' | grep . || return 1
+}
+
+# Сколько ботов сейчас работает. Больше одного — это не придирка:
+# телеграм отдаёт сообщения тому, кто спросил первым, и обрывает
+# второго с «Conflict». Нажатия начинают теряться через одно, а
+# выглядит это как «бот тормозит» или «бот не отвечает».
+skolko() {
+  najti_vse | wc -w | tr -d ' '
 }
 
 posle_zapuska() {
@@ -114,6 +137,10 @@ start() {
   sleep 3
   if zhiv; then
     echo "Бот запущен, номер процесса $(cat "$PID")."
+    if [ "$(skolko)" -gt 1 ]; then
+      echo "ВНИМАНИЕ: ботов оказалось $(skolko), а должен быть один:$(najti_vse)"
+      echo "Остановите все и запустите заново: sh $0 restart"
+    fi
     # Показываем всё, что бот написал с этого запуска, а не последние
     # шесть строк подряд: подпись «первые строки журнала» врала —
     # это был хвост файла вперемешку с прошлым разом.
@@ -128,19 +155,35 @@ start() {
 }
 
 stop() {
-  # Останавливаем по файлу, а если он потерялся — по найденному
-  # процессу: иначе бот остался бы работать, а мы бы об этом не знали.
-  nomer=""
-  zhiv && nomer=$(cat "$PID")
-  [ -z "$nomer" ] && nomer=$(najti 2>/dev/null || true)
+  # Останавливаем ВСЕХ найденных, а не одного по файлу с номером.
+  # Остановить одного из двух — худшее, что тут можно сделать: с виду
+  # перезапустились, а на деле остался работать старый бот со старыми
+  # настройками, и ловить это потом по «Conflict» в журнале.
+  nomera=$(najti_vse 2>/dev/null || true)
+  [ -z "$nomera" ] && zhiv && nomera=$(cat "$PID")
 
-  if [ -n "$nomer" ]; then
-    kill "$nomer" 2>/dev/null
-    sleep 2
-    kill -0 "$nomer" 2>/dev/null && kill -9 "$nomer" 2>/dev/null
-    echo "Остановлен."
-  else
+  if [ -z "$nomera" ]; then
     echo "Бот и так не работает."
+    rm -f "$PID"
+    return 0
+  fi
+
+  skolko_bylo=$(echo $nomera | wc -w | tr -d ' ')
+  [ "$skolko_bylo" -gt 1 ] && echo "Нашёл $skolko_bylo запущенных ботов — останавливаю все."
+
+  for n in $nomera; do kill "$n" 2>/dev/null; done
+  sleep 2
+  for n in $nomera; do
+    kill -0 "$n" 2>/dev/null && kill -9 "$n" 2>/dev/null
+  done
+  sleep 1
+
+  ostalis=$(najti_vse 2>/dev/null || true)
+  if [ -n "$ostalis" ]; then
+    echo "ВНИМАНИЕ: не смог остановить:$ostalis"
+    echo "Похоже, они запущены из другой папки или под другим пользователем."
+  else
+    echo "Остановлен."
   fi
   rm -f "$PID"
 }
@@ -152,6 +195,14 @@ case "$1" in
   status)
     if zhiv; then
       echo "Работает, номер процесса $(cat "$PID")."
+      if [ "$(skolko)" -gt 1 ]; then
+        echo
+        echo "ВНИМАНИЕ: ботов работает $(skolko), а должен быть один:$(najti_vse)"
+        echo "Телеграм отдаёт сообщения тому, кто спросил первым, и обрывает"
+        echo "второго. Нажатия теряются через одно, а выглядит это как"
+        echo "«бот тормозит». Лечится так:  sh $0 restart"
+        echo
+      fi
       echo "С последнего запуска:"
       posle_zapuska | tail -n 8 | sed 's/^/  /'
     else
@@ -164,7 +215,19 @@ case "$1" in
     # Молча поднимаем упавшего. Ставится в расписание раз в пять
     # минут: ночью рвётся связь, процесс может умереть, и поднять
     # его некому — на хостинге нет службы, которая следит за этим.
-    zhiv || start >> "$LOG" 2>&1
+    #
+    # И так же молча разводим двойню. Расписание — самый частый её
+    # источник: не разглядело живого бота, подняло второго, и дальше
+    # они делят сообщения пополам, обрывая друг друга. Человек видит
+    # «бот отвечает через раз» и ничего не может понять, потому что
+    # в журнале при этом всё как обычно.
+    if [ "$(skolko)" -gt 1 ]; then
+      echo "Расписание: ботов $(skolko), оставляю одного." >> "$LOG"
+      stop >> "$LOG" 2>&1
+      start >> "$LOG" 2>&1
+    else
+      zhiv || start >> "$LOG" 2>&1
+    fi
     ;;
   *)
     echo "Как пользоваться: sh bot.sh start|stop|restart|status|log|cron"

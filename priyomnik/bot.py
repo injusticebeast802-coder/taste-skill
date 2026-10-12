@@ -701,7 +701,7 @@ def glavnoe():
             r = SVYAZ.get(tg_url(cfg, 'getUpdates'),
                           params={'timeout': ZHDAT, 'offset': offset},
                           proxies=tg_proxy(cfg),
-                          timeout=(ZHDAT_SVYAZ, ZHDAT + 10))
+                          timeout=(ZHDAT_SVYAZ, ZHDAT + ZHDAT_OTVET))
             dannye = r.json()
         except requests.exceptions.RequestException:
             sboev_podryad += 1
