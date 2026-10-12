@@ -98,6 +98,30 @@ def proverka_hranilishcha():
         b.ANKETY = staroe
 
 
+def proverka_bitogo_fajla():
+    """config.ini, побитый при правке в nano, всё равно читается.
+
+    Так он выглядел на хостинге: первая строка комментария перенеслась
+    без точки с запятой, а сверху ещё и команда запуска из буфера.
+    """
+    bityj = (
+        'sh ~/priyomnik/hosting/bot.sh start\n'
+        '; Настройки бота. Скопируйте этот файл в config.ini и впишите\n'
+        'значения вместо многоточий. ; config.ini в репозиторий не попадает\n'
+        '[keys]\n'
+        'telegram_token = 123:ABC\n'
+        'случайная строка без равенства\n'
+        'kanal = @geniimoscow\n'
+        'chat_zayavok = -5376497048\n'
+    )
+    import configparser
+    razbor = configparser.ConfigParser()
+    razbor.read_string(b.ochistit(bityj))
+    ravno(razbor['keys']['kanal'], '@geniimoscow', 'канал не прочитался')
+    ravno(razbor['keys']['chat_zayavok'], '-5376497048', 'чат не прочитался')
+    ravno(razbor['keys']['telegram_token'], '123:ABC', 'токен не прочитался')
+
+
 def proverka_kanala():
     """Название канала приводится к виду @имя, ссылка собирается сама."""
     cfg = {'kanal': 'geniimoscow', 'kanal_ssylka': ''}
@@ -112,7 +136,7 @@ def proverka_kanala():
 if __name__ == '__main__':
     for proverka in (proverka_polej, proverka_inn_chistitsya, proverka_poryadka,
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
-                     proverka_kanala):
+                     proverka_bitogo_fajla, proverka_kanala):
         proverka()
 
     if oshibki:
