@@ -393,37 +393,90 @@ def slajd_6(prs):
 
 # =================================================== 7. КЕЙСЫ
 
-# Кейсы заполняются здесь: ниша, что сделали, что получилось, срок.
-# Пока список пуст, лист в презентацию не попадает — показывать
-# рамки с прочерками вместо результатов хуже, чем не показывать
-# ничего: на пресс-конференции это первое, за что зацепятся.
+# Кейсы из презентации «Промптера» за 2026 год. Берём из каждого две
+# цифры — заявки и клиентов: охваты и подписчики на пресс-конференции
+# звучат как реклама, а заявки и клиенты это результат, про который
+# спрашивают. Подписи к числам у кейсов разные намеренно: у магазина
+# на маркетплейсах это клики и оформления, и подменять их общим
+# словом «заявки» значило бы приукрасить.
 KEJSY = [
-    # ('Строительство домов, Одинцово',
-    #  'Нейросети не называли компанию по запросам ниши',
-    #  'Называют в 7 запросах из 10', '4 месяца'),
+    ('55 РозДари', 'доставка цветов · Нижний Новгород', '6 месяцев',
+     ('745', 'заявок'), ('317', 'клиентов')),
+    ('Сахара.Нет', 'ПП-конфеты без сахара', '3,5 месяца',
+     ('376', 'кликов на WB и Ozon'), ('226', 'оформлений')),
+    ('Эмиграционно-визовый центр', 'Калининград', '3 месяца',
+     ('149', 'заявок'), ('46', 'клиентов')),
+    ('МЁД', 'кафе-караоке · Домодедово', '5 месяцев',
+     ('181', 'заявка'), ('109', 'клиентов')),
 ]
+
+
+def razryady(n):
+    """Тысячи через пробел: «1451» глаз читает как опечатку."""
+    return '{:,}'.format(n).replace(',', '\u00a0')
+
+
+def sklonenie(n, formy):
+    """«1 451 обращение», а не «обращений».
+
+    Число в тексте склоняет за собой слово, и на листе для прессы это
+    замечают: журналист переписывает фразу целиком, вместе с ошибкой.
+    """
+    ost100, ost10 = n % 100, n % 10
+    if 11 <= ost100 <= 14:
+        return formy[2]
+    if ost10 == 1:
+        return formy[0]
+    if 2 <= ost10 <= 4:
+        return formy[1]
+    return formy[2]
 
 
 def slajd_7(prs):
     sl = novyj(prs)
-    zagolovok(sl, 'Кейсы', kegl=38, max_strok=1)
+    zagolovok(sl, 'Кейсы 2026', kegl=38, max_strok=1)
 
     n = len(KEJSY)
-    y = 2.75
-    vys = min(1.25, (H - y - 0.9) / max(1, n))
-    for nisha, bylo, stalo, srok in KEJSY:
-        cherta(sl, PAD, y + 0.18, 0.28, 0.028, LBLUE)
-        ny = blok(sl, PAD + 0.5, y, 5.4, nisha, UBS, 17, font=DISP,
-                  color=WHITE, bold=True, lead=1.2, max_strok=2,
-                  kegli=[17, 15.5, 14])
-        blok(sl, PAD + 0.5, ny + 0.08, 5.4, bylo, IR, 13, color=MUTED2,
-             lead=1.35, max_strok=2, kegli=[13, 12, 11])
-        ny = blok(sl, PAD + 6.4, y, W - PAD - 6.4 - PAD - 1.3, stalo,
-                  UBS, 17, font=DISP, color=GREEN, bold=True, lead=1.2,
-                  max_strok=2, kegli=[17, 15.5, 14])
-        blok(sl, W - PAD - 1.3, y, 1.3, srok, IR, 13, color=MUTED2,
-             lead=1.35, align=PP_ALIGN.RIGHT, max_strok=1)
-        y += vys
+    zazor = 0.45
+    shir = (W - PAD * 2 - zazor * (n - 1)) / n
+    verh = 2.75
+    for i, (imya, nisha, srok, pervoe, vtoroe) in enumerate(KEJSY):
+        x = PAD + i * (shir + zazor)
+        cherta(sl, x, verh, shir * 0.42, 0.03, LBLUE)
+        y = blok(sl, x, verh + 0.26, shir, imya, UBS, 18, font=DISP,
+                 color=WHITE, bold=True, lead=1.2, max_strok=2,
+                 kegli=[18, 16.5, 15, 14])
+        y = blok(sl, x, y + 0.12, shir, nisha, IR, 12.5, color=MUTED2,
+                 lead=1.35, max_strok=2, kegli=[12.5, 11.5, 10.5])
+
+        blok(sl, x, verh + 1.52, shir, srok, IR, 12, color=LBLUE,
+             lead=1.3, max_strok=1)
+
+        y = verh + 1.82
+        for chislo_, podpis in (pervoe, vtoroe):
+            y = blok(sl, x, y + 0.2, shir, chislo_, UB, 36, font=DISP,
+                     color=GREEN, bold=True, lead=1.05, max_strok=1,
+                     kegli=[36, 32, 29])
+            y = blok(sl, x, y + 0.04, shir, podpis, IR, 12,
+                     color=MUTED, lead=1.3, max_strok=2,
+                     kegli=[12, 11, 10])
+
+    # Итог — то, что журналист вынесет в текст одной строкой.
+    vsego_z = sum(int(k[3][0]) for k in KEJSY)
+    vsego_k = sum(int(k[4][0]) for k in KEJSY)
+    cherta(sl, PAD, H - 0.82, W - PAD * 2, 0.012, LINE2)
+    blok(sl, PAD, H - 0.6, W - PAD * 2,
+         [('%d %s за 2026 год: '
+           % (len(KEJSY),
+              sklonenie(len(KEJSY), ('проект', 'проекта', 'проектов'))),
+           {'color': MUTED2}),
+          ('%s %s и %s %s'
+           % (razryady(vsego_z),
+              sklonenie(vsego_z, ('обращение', 'обращения', 'обращений')),
+              razryady(vsego_k),
+              sklonenie(vsego_k, ('клиент', 'клиента', 'клиентов'))),
+           {'color': WHITE, 'bold': True})],
+         IM, 15, font=BODY, lead=1.35, max_strok=1, kegli=[15, 14, 13])
 
 
 # =================================================== 6. КОНТАКТЫ
