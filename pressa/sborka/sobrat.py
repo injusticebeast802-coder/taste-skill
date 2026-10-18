@@ -22,6 +22,7 @@ import sys
 
 TUT = os.path.dirname(os.path.abspath(__file__))
 KOREN = os.path.abspath(os.path.join(TUT, '..', '..'))
+KARTINKI = os.path.join(TUT, '..', 'img')
 sys.path.insert(0, os.path.join(KOREN, 'prompter-moscow', 'presentation', 'sborka'))
 
 from pptx import Presentation
@@ -43,7 +44,7 @@ IS = ('Inter', 's')
 GENII_ZNAK = os.path.join(KOREN, 'genii', 'assets', 'mark.png')
 PROMPTER_ZNAK = os.path.join(KOREN, 'prompter-moscow', 'assets', 'logo.png')
 
-VSEGO = 6
+VSEGO = 8
 
 # Контакты эксперта — с его визитки, а не из презентаций для клиентов:
 # в прессу идёт личная подпись, а не общий ящик отдела продаж.
@@ -61,15 +62,22 @@ MALO = []     # всё, что не влезло в отведённое мес�
 
 # ------------------------------------------------------------ основа
 
+STRANICA = 0
+
+
 def novyj(prs, shapka=True):
+    global STRANICA
     sl = prs.slides.add_slide(prs.slide_layouts[6])
     fon(sl)
     if shapka:
         znaki(sl)
+    STRANICA += 1
+    if STRANICA > 1:
+        nomer(sl, STRANICA)
     return sl
 
 
-def znaki(sl, y=0.5):
+def znaki(sl, y=0.5, podlozhka=False):
     """Шапка: ГенИИ слева, «Промптер» справа — как на визитке.
 
     Знаки разного сложения: у ГенИИ квадратный, у «Промптера» выше
@@ -83,6 +91,11 @@ def znaki(sl, y=0.5):
         im = Image.open(put)
         shir = vys * im.width / im.height
         x = (W - PAD - shir) if sprava else PAD
+        if sprava and podlozhka:
+            # На обложке знак приходится на светлый кадр и теряется.
+            # Тёмная подложка возвращает ему контраст, не закрывая лицо.
+            plitka(sl, x - 0.3, y - 0.26, shir + 0.6, vys + 0.94,
+                   fill=BG, line=None, radius=0.14)
         kartinka(sl, put, x, y, shir, vys)
 
     # Подписи под знаками — мелко, серым: на листе они не должны
@@ -199,32 +212,103 @@ def nomer(sl, n):
 
 def slajd_1(prs):
     sl = novyj(prs, shapka=False)
-    kartinka(sl, kadr(os.path.join(IMG, 'hero-bg.jpg'), W, H, 'press-fon.png',
-                      dark=0.5, left_wash=0.78), 0, 0, W, H)
-    znaki(sl)
 
-    y = blok(sl, PAD, 2.15, 11.4,
-             'Полный ИИ-цикл\nдля бизнеса',
-             UB, 62, font=DISP, color=WHITE, bold=True, lead=1.1,
-             kegli=[62, 56, 50], max_strok=2)
-    y = blok(sl, PAD, y + 0.42, 10.4,
-             'От исследования ниши до публикации на шести площадках',
-             IR, 22, color=MUTED, lead=1.4, kegli=[22, 20, 18], max_strok=2)
+    # Человек и светящиеся панели — с фирменного баннера «Промптера».
+    # Пустая обложка с одним заголовком выглядела холодно: у компании
+    # уже есть свой кадр, и на пресс-конференции узнают именно его.
+    iw = 5.3
+    kartinka(sl, kadr(os.path.join(KARTINKI, 'muzhik.jpg'), iw, H,
+                      'press-muzhik.png', dark=0.12), W - iw, 0, iw, H)
+    # Растушёвка слева направо, чтобы кадр не обрывался по линейке.
+    kartinka(sl, kadr(os.path.join(IMG, 'hero-bg.jpg'), W - iw + 0.9, H,
+                      'press-fon.png', dark=0.62, left_wash=0.5),
+             0, 0, W - iw + 0.9, H)
+    znaki(sl, podlozhka=True)
 
-    cherta(sl, PAD, y + 0.7, 2.2, 0.035, LBLUE)
-    blok(sl, PAD, y + 1.05, 10.0,
-         [(EKSPERT, {'color': WHITE, 'bold': True, 'font': DISP}),
-          ('    %s' % DOLZHNOST, {'color': MUTED2})],
-         IS, 19, font=BODY, lead=1.3)
+    # Слоган — дословно с баннера. Это то, с чего просили начинать.
+    y = blok(sl, PAD, 2.0, W - iw - PAD + 0.1,
+             'ИНТЕЛЛЕКТУАЛЬНЫЙ СЕРВИС\n'
+             'ДЛЯ АВТОМАТИЗАЦИИ SMM\n'
+             'И УСИЛЕНИЯ ЦИФРОВОГО\n'
+             'ПРИСУТСТВИЯ КОМПАНИЙ\n'
+             'В ИНТЕРНЕТЕ',
+             UB, 27, font=DISP, color=WHITE, bold=True, lead=1.26,
+             kegli=[27, 25, 23, 21], max_strok=5)
 
-    blok(sl, PAD, H - 0.78, 11.8, SOBYTIE, IR, 12, color=MUTED2, lead=1.4)
+    cherta(sl, PAD, y + 0.52, 2.0, 0.035, LBLUE)
+    y = blok(sl, PAD, y + 0.85, W - iw - PAD, EKSPERT,
+             IS, 16, font=BODY, color=WHITE, bold=True, lead=1.35)
+    blok(sl, PAD, y + 0.06, W - iw - PAD, DOLZHNOST,
+         IR, 14, font=BODY, color=MUTED2, lead=1.35)
+
+    # Строку события держим в левой, тёмной половине: на светлом
+    # кадре справа она читалась бы по складам.
+    blok(sl, PAD, H - 1.05, W - iw - PAD + 0.2,
+         'Пресс-конференция «Эффективные инструменты привлечения клиентов»\n'
+         '20 октября 2026 · Москва, Кузнецкий мост, 7',
+         IR, 11, color=MUTED2, lead=1.45)
 
 
-# =================================================== 2. КОНТЕНТ-ФАБРИКИ
+# =================================================== 2. ВОЗМОЖНОСТИ
+
+AGENTY = [
+    ('AI-маркетолог', 'ниша, конкуренты и запросы'),
+    ('AI-копирайтер', 'тексты в стиле бренда'),
+    ('AI-дизайнер', 'визуал под каждую площадку'),
+    ('AI-сценарист и оператор', 'сценарий и готовый ролик'),
+    ('AI СММ-менеджер', 'проверка, публикация, контроль выдачи'),
+]
+
+PLOSHCHADKI = 'Telegram · VK · Дзен · Одноклассники · Max · Instagram*'
+
+SVERH = 'Цифровой двойник · Видео по сценарию · Сайт под заявки · Брендбук и мерч'
+
 
 def slajd_2(prs):
     sl = novyj(prs)
-    nomer(sl, 2)
+
+    zagolovok(sl, 'Пять ИИ-агентов вместо отдела', kegl=38, max_strok=1)
+
+    # Агенты строками в две колонки: роль крупно, пояснение рядом.
+    # Карточек тут нет намеренно — на пятерых они съели бы половину
+    # листа рамками.
+    y = 2.6
+    kol = (W - PAD * 2 - 0.8) / 2
+    for i, (imya, chto) in enumerate(AGENTY):
+        x = PAD + (i % 2) * (kol + 0.8)
+        yy = y + (i // 2) * 1.02
+        cherta(sl, x, yy + 0.16, 0.28, 0.028, LBLUE)
+        ny = blok(sl, x + 0.5, yy, kol - 0.5, imya, UBS, 19, font=DISP,
+                  color=WHITE, bold=True, lead=1.2, max_strok=1,
+                  kegli=[19, 17.5, 16])
+        blok(sl, x + 0.5, ny + 0.1, kol - 0.5, chto, IR, 14, color=MUTED2,
+             lead=1.35, max_strok=1, kegli=[14, 13, 12])
+
+    niz = y + 3 * 1.02 + 0.05
+    cherta(sl, PAD, niz, W - PAD * 2, 0.012, LINE2)
+    ny = blok(sl, PAD, niz + 0.24, W - PAD * 2,
+              [('Автопубликация: ', {'color': WHITE, 'bold': True}),
+               (PLOSHCHADKI, {'color': MUTED})],
+              IM, 16, font=BODY, lead=1.4, max_strok=1,
+              kegli=[16, 15, 14, 13])
+    ny = blok(sl, PAD, ny + 0.2, W - PAD * 2,
+              [('Сверх цикла: ', {'color': WHITE, 'bold': True}),
+               (SVERH, {'color': MUTED2})],
+              IM, 15, font=BODY, lead=1.4, max_strok=1,
+              kegli=[15, 14, 13, 12])
+
+    # Сноска обязательная: без неё название соцсети на экране —
+    # нарушение, и на пресс-конференции это заметят первыми.
+    blok(sl, PAD, ny + 0.26, W - PAD * 2,
+         '* Instagram принадлежит компании Meta, признанной экстремистской '
+         'организацией и запрещённой на территории Российской Федерации.',
+         IR, 9.5, color=MUTED2, lead=1.35, max_strok=1,
+         kegli=[9.5, 9, 8.5])
+
+
+
+def slajd_3(prs):
+    sl = novyj(prs)
 
     citata(sl, 1.75,
            'Контент-фабрики есть у всех, это не новость. Новость в том, что '
@@ -245,11 +329,10 @@ def slajd_2(prs):
 
 # =================================================== 3. ВРЕМЯ
 
-def slajd_3(prs):
+def slajd_4(prs):
     # Картинка во всю высоту уходит под правый знак, поэтому шапку
     # ставим после неё, а не раньше: иначе «Промптер» пропадает.
     sl = novyj(prs, shapka=False)
-    nomer(sl, 3)
 
     iw = 4.3
     kartinka(sl, kadr(os.path.join(IMG, 'neurons.jpg'), iw, H,
@@ -271,9 +354,8 @@ def slajd_3(prs):
 
 # =================================================== 4. ДЕНЬГИ
 
-def slajd_4(prs):
+def slajd_5(prs):
     sl = novyj(prs)
-    nomer(sl, 4)
 
     chislo(sl, PAD, 1.6, 6.0, '70–80',
            'тысяч рублей в месяц — столько стоят те же роли своими силами')
@@ -287,9 +369,8 @@ def slajd_4(prs):
 
 # =================================================== 5. НЕЙРОВЫДАЧА
 
-def slajd_5(prs):
+def slajd_6(prs):
     sl = novyj(prs)
-    nomer(sl, 5)
 
     chislo(sl, PAD, 1.6, 5.4, '3–6',
            'месяцев занимает выход в нейровыдачу')
@@ -310,6 +391,41 @@ def slajd_5(prs):
            max_h=2.0, kegl=30)
 
 
+# =================================================== 7. КЕЙСЫ
+
+# Кейсы заполняются здесь: ниша, что сделали, что получилось, срок.
+# Пока список пуст, лист в презентацию не попадает — показывать
+# рамки с прочерками вместо результатов хуже, чем не показывать
+# ничего: на пресс-конференции это первое, за что зацепятся.
+KEJSY = [
+    # ('Строительство домов, Одинцово',
+    #  'Нейросети не называли компанию по запросам ниши',
+    #  'Называют в 7 запросах из 10', '4 месяца'),
+]
+
+
+def slajd_7(prs):
+    sl = novyj(prs)
+    zagolovok(sl, 'Кейсы', kegl=38, max_strok=1)
+
+    n = len(KEJSY)
+    y = 2.75
+    vys = min(1.25, (H - y - 0.9) / max(1, n))
+    for nisha, bylo, stalo, srok in KEJSY:
+        cherta(sl, PAD, y + 0.18, 0.28, 0.028, LBLUE)
+        ny = blok(sl, PAD + 0.5, y, 5.4, nisha, UBS, 17, font=DISP,
+                  color=WHITE, bold=True, lead=1.2, max_strok=2,
+                  kegli=[17, 15.5, 14])
+        blok(sl, PAD + 0.5, ny + 0.08, 5.4, bylo, IR, 13, color=MUTED2,
+             lead=1.35, max_strok=2, kegli=[13, 12, 11])
+        ny = blok(sl, PAD + 6.4, y, W - PAD - 6.4 - PAD - 1.3, stalo,
+                  UBS, 17, font=DISP, color=GREEN, bold=True, lead=1.2,
+                  max_strok=2, kegli=[17, 15.5, 14])
+        blok(sl, W - PAD - 1.3, y, 1.3, srok, IR, 13, color=MUTED2,
+             lead=1.35, align=PP_ALIGN.RIGHT, max_strok=1)
+        y += vys
+
+
 # =================================================== 6. КОНТАКТЫ
 
 def qr(adres, imya):
@@ -320,9 +436,8 @@ def qr(adres, imya):
     return put
 
 
-def slajd_6(prs):
+def slajd_8(prs):
     sl = novyj(prs)
-    nomer(sl, 6)
 
     y = blok(sl, PAD, 1.45, 8.4, EKSPERT, UB, 36, font=DISP, color=WHITE,
              bold=True, lead=1.12, kegli=[36, 33, 30], max_strok=2)
@@ -392,11 +507,18 @@ def proverit_znaki(prs):
 
 
 def main(fajl='press-kit.pptx'):
+    global VSEGO
+    listy = [globals()['slajd_%d' % i] for i in range(1, 9)]
+    if not KEJSY:
+        listy.remove(slajd_7)
+        print('кейсов нет — лист с кейсами пропущен (список KEJSY пуст)')
+    VSEGO = len(listy)
+
     prs = Presentation()
     prs.slide_width = Inches(W)
     prs.slide_height = Inches(H)
-    for i in range(1, VSEGO + 1):
-        globals()['slajd_%d' % i](prs)
+    for list_ in listy:
+        list_(prs)
 
     net = proverit_znaki(prs)
     if net:
