@@ -52,7 +52,8 @@ EKSPERT = 'Руслан Анатольевич Дёмин'
 DOLZHNOST = 'управляющий партнёр'
 TELEFON = '+7 906 758-77-77'
 POCHTA = 'prompter.moscow@mail.ru'
-SAJT = 'genii-ai.ru'
+SAJT = 'prompter-ai.moscow'      # на него ведёт QR
+SAJT_2 = 'genii-ai.ru'
 
 SOBYTIE = ('Пресс-конференция «Эффективные инструменты привлечения клиентов»'
            '   ·   20 октября 2026   ·   Москва, Кузнецкий мост, 7')
@@ -189,7 +190,9 @@ def ryad(sl, y, slova, kegl=18, cvet=WHITE, razdelitel='·'):
 def chislo(sl, x, y, w, bolshoe, podpis, cvet=GREEN, kegl=92):
     """Огромное число и подпись под ним."""
     niz = blok(sl, x, y, w, bolshoe, UB, kegl, font=DISP, color=cvet,
-               bold=True, lead=1.02, kegli=[kegl, kegl - 10, kegl - 20],
+               bold=True, lead=1.02,
+               kegli=[kegl, kegl - 8, kegl - 16, kegl - 24, kegl - 32,
+                      kegl - 40],
                max_strok=1)
     return blok(sl, x, niz + 0.14, w, podpis, IR, 16, color=MUTED,
                 lead=1.35, max_h=0.95, chto='подпись к числу')
@@ -357,8 +360,8 @@ def slajd_4(prs):
 def slajd_5(prs):
     sl = novyj(prs)
 
-    chislo(sl, PAD, 1.6, 8.6, '120–150',
-           'тысяч рублей в месяц — столько стоит digital-агентство')
+    chislo(sl, PAD, 1.6, W - PAD * 2, '120–150 000 ₽',
+           'в месяц — столько стоит digital-агентство', kegl=78)
 
     citata(sl, 4.15,
            'Чтобы работать с нейросетями самому, нужно покупать токены, '
@@ -503,7 +506,8 @@ def slajd_8(prs):
     # сайта переносился посередине слова — в прессу такое отдавать
     # нельзя, его оттуда перепишут с ошибкой.
     y += 0.72
-    for znachenie, cvet in ((TELEFON, WHITE), (POCHTA, WHITE), (SAJT, LBLUE)):
+    for znachenie, cvet in ((TELEFON, WHITE), (POCHTA, WHITE),
+                            ('%s   ·   %s' % (SAJT, SAJT_2), LBLUE)):
         y = blok(sl, PAD, y, 8.0, znachenie, IS, 20, font=BODY, color=cvet,
                  bold=True, lead=1.3, max_strok=1) + 0.12
 
