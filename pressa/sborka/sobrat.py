@@ -55,6 +55,7 @@ TELEFON = '+7 906 758-77-77'
 POCHTA = 'prompter.moscow@mail.ru'
 SAJT = 'prompter-ai.moscow'      # на него ведёт QR
 SAJT_2 = 'genii-ai.ru'
+AKKAUNT = '@geniimoscow'
 
 SOBYTIE = ('Пресс-конференция «Эффективные инструменты привлечения клиентов»'
            '   ·   20 октября 2026   ·   Москва, Кузнецкий мост, 7')
@@ -510,39 +511,43 @@ def qr(adres, imya):
 def slajd_8(prs):
     sl = novyj(prs)
 
-    y = blok(sl, PAD, 1.45, 8.4, EKSPERT, UB, 36, font=DISP, color=WHITE,
-             bold=True, lead=1.12, kegli=[36, 33, 30], max_strok=2)
-    y = blok(sl, PAD, y + 0.2, 8.0, DOLZHNOST, IR, 19, color=MUTED2,
-             lead=1.3)
-
-    cherta(sl, PAD, y + 0.42, 2.2, 0.035, LBLUE)
-
-    # Каждый контакт на своей строке. В одну они не влезали, и адрес
-    # сайта переносился посередине слова — в прессу такое отдавать
-    # нельзя, его оттуда перепишут с ошибкой.
-    y += 0.72
-    for znachenie, cvet in ((TELEFON, WHITE), (POCHTA, WHITE),
-                            ('%s   ·   %s' % (SAJT, SAJT_2), LBLUE)):
-        y = blok(sl, PAD, y, 8.0, znachenie, IS, 20, font=BODY, color=cvet,
-                 bold=True, lead=1.3, max_strok=1) + 0.12
-
+    # Последний лист повторяет оборот визитки: тот же текст, тот же
+    # код. Человек уносит с собой карточку и лист, и если они говорят
+    # разными словами, запоминается ни то ни другое.
+    qr_shir = 2.3
+    qx = W - PAD - qr_shir
     kod = qr(SAJT, 'press-qr.png')
-    kartinka(sl, kod, W - PAD - 1.8, 1.7, 1.8, 1.8)
+    kartinka(sl, kod, qx, 1.75, qr_shir, qr_shir)
+    y = blok(sl, qx - 0.6, 1.75 + qr_shir + 0.22, qr_shir + 0.6, SAJT,
+             IS, 17, font=BODY, color=WHITE, bold=True, lead=1.3,
+             align=PP_ALIGN.CENTER, max_strok=1, kegli=[17, 16, 15])
+    blok(sl, qx - 0.6, y + 0.08, qr_shir + 0.6, 'SEO и GEO', IR, 14,
+         color=LBLUE, lead=1.3, align=PP_ALIGN.CENTER, max_strok=1)
 
-    # Справка о компаниях — внизу, мелко: её не читают с экрана,
-    # её копируют в конец публикации.
+    tw = qx - PAD - 0.8
+    y = blok(sl, PAD, 1.7, tw, 'Полный AI цикл', UB, 46, font=DISP,
+             color=WHITE, bold=True, lead=1.12,
+             kegli=[46, 42, 38], max_strok=1)
+    y = blok(sl, PAD, y + 0.42, tw,
+             'Исследование, генерация контента, автоматическая публикация '
+             'на площадках, аналитика нейровыдачи.',
+             IR, 18, color=MUTED, lead=1.5, kegli=[18, 17, 16], max_strok=3)
+    blok(sl, PAD, y + 0.3, tw,
+         'Интеллектуальный сервис для автоматизации SMM и усиления '
+         'цифрового присутствия компании в интернете.',
+         IR, 18, color=MUTED, lead=1.5, kegli=[18, 17, 16], max_strok=3)
+
     cherta(sl, PAD, H - 1.75, W - PAD * 2, 0.012, LINE2)
     y = blok(sl, PAD, H - 1.5, W - PAD * 2,
-             [('Промптер — ', {'color': LBLUE, 'bold': True}),
-              ('российский сервис автоматизации SMM: исследование ниши, '
-               'стратегия, генерация текстов, изображений и видео, публикация '
-               'на 6+ площадках.', {'color': MUTED2})],
-             IR, 12.5, font=BODY, lead=1.4)
-    blok(sl, PAD, y + 0.14, W - PAD * 2,
-         [('ГенИИ — ', {'color': LBLUE, 'bold': True}),
-          ('официальный партнёр «Промптера» по Москве и области. Продвижение '
-           'компаний в ответах нейросетей: SEO и GEO.', {'color': MUTED2})],
-         IR, 12.5, font=BODY, lead=1.4)
+             '%s     %s     %s' % (TELEFON, AKKAUNT, POCHTA),
+             IS, 19, font=BODY, color=WHITE, bold=True, lead=1.35,
+             max_strok=1, kegli=[19, 18, 17, 16])
+    blok(sl, PAD, y + 0.18, W - PAD * 2,
+         [('%s, %s' % (EKSPERT, DOLZHNOST), {'color': MUTED2}),
+          ('     ГенИИ — официальный партнёр «Промптера» по Москве и области',
+           {'color': MUTED2})],
+         IR, 12.5, font=BODY, lead=1.4, max_strok=1,
+         kegli=[12.5, 11.5, 10.5])
 
 
 # =================================================== сборка
