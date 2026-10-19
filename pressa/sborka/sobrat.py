@@ -30,6 +30,7 @@ from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 
+from ikonki import ikonka
 from kit import (W, H, PAD, BG, CARD, CARD2, LINE, LINE2, BLUE, LBLUE, GREEN,
                  WHITE, MUTED, MUTED2, DISP, BODY, IMG, ASSETS,
                  TMP, kadr, fon, plitka, nadpis, abzac, kartinka,
@@ -255,11 +256,11 @@ def slajd_1(prs):
 # =================================================== 2. ВОЗМОЖНОСТИ
 
 AGENTY = [
-    ('AI-маркетолог', 'ниша, конкуренты и запросы'),
-    ('AI-копирайтер', 'тексты в стиле бренда'),
-    ('AI-дизайнер', 'визуал под каждую площадку'),
-    ('AI-сценарист и оператор', 'сценарий и готовый ролик'),
-    ('AI СММ-менеджер', 'проверка, публикация, контроль выдачи'),
+    ('target', 'AI-маркетолог', 'Ниша, конкуренты, запросы'),
+    ('pencil', 'AI-копирайтер', 'Тексты в стиле бренда'),
+    ('palette', 'AI-дизайнер', 'Визуал под площадки'),
+    ('video', 'AI-сценарист\nи оператор', 'Сценарий и готовый ролик'),
+    ('send', 'AI СММ-менеджер', 'Проверка и публикация'),
 ]
 
 PLOSHCHADKI = 'Telegram · VK · Дзен · Одноклассники · Max · Instagram*'
@@ -267,48 +268,61 @@ PLOSHCHADKI = 'Telegram · VK · Дзен · Одноклассники · Max �
 SVERH = 'Цифровой двойник · Видео по сценарию · Сайт под заявки · Брендбук и мерч'
 
 
+def znachok(sl, x, y, d, imya):
+    """Значок сайта в круглой подложке — как в карточках агентов."""
+    plitka(sl, x, y, d, d, fill=CARD2, line=None, radius=d / 2)
+    pole = d * 0.27
+    kartinka(sl, ikonka(imya, '7FC4FF'), x + pole, y + pole,
+             d - pole * 2, d - pole * 2)
+
+
 def slajd_2(prs):
     sl = novyj(prs)
 
-    zagolovok(sl, 'Пять ИИ-агентов вместо агентства', kegl=38, max_strok=1)
+    zagolovok(sl, 'Пять ИИ-агентов вместо агентства', kegl=40, max_strok=1)
 
-    # Агенты строками в две колонки: роль крупно, пояснение рядом.
-    # Карточек тут нет намеренно — на пятерых они съели бы половину
-    # листа рамками.
-    y = 2.6
-    kol = (W - PAD * 2 - 0.8) / 2
-    for i, (imya, chto) in enumerate(AGENTY):
-        x = PAD + (i % 2) * (kol + 0.8)
-        yy = y + (i // 2) * 1.02
-        cherta(sl, x, yy + 0.16, 0.28, 0.028, LBLUE)
-        ny = blok(sl, x + 0.5, yy, kol - 0.5, imya, UBS, 19, font=DISP,
-                  color=WHITE, bold=True, lead=1.2, max_strok=1,
-                  kegli=[19, 17.5, 16])
-        blok(sl, x + 0.5, ny + 0.1, kol - 0.5, chto, IR, 14, color=MUTED2,
-             lead=1.35, max_strok=1, kegli=[14, 13, 12])
+    # Карточки те же, что на сайте и в общей презентации: синяя
+    # заливка, тонкая рамка, значок в круге. Первый вариант был набран
+    # строками без карточек — на телефоне он читался как мелкий
+    # список, и фирменного в нём не осталось ничего.
+    n = len(AGENTY)
+    zazor = 0.22
+    shir = (W - PAD * 2 - zazor * (n - 1)) / n
+    verh, vys = 2.7, 2.85
+    for i, (znak, imya, chto) in enumerate(AGENTY):
+        x = PAD + i * (shir + zazor)
+        plitka(sl, x, verh, shir, vys, fill=CARD, line=LINE, radius=0.18)
+        znachok(sl, x + 0.26, verh + 0.26, 0.82, znak)
+        blok(sl, x + 0.26, verh + 1.24, shir - 0.52, imya, UBS, 16,
+             font=DISP, color=WHITE, bold=True, lead=1.22,
+             max_strok=2, kegli=[16, 15, 14, 13])
+        blok(sl, x + 0.26, verh + 1.98, shir - 0.52, chto, IR, 13.5,
+             color=MUTED, lead=1.4, max_strok=3,
+             kegli=[13.5, 12.5, 11.5], max_h=vys - 2.15,
+             chto='описание агента %s' % imya)
 
-    niz = y + 3 * 1.02 + 0.05
-    cherta(sl, PAD, niz, W - PAD * 2, 0.012, LINE2)
-    ny = blok(sl, PAD, niz + 0.24, W - PAD * 2,
+    niz = verh + vys + 0.3
+    ny = blok(sl, PAD, niz, W - PAD * 2,
               [('Автопубликация: ', {'color': WHITE, 'bold': True}),
                (PLOSHCHADKI, {'color': MUTED})],
-              IM, 16, font=BODY, lead=1.4, max_strok=1,
-              kegli=[16, 15, 14, 13])
-    ny = blok(sl, PAD, ny + 0.2, W - PAD * 2,
+              IM, 17, font=BODY, lead=1.4, max_strok=1,
+              kegli=[17, 16, 15, 14])
+    ny = blok(sl, PAD, ny + 0.22, W - PAD * 2,
               [('Сверх цикла: ', {'color': WHITE, 'bold': True}),
                (SVERH, {'color': MUTED2})],
-              IM, 15, font=BODY, lead=1.4, max_strok=1,
-              kegli=[15, 14, 13, 12])
+              IM, 16, font=BODY, lead=1.4, max_strok=1,
+              kegli=[16, 15, 14, 13])
 
     # Сноска обязательная: без неё название соцсети на экране —
-    # нарушение, и на пресс-конференции это заметят первыми.
-    blok(sl, PAD, ny + 0.26, W - PAD * 2,
+    # нарушение, и на таком мероприятии это заметят первыми.
+    blok(sl, PAD, ny + 0.24, W - PAD * 2,
          '* Instagram принадлежит компании Meta, признанной экстремистской '
          'организацией и запрещённой на территории Российской Федерации.',
          IR, 9.5, color=MUTED2, lead=1.35, max_strok=1,
          kegli=[9.5, 9, 8.5])
 
 
+# =================================================== 3. КОНТЕНТ-ФАБРИКИ
 
 def slajd_3(prs):
     sl = novyj(prs)
@@ -330,7 +344,8 @@ def slajd_3(prs):
          IR, 14, color=MUTED2, lead=1.35)
 
 
-# =================================================== 3. ВРЕМЯ
+
+# =================================================== 4. ВРЕМЯ
 
 def slajd_4(prs):
     # Картинка во всю высоту уходит под правый знак, поэтому шапку
@@ -355,7 +370,7 @@ def slajd_4(prs):
          max_strok=2)
 
 
-# =================================================== 4. ДЕНЬГИ
+# =================================================== 5. ДЕНЬГИ
 
 def slajd_5(prs):
     sl = novyj(prs)
@@ -370,7 +385,7 @@ def slajd_5(prs):
            max_h=2.2, kegl=30)
 
 
-# =================================================== 5. НЕЙРОВЫДАЧА
+# =================================================== 6. НЕЙРОВЫДАЧА
 
 def slajd_6(prs):
     sl = novyj(prs)
@@ -482,7 +497,7 @@ def slajd_7(prs):
          IM, 15, font=BODY, lead=1.35, max_strok=1, kegli=[15, 14, 13])
 
 
-# =================================================== 6. КОНТАКТЫ
+# =================================================== 8. КОНТАКТЫ
 
 def qr(adres, imya):
     import qrcode
