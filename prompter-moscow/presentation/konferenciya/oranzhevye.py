@@ -99,44 +99,61 @@ def novyj(prs, shapka=True):
     if shapka:
         znaki(sl)
     STRANICA += 1
-    nomer(sl, STRANICA)
+    if VSEGO:
+        nomer(sl, STRANICA)
     return sl
 
 
 def znaki(sl, y=0.5, podlozhka=False):
     """Шапка: ГенИИ слева, «Промптер» справа — как на визитке.
 
-    Знаки разного сложения: у ГенИИ квадратный, у «Промптера» выше
-    своей ширины. Поэтому высоту задаём одну, а ширину считаем по
-    настоящим пропорциям файла — иначе один из них поедет.
+    Знаки разного сложения: у ГенИИ квадратный, у «Промптера» —
+    вытянутый в строку. Поэтому высоту задаём одну, а ширину
+    считаем по настоящим пропорциям файла — иначе один из них
+    поедет.
+
+    Подпись ставится только под знаком-символом. Если в файле
+    логотип с названием — а в самой презентации знак «Промптера»
+    именно такой, — слово под ним повторяет то, что уже написано.
     """
     from PIL import Image
 
-    vys = 0.5
-    for put, sprava in ((GENII_ZNAK, False), (PROMPTER_ZNAK, True)):
-        im = Image.open(put)
+    for put_, imya, sprava in ((GENII_ZNAK, u'ГенИИ', False),
+                               (PROMPTER_ZNAK, u'Промптер', True)):
+        im = Image.open(put_)
+        nadpisnoj = im.width > im.height * 2
+        vys = 0.44 if nadpisnoj else 0.6
         shir = vys * im.width / im.height
         x = (W - PAD - shir) if sprava else PAD
+        sy = y + (0.08 if nadpisnoj else 0)
         if sprava and podlozhka:
             # На обложке знак приходится на светлый кадр и теряется.
             # Тёмная подложка возвращает ему контраст, не закрывая лицо.
             plitka(sl, x - 0.3, y - 0.26, shir + 0.6, vys + 0.94,
                    fill=BG, line=None, radius=0.14)
-        kartinka(sl, put, x, y, shir, vys)
-
-    # Подписи под знаками — мелко, серым: на листе они не должны
-    # спорить с цитатой, ради которой лист и существует.
-    tf = nadpis(sl, PAD, y + vys + 0.08, 3.0, 0.22)
-    abzac(tf, 'ГенИИ', 9.5, font=BODY, color=MUTED2, lead=1.2, first=True)
-    tf = nadpis(sl, W - PAD - 3.0, y + vys + 0.08, 3.0, 0.22)
-    abzac(tf, 'Промптер', 9.5, font=BODY, color=MUTED2, lead=1.2,
-          align=PP_ALIGN.RIGHT, first=True)
+        kartinka(sl, put_, x, sy, shir, vys)
+        if nadpisnoj:
+            continue
+        # Подпись под знаком — мелко, серым: на листе она не должна
+        # спорить с цитатой, ради которой лист и существует.
+        tf = nadpis(sl, (W - PAD - 3.0) if sprava else PAD, y + vys + 0.08,
+                    3.0, 0.22)
+        abzac(tf, imya, 9.5, font=BODY, color=MUTED2, lead=1.2,
+              align=PP_ALIGN.RIGHT if sprava else PP_ALIGN.LEFT, first=True)
 
 
 def _plain(x):
     if isinstance(x, str):
         return x
     return ''.join(k if isinstance(k, str) else k[0] for k in x)
+
+
+# Межстрочный шаг PowerPoint считает не от кегля, а от высоты строки
+# самого шрифта: при межстрочном 1,26 строки расходятся на
+# 1,26 × 1,15 em. Без этой поправки блок считался ниже, чем выходил
+# на листе: подпись эксперта садилась на последнюю строку цитаты,
+# а оранжевая черта слева обрывалась на третьей из четырёх.
+SHAG = 1.15
 
 
 def blok(sl, x, y, w, text, key, size, font=BODY, color=WHITE, bold=False,
@@ -149,14 +166,15 @@ def blok(sl, x, y, w, text, key, size, font=BODY, color=WHITE, bold=False,
     из тех, при которых текст заведомо влезает.
     """
     plain = _plain(text)
+    shag = lead * SHAG
     if kegli is None and max_h is not None:
         kegli = [round(size * k, 1) for k in (1, .96, .92, .88, .84, .8, .76, .72)]
     if kegli:
         size, lines = podobrat(plain, key, kegli, w, max_h if max_h else 99,
-                               lead, max_strok)
+                               shag, max_strok)
     else:
         lines = perenos(plain, key, size, w * 0.96)
-    h = len(lines) * size * lead / 72.0
+    h = len(lines) * size * shag / 72.0
     if max_h is not None and h > max_h + 0.02:
         MALO.append('%s: надо %.2f″, есть %.2f″ — %s'
                     % (chto or 'блок', h, max_h, plain[:60]))
@@ -566,6 +584,97 @@ def slajd_8(prs):
            {'color': MUTED2})],
          IR, 12.5, font=BODY, lead=1.4, max_strok=1,
          kegli=[12.5, 11.5, 10.5])
+
+
+# ====================================== 9. ТЕМЫ ДЛЯ КОНФЕРЕНЦИИ
+
+# Три направления, которые эксперт заявил организатору. Порядок и
+# слова — его, менять их по своему вкусу нельзя: по этим формулировкам
+# его и анонсируют.
+TEMY = [
+    (u'ТЕМА 1', u'Время',
+     u'Контент-фабрики есть у всех, но процессом управляет '
+     u'человек. Управление циклом можно отдать самому ИИ', None),
+    (u'ТЕМА 2', u'Деньги',
+     u'Не платить агентству, не покупать токены, не воевать '
+     u'с блокировками аккаунтов', u'от 120–150 000 ₽ в месяц'),
+    (u'ТЕМА 3', u'Нейровыдача',
+     u'Попасть в ответы нейросетей можно целенаправленно. '
+     u'Это не кнопка: от 3 до 6 месяцев работы', None),
+]
+
+TEMY_VVOD = (u'Что даёт предпринимателю полный AI-цикл: исследование, '
+             u'стратегия, генерация текстов, картинок и видео, '
+             u'автопубликация на 6+ площадках. Продвижение в SEO и GEO')
+
+
+def slajd_temy_konf(prs):
+    """Три темы и подпись эксперта — лист для организатора и прессы.
+
+    Стоит вторым листом и повтором в конце: в начале — чтобы
+    сразу было видно, о чём разговор, в конце — чтобы снимок
+    последнего кадра увозили с собой вместе с телефоном.
+    """
+    sl = novyj(prs)
+
+    zagolovok(sl, u'Темы для конференции', y=1.45, kegl=40, max_strok=1)
+    blok(sl, PAD, 2.34, W - PAD * 2 - 1.2, TEMY_VVOD, IR, 15,
+         color=MUTED, lead=1.45, max_strok=2, kegli=[15, 14, 13],
+         max_h=0.76, chto=u'ввод к темам')
+
+    n = len(TEMY)
+    zazor = 0.3
+    shir = (W - PAD * 2 - zazor * (n - 1)) / n
+    verh, vys = 3.32, 2.56
+
+    # Кегль описаний один на все три карточки: подобранный каждой
+    # отдельно, он выходил разным, и средняя карточка читалась как
+    # сноска к двум соседним.
+    kegli_op = [14.5, 13.5, 12.5, 11.5, 11]
+    obshchij = min(
+        podobrat(o, IR, kegli_op, shir - 0.6,
+                 (vys - 1.4) if it is None else (vys - 1.94),
+                 1.4 * SHAG, 4)[0]
+        for _, _, o, it in TEMY)
+
+    for i, (nomer_, imya, opisanie, itog) in enumerate(TEMY):
+        x = PAD + i * (shir + zazor)
+        plitka(sl, x, verh, shir, vys, fill=CARD, line=LINE, radius=0.18)
+        blok(sl, x + 0.3, verh + 0.28, shir - 0.6, nomer_, IM, 11.5,
+             color=LBLUE, bold=True, lead=1.3, max_strok=1)
+        blok(sl, x + 0.3, verh + 0.62, shir - 0.6, imya, UBS, 26,
+             font=DISP, color=WHITE, bold=True, lead=1.18, max_strok=1,
+             kegli=[26, 24, 22, 20])
+        blok(sl, x + 0.3, verh + 1.26, shir - 0.6, opisanie, IR, 14.5,
+             color=MUTED, lead=1.4, max_strok=4,
+             kegli=[obshchij],
+             max_h=(vys - 1.4) if itog is None else (vys - 1.94),
+             chto=u'описание темы %s' % imya)
+        # Итоговая строка прижата к низу карточки, а не поставлена
+        # сразу за описанием: описания разной длины, и иначе
+        # цифра у второй темы садилась бы прямо на текст.
+        if itog:
+            blok(sl, x + 0.3, verh + vys - 0.52, shir - 0.6, itog, IS, 14,
+                 color=GREEN, bold=True, lead=1.3, max_strok=1,
+                 kegli=[14, 13, 12])
+
+    # Полоса с подписью эксперта: лист расходится по редакциям
+    # поодиночке, и на нём должно быть, кому звонить.
+    sy, svys = verh + vys + 0.28, 0.68
+    plitka(sl, PAD, sy, W - PAD * 2, svys, fill=CARD2, line=LINE2,
+           radius=0.16)
+    kuski = [(u'%s, ' % EKSPERT, {'color': WHITE, 'bold': True}),
+             (DOLZHNOST, {'color': MUTED2}),
+             (u'     %s     %s     %s' % (TELEFON, AKKAUNT, POCHTA),
+              {'color': WHITE, 'bold': True})]
+    # Кегль подбирается, а не назначается: строка длинная, и при
+    # фиксированном почта уезжала на вторую строку — в полосе,
+    # рассчитанной на одну.
+    razmer, _ = podobrat(_plain(kuski), IS, [14, 13.5, 13, 12.5, 12, 11.5, 11],
+                         W - PAD * 2 - 0.8, svys, 1.3, 1)
+    tf = nadpis(sl, PAD + 0.4, sy, W - PAD * 2 - 0.8, svys,
+                anchor=MSO_ANCHOR.MIDDLE)
+    abzac(tf, kuski, razmer, font=BODY, lead=1.3, first=True)
 
 
 # =================================================== сборка

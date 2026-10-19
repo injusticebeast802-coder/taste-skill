@@ -1,0 +1,4 @@
+# Вынимаются из самой презентации при каждой сборке
+fon-nastoyashchij.png
+znak-prompter.png
+__pycache__/
