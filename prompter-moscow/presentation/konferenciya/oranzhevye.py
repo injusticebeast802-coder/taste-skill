@@ -37,7 +37,10 @@ LINE = RGBColor(0x4A, 0x2A, 0x16)
 LINE2 = RGBColor(0x7A, 0x3F, 0x1C)
 BLUE = RGBColor(0xE8, 0x61, 0x1A)
 LBLUE = RGBColor(0xFF, 0x8A, 0x3D)      # оранжевый вместо светло-синего
-GREEN = RGBColor(0x4A, 0xDE, 0x80)
+# Числа — тем же оранжевым, что «+2 112» и «29 500 ₽» в презентации.
+# Зелёный остался от синего пресс-кита и на тёплом листе был третьим
+# акцентом, которого в оранжевой презентации нет.
+GREEN = RGBColor(0xFF, 0x9A, 0x4D)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 MUTED = RGBColor(0xDE, 0xD6, 0xCF)
 MUTED2 = RGBColor(0xA2, 0x97, 0x8E)
@@ -64,6 +67,12 @@ SAJT = 'prompter-ai.moscow'      # на него ведёт QR
 SAJT_2 = 'genii-ai.ru'
 AKKAUNT = '@geniimoscow'
 
+# Нижняя строка обложки. Пресс-конференция прошла 20 октября, и
+# пресс-кит, который рассылается после неё, не должен звать на неё:
+# вместо события внизу стоят оба сайта.
+OBLOZHKA_NIZ = ('Москва и область\n'
+                '%s  ·  официальный партнёр «Промптера»' % SAJT_2)
+
 SOBYTIE = ('Пресс-конференция «Эффективные инструменты привлечения клиентов»'
            '   ·   20 октября 2026   ·   Москва, Кузнецкий мост, 7')
 
@@ -89,6 +98,7 @@ def fon(sl):
     ramka.line.color.rgb = ORANZH
     ramka.line.width = _Pt(1.25)
     ramka.shadow.inherit = False
+    ramka.name = 'Рамка'
     return ramka
 
 
@@ -103,8 +113,13 @@ def novyj(prs, shapka=True):
     return sl
 
 
-def znaki(sl, y=0.5, podlozhka=False):
-    """Шапка: ГенИИ слева, «Промптер» справа — как на визитке.
+def znaki(sl, y=0.45, podlozhka=False):
+    """Шапка: ГенИИ слева и крупно, «Промптер» справа и мельче.
+
+    Пресс-кит — ГенИИ: лист расходится по редакциям поодиночке,
+    скриншотом, и с первого взгляда должно быть видно, чей он. Поэтому
+    слева знак ГенИИ с названием, набранным заголовочным шрифтом, а
+    «Промптер» справа — как партнёр, знаком поменьше.
 
     Знаки разного сложения: у ГенИИ квадратный, у «Промптера» выше
     своей ширины. Поэтому высоту задаём одну, а ширину считаем по
@@ -112,23 +127,27 @@ def znaki(sl, y=0.5, podlozhka=False):
     """
     from PIL import Image
 
-    vys = 0.5
-    for put, sprava in ((GENII_ZNAK, False), (PROMPTER_ZNAK, True)):
-        im = Image.open(put)
-        shir = vys * im.width / im.height
-        x = (W - PAD - shir) if sprava else PAD
-        if sprava and podlozhka:
-            # На обложке знак приходится на светлый кадр и теряется.
-            # Тёмная подложка возвращает ему контраст, не закрывая лицо.
-            plitka(sl, x - 0.3, y - 0.26, shir + 0.6, vys + 0.94,
-                   fill=BG, line=None, radius=0.14)
-        kartinka(sl, put, x, y, shir, vys)
+    vys = 0.66
+    im = Image.open(GENII_ZNAK)
+    shir = vys * im.width / im.height
+    kartinka(sl, GENII_ZNAK, PAD, y, shir, vys)
+    tf = nadpis(sl, PAD + shir + 0.16, y + 0.02, 3.2, 0.4)
+    abzac(tf, 'ГенИИ', 20, font=DISP, color=WHITE, bold=True, lead=1.1,
+          first=True)
+    tf = nadpis(sl, PAD + shir + 0.16, y + 0.4, 3.2, 0.24)
+    abzac(tf, SAJT_2, 10.5, font=BODY, color=LBLUE, lead=1.2, first=True)
 
-    # Подписи под знаками — мелко, серым: на листе они не должны
-    # спорить с цитатой, ради которой лист и существует.
-    tf = nadpis(sl, PAD, y + vys + 0.08, 3.0, 0.22)
-    abzac(tf, 'ГенИИ', 9.5, font=BODY, color=MUTED2, lead=1.2, first=True)
-    tf = nadpis(sl, W - PAD - 3.0, y + vys + 0.08, 3.0, 0.22)
+    vys = 0.42
+    im = Image.open(PROMPTER_ZNAK)
+    shir = vys * im.width / im.height
+    x = W - PAD - shir
+    if podlozhka:
+        # На обложке знак приходится на светлый кадр и теряется.
+        # Тёмная подложка возвращает ему контраст, не закрывая лицо.
+        plitka(sl, x - 0.3, y - 0.2, shir + 0.6, vys + 0.82,
+               fill=BG, line=None, radius=0.14)
+    kartinka(sl, PROMPTER_ZNAK, x, y, shir, vys)
+    tf = nadpis(sl, W - PAD - 3.0, y + vys + 0.06, 3.0, 0.22)
     abzac(tf, 'Промптер', 9.5, font=BODY, color=MUTED2, lead=1.2,
           align=PP_ALIGN.RIGHT, first=True)
 
@@ -248,8 +267,10 @@ def slajd_1(prs):
     kartinka(sl, kadr(os.path.join(KARTINKI, 'muzhik.jpg'), iw, H,
                       'press-muzhik.png', dark=0.12), W - iw, 0, iw, H)
     # Растушёвка слева направо, чтобы кадр не обрывался по линейке.
-    kartinka(sl, kadr(os.path.join(IMG, 'hero-bg.jpg'), W - iw + 0.9, H,
-                      'press-fon.png', dark=0.62, left_wash=0.5),
+    # Под текст — тот же фон с тёплыми частицами, что на остальных
+    # листах: синий кадр с сайта на оранжевой обложке был чужим.
+    kartinka(sl, kadr(FON, W - iw + 0.9, H,
+                      'press-fon-oranzh.png', dark=0.1, left_wash=0.35),
              0, 0, W - iw + 0.9, H)
     znaki(sl, podlozhka=True)
 
@@ -271,10 +292,17 @@ def slajd_1(prs):
 
     # Строку события держим в левой, тёмной половине: на светлом
     # кадре справа она читалась бы по складам.
-    blok(sl, PAD, H - 1.05, W - iw - PAD + 0.2,
-         'Пресс-конференция «Эффективные инструменты привлечения клиентов»\n'
-         '20 октября 2026 · Москва, Кузнецкий мост, 7',
+    blok(sl, PAD, H - 1.05, W - iw - PAD + 0.2, OBLOZHKA_NIZ,
          IR, 11, color=MUTED2, lead=1.45)
+
+    # Рамку фон рисует первой, и кадр справа её перекрывал: на обложке
+    # оранжевый контур обрывался ровно там, где начинается фото.
+    # Переносим её наверх стопки.
+    for sh in sl.shapes:
+        if sh.name == 'Рамка':
+            sl.shapes._spTree.remove(sh._element)
+            sl.shapes._spTree.insert_element_before(sh._element, 'p:extLst')
+            break
 
 
 # =================================================== 2. ВОЗМОЖНОСТИ
@@ -296,7 +324,7 @@ def znachok(sl, x, y, d, imya):
     """Значок сайта в круглой подложке — как в карточках агентов."""
     plitka(sl, x, y, d, d, fill=CARD2, line=None, radius=d / 2)
     pole = d * 0.27
-    kartinka(sl, ikonka(imya, '7FC4FF'), x + pole, y + pole,
+    kartinka(sl, ikonka(imya, 'FF8A3D'), x + pole, y + pole,
              d - pole * 2, d - pole * 2)
 
 
@@ -601,11 +629,24 @@ def proverit_znaki(prs):
     return net
 
 
-def main(fajl='oranzhevye-listy.pptx'):
-    global VSEGO
-    # Из пресс-кита берём только то, чего нет в оранжевой презентации:
-    # обложку, лист агентов и кейсы она рассказывает сама.
-    listy = [slajd_3, slajd_4, slajd_5, slajd_6, slajd_8]
+def main(polnyj=False):
+    """Без аргумента — пять листов для вставки в оранжевую презентацию.
+
+    С polnyj=True — весь пресс-кит ГенИИ, восемь листов: обложка,
+    агенты, четыре мысли, кейсы, контакты. Это отдельный документ,
+    который уходит в редакции сам по себе, без презентации рядом.
+    """
+    global VSEGO, STRANICA
+    STRANICA = 0
+    if polnyj:
+        listy = [slajd_1, slajd_2, slajd_3, slajd_4, slajd_5, slajd_6,
+                 slajd_7, slajd_8]
+        fajl = os.path.join(KOREN, 'pressa', 'press-kit-genii-oranzhevyj.pptx')
+    else:
+        # Из пресс-кита берём только то, чего нет в оранжевой
+        # презентации: обложку, агентов и кейсы она рассказывает сама.
+        listy = [slajd_3, slajd_4, slajd_5, slajd_6, slajd_8]
+        fajl = 'oranzhevye-listy.pptx'
     VSEGO = len(listy)
 
     prs = Presentation()
@@ -635,4 +676,4 @@ def main(fajl='oranzhevye-listy.pptx'):
 
 
 if __name__ == '__main__':
-    main()
+    main(polnyj='--polnyj' in sys.argv)
