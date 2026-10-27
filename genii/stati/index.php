@@ -52,7 +52,12 @@ if (is_dir($DIR)) {
       $lead = trim(html_entity_decode($m[1], ENT_QUOTES, 'UTF-8'));
     }
 
-    $articles[] = array('file' => $file, 'title' => $title, 'date' => $date, 'lead' => $lead);
+    /* Обложка — из <img class="art__cover" src="..."> внутри статьи. */
+    $img = '';
+    if (preg_match('~class="art__cover"\s+src="([^"]+)"~i', $html, $m)) {
+      $img = $m[1];
+    }
+    $articles[] = array('file' => $file, 'title' => $title, 'date' => $date, 'lead' => $lead, 'img' => $img);
   }
 }
 
@@ -95,7 +100,7 @@ $count = count($articles);
 
 <link rel="icon" type="image/png" href="../assets/favicon-64.png">
 <link rel="apple-touch-icon" href="../assets/icon-180.png">
-<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="../style.css?v=6">
 <?php if ($count): ?>
 <script type="application/ld+json">
 <?php
@@ -161,6 +166,9 @@ $count = count($articles);
 <?php foreach ($articles as $a): ?>
     <li class="arts__item">
       <a class="arts__link" href="<?= e(substr($a['file'], 0, -5)) ?>">
+<?php if ($a['img'] !== ''): ?>
+        <img class="arts__img" src="<?= e($a['img']) ?>" alt="" loading="lazy" width="1200" height="675">
+<?php endif; ?>
         <span class="arts__t"><?= e($a['title']) ?></span>
 <?php if ($a['date'] !== ''): ?>
         <time class="arts__date" datetime="<?= e($a['date']) ?>"><?= e(ruDate($a['date'])) ?></time>
