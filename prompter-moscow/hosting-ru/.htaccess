@@ -35,6 +35,9 @@ Options -Indexes
 # «Not Found» белым по серому, и посетитель просто закрывает вкладку.
 # Адрес обязательно от корня сайта: страница отдаётся в ответ на любой
 # промах, в том числе на /a/b/c, и относительный путь туда не доедет.
+# Раздел «Статьи» открывает stati/index.php.
+DirectoryIndex index.html index.php
+
 ErrorDocument 404 /404.html
 
 <IfModule mod_rewrite.c>
