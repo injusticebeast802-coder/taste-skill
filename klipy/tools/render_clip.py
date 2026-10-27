@@ -211,7 +211,7 @@ def render(spec):
         f"[c]drawbox=x=60:y=1478:w=960:h=6:color=white@0.18:t=fill,"
                 f"ass={ass}:fontsdir={FONTS}[v];"
         f"[4:a]atrim=0:{dur},asetpts=N/SR/TB,afade=t=in:d=0.06,afade=t=out:st={dur - 0.5}:d=0.5,"
-        f"loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[au]"
+        f"pan=mono|c0=0.5*c0+0.5*c1,highpass=f=85:p=2,arnndn=m={S}/audio/rnn/sh.rnnn:mix=0.5,equalizer=f=170:t=q:w=1.2:g=-3,equalizer=f=360:t=q:w=1.0:g=-5,equalizer=f=800:t=q:w=1.5:g=-1,equalizer=f=3000:t=q:w=1.2:g=3,aexciter=level_in=1:level_out=1:amount=1.5:drive=6:blend=0:freq=5500:ceil=16000,deesser=i=0.35,acompressor=threshold=-21dB:ratio=3:attack=6:release=100:makeup=3,alimiter=limit=0.89,loudnorm=I=-14:TP=-1.5:LRA=7,aresample=48000[au]"
     )
     cmd = ["ffmpeg", "-v", "error", "-y",
            "-loop", "1", "-t", str(dur), "-i", f"{REPO}/prompter-moscow/presentation/konferenciya/fon.jpg",
