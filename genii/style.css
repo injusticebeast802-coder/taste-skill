@@ -1645,3 +1645,7 @@ html{scroll-padding-top:84px}
   .fpage{padding:26px 14px 34px;gap:20px}
   .fpage__logo .logo__txt{font-size:15px}
 }
+
+/* Обложки статей (26.10.2026): картинка под датой и превью в списке. */
+.art__cover{display:block;width:100%;height:auto;border-radius:18px;border:1px solid var(--line);margin:0 0 clamp(24px,3vw,34px)}
+.arts__img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin-bottom:14px}
