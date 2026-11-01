@@ -60,6 +60,14 @@ ErrorDocument 404 /404.html
   RewriteCond %{HTTP_HOST} ^www\.prompter-ai\.moscow$ [NC]
   RewriteRule ^(.*)$ https://prompter-ai.moscow/$1 [R=301,L]
 
+  # Тестовая копия: отдельной папки у неё нет, поддомен смотрит в этот
+  # же каталог. Для поисковика это второй такой же сайт, и по запросу
+  # с именем управляющего партнёра в выдачу выходил именно он.
+  # Исключение одно, /.well-known/: через неё продлевается сертификат.
+  RewriteCond %{HTTP_HOST} ^(www\.)?test\.prompter-ai\.moscow$ [NC]
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteRule ^(.*)$ https://prompter-ai.moscow/$1 [R=301,L]
+
   # ---------- Форма ----------
   # Сайт отправляет заявку на /api/lead — так было на Vercel.
   # Перенаправляем этот адрес на lead.php, чтобы не трогать
