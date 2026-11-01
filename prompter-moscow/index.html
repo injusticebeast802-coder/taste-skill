@@ -126,6 +126,28 @@
   ]
 }
 </script>
+<!-- Yandex.Metrika counter -->
+<script>
+  (function(m,e,t,r,i,k,a){
+    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();
+    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+  })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=111475736', 'ym');
+  window.YM_ID = 111475736;
+  ym(111475736, 'init', {ssr:true, webvisor:true, clickmap:true, accurateTrackBounce:true, trackLinks:true});
+  // Цели: переход на страницу разбора и в Telegram-бота. Заявку с формы
+  // отмечает form.js (цель zayavka) после ответа сервера.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (/razbor/.test(h)) ym(111475736, 'reachGoal', 'razbor');
+    else if (/^tg:|t\.me\//.test(h)) ym(111475736, 'reachGoal', 'telegram');
+  });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/111475736" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
 </head>
 <body>
 
@@ -188,6 +210,7 @@
       <a href="#solution">Решение</a>
       <a href="#product">Продукт</a>
       <a href="#price">Цена</a>
+      <a href="stati/">Статьи</a>
       <a href="#contacts">Контакты</a>
     </nav>
 
@@ -576,6 +599,19 @@
 </section>
 
 <!-- 12. ЦЕНА -->
+<section class="sec" id="press">
+  <div class="wrap">
+    <h2 class="h2 reveal">О нас пишут</h2>
+    <a class="press reveal" href="https://mskgazeta.ru/obshchestvo/mozhet-li-ii-zamenit-cheloveka-v-prodvizhenii-biznesa-16738.html" target="_blank" rel="noopener">
+      <span class="press__src">«Московская газета» · 21 октября 2026</span>
+      <span class="press__title">Может ли ИИ заменить человека в продвижении бизнеса</span>
+      <span class="press__quote">«Пора переходить к интеграции искусственного интеллекта и в управленческие процессы»</span>
+      <span class="press__who">Руслан Демин, управляющий партнёр «Промптера»</span>
+      <span class="press__more">Читать статью →</span>
+    </a>
+  </div>
+</section>
+
 <section class="sec" id="price">
   <div class="wrap price">
     <div class="price__card reveal">

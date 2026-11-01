@@ -52,7 +52,12 @@ if (is_dir($DIR)) {
       $lead = trim(html_entity_decode($m[1], ENT_QUOTES, 'UTF-8'));
     }
 
-    $articles[] = array('file' => $file, 'title' => $title, 'date' => $date, 'lead' => $lead);
+    /* Обложка — из <img class="art__cover" src="..."> внутри статьи. */
+    $img = '';
+    if (preg_match('~class="art__cover"\s+src="([^"]+)"~i', $html, $m)) {
+      $img = $m[1];
+    }
+    $articles[] = array('file' => $file, 'title' => $title, 'date' => $date, 'lead' => $lead, 'img' => $img);
   }
 }
 
@@ -95,7 +100,7 @@ $count = count($articles);
 
 <link rel="icon" type="image/png" href="../assets/favicon-64.png">
 <link rel="apple-touch-icon" href="../assets/icon-180.png">
-<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="../style.css?v=6">
 <?php if ($count): ?>
 <script type="application/ld+json">
 <?php
@@ -117,6 +122,28 @@ $count = count($articles);
 ?>
 </script>
 <?php endif; ?>
+<!-- Yandex.Metrika counter -->
+<script>
+  (function(m,e,t,r,i,k,a){
+    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();
+    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+  })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=113809344', 'ym');
+  window.YM_ID = 113809344;
+  ym(113809344, 'init', {ssr:true, webvisor:true, clickmap:true, accurateTrackBounce:true, trackLinks:true});
+  // Цели: переход на страницу разбора и в Telegram-бота. Заявку с формы
+  // отмечает form.js (цель zayavka) после ответа сервера.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (/razbor/.test(h)) ym(113809344, 'reachGoal', 'razbor');
+    else if (/^tg:|t\.me\//.test(h)) ym(113809344, 'reachGoal', 'telegram');
+  });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/113809344" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
 </head>
 <body>
 
@@ -139,6 +166,9 @@ $count = count($articles);
 <?php foreach ($articles as $a): ?>
     <li class="arts__item">
       <a class="arts__link" href="<?= e(substr($a['file'], 0, -5)) ?>">
+<?php if ($a['img'] !== ''): ?>
+        <img class="arts__img" src="<?= e($a['img']) ?>" alt="" loading="lazy" width="1200" height="675">
+<?php endif; ?>
         <span class="arts__t"><?= e($a['title']) ?></span>
 <?php if ($a['date'] !== ''): ?>
         <time class="arts__date" datetime="<?= e($a['date']) ?>"><?= e(ruDate($a['date'])) ?></time>

@@ -25,6 +25,28 @@
              color:var(--muted);text-decoration:none;font-size:14.5px}
   .doc__back:hover{color:var(--text)}
 </style>
+<!-- Yandex.Metrika counter -->
+<script>
+  (function(m,e,t,r,i,k,a){
+    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();
+    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+  })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=113809344', 'ym');
+  window.YM_ID = 113809344;
+  ym(113809344, 'init', {ssr:true, webvisor:true, clickmap:true, accurateTrackBounce:true, trackLinks:true});
+  // Цели: переход на страницу разбора и в Telegram-бота. Заявку с формы
+  // отмечает form.js (цель zayavka) после ответа сервера.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (/razbor/.test(h)) ym(113809344, 'reachGoal', 'razbor');
+    else if (/^tg:|t\.me\//.test(h)) ym(113809344, 'reachGoal', 'telegram');
+  });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/113809344" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
 </head>
 <body>
 
@@ -93,7 +115,7 @@
   <p>Чтобы воспользоваться любым из этих прав, позвоните нам по телефону <a href="tel:+79067587777">+7 906 758-77-77</a> или напишите на <a href="mailto:geniiai@mail.ru">geniiai@mail.ru</a>. Мы ответим в течение 30 календарных дней.</p>
 
   <h2>8. Файлы cookie и статистика посещений</h2>
-  <p>Сайт не использует файлы cookie, не устанавливает счётчиков посещаемости и рекламных систем. Мы не отслеживаем вас на других сайтах и не передаём данные рекламным сетям.</p>
+  <p>Для статистики посещений сайт использует сервис «Яндекс Метрика» (ООО «Яндекс»). Он с помощью файлов cookie собирает обезличенные данные: какие страницы открывались, сколько времени на них провели, откуда пришёл посетитель, тип устройства и браузера, примерный регион. Эти данные нужны, чтобы понимать, какие разделы полезны, и улучшать сайт. Обработка идёт по <a href="https://yandex.ru/legal/confidential/" target="_blank" rel="noopener">политике конфиденциальности Яндекса</a>. Отключить cookie можно в настройках браузера, а отказаться от учёта Метрикой — установив <a href="https://yandex.ru/support/metrica/general/opt-out.html" target="_blank" rel="noopener">блокировщик Яндекс Метрики</a>.</p>
   <p>Технические данные, необходимые для отображения страницы, обрабатываются хостинг-провайдером в объёме стандартных журналов веб-сервера: адрес обращения, дата и время, тип браузера. Эти сведения не связываются с конкретным человеком и не объединяются с данными из формы заявки.</p>
 
   <h2>9. Изменения Политики</h2>

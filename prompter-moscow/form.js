@@ -492,6 +492,8 @@
             err.reason = res.data && res.data.error;
             throw err;
           }
+          // Цель «Заявка» в Яндекс Метрике (счётчик стоит в <head>).
+          try { if (window.ym && window.YM_ID) window.ym(window.YM_ID, 'reachGoal', 'zayavka'); } catch (e) {}
           showDone();
         })
         .catch(function (err) {
