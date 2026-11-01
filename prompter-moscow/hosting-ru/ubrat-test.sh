@@ -15,35 +15,88 @@
 # Запуск в Shell-клиенте панели управления:
 #   sh -c "$(curl -sSL https://raw.githubusercontent.com/injusticebeast802-coder/taste-skill/main/prompter-moscow/hosting-ru/ubrat-test.sh)"
 #
-# Если папка называется иначе:
+# Папку скрипт ищет сам — в data/www, www, public_html и domains.
+# Если не нашёл или их несколько, он покажет список и попросит
+# указать нужную:
 #   SITE_DIR=/полный/путь sh -c "$(curl -sSL ...)"
 # =========================================================
 
 set -e
 
 BOEVOJ="https://prompter-ai.moscow"
-DIR="${SITE_DIR:-$HOME/www/test.prompter-ai.moscow}"
+
+# Где хостинги держат папки сайтов. На reg.ru это data/www, на других
+# просто www; первый раз скрипт искал только в www и не нашёл ничего.
+BAZY="$HOME/data/www $HOME/www $HOME/public_html $HOME/domains"
+
+# Полный путь без ссылок: www нередко оказывается ссылкой на data/www,
+# и одна и та же папка попадалась бы в список дважды.
+nastoyashchij() {
+  ( cd -P "$1" 2>/dev/null && pwd ) || printf '%s\n' "$1"
+}
+
+vse_sajty() {
+  for baza in $BAZY; do
+    [ -d "$baza" ] || continue
+    for d in "$baza"/*/; do
+      [ -d "$d" ] && nastoyashchij "${d%/}"
+    done
+  done | sort -u
+}
+
+najti_test() {
+  vse_sajty | grep -i test || true
+}
+
+if [ -n "${SITE_DIR:-}" ]; then
+  DIR="$SITE_DIR"
+else
+  NAJDENO=$(najti_test)
+  SKOLKO=$(printf '%s' "$NAJDENO" | grep -c . || true)
+  if [ "$SKOLKO" -eq 1 ]; then
+    DIR="$NAJDENO"
+    echo "Нашёл тестовую копию сам."
+  elif [ "$SKOLKO" -gt 1 ]; then
+    echo "Папок со словом test несколько — выберите нужную:"
+    printf '%s\n' "$NAJDENO" | sed 's/^/  /'
+    echo
+    echo "Запустите снова, указав её:"
+    echo "  SITE_DIR=/полный/путь sh -c \"\$(curl -sSL ...)\""
+    exit 1
+  else
+    echo "Папки со словом test не нашлось. Вот все сайты на хостинге:"
+    vse_sajty | sed 's/^/  /'
+    echo
+    echo "Если копия среди них называется иначе, укажите её:"
+    echo "  SITE_DIR=/полный/путь sh -c \"\$(curl -sSL ...)\""
+    exit 1
+  fi
+fi
 
 echo "Папка тестовой копии: $DIR"
 
 if [ ! -d "$DIR" ]; then
-  echo "ОШИБКА: папки нет. Посмотрите её имя в панели управления и укажите:"
-  echo "  SITE_DIR=/полный/путь sh -c \"\$(curl -sSL ...)\""
+  echo "ОШИБКА: такой папки нет. Вот все сайты на хостинге:"
+  vse_sajty | sed 's/^/  /'
   exit 1
 fi
 
 # Три проверки подряд: скрипт стирает папку целиком, и ошибка в пути
 # здесь стоит дороже, чем лишняя строка кода.
-case "$DIR" in
+POLNYJ=$(nastoyashchij "$DIR")
+case "$POLNYJ" in
   *test*) ;;
   *) echo "ОШИБКА: в пути нет слова test. Это не похоже на тестовую копию."; exit 1 ;;
 esac
-if [ "$DIR" = "$HOME" ] || [ "$DIR" = "$HOME/www" ] || [ "$DIR" = "/" ]; then
-  echo "ОШИБКА: так можно стереть лишнее."; exit 1
-fi
-if [ -d "$HOME/www/prompter-ai.moscow" ] && [ "$DIR" = "$HOME/www/prompter-ai.moscow" ]; then
-  echo "ОШИБКА: это папка боевого сайта."; exit 1
-fi
+for opasno in "$HOME" "$HOME/www" "$HOME/data" "$HOME/data/www" "/"; do
+  if [ "$POLNYJ" = "$(nastoyashchij "$opasno" 2>/dev/null)" ]; then
+    echo "ОШИБКА: так можно стереть лишнее."; exit 1
+  fi
+done
+case "$POLNYJ" in
+  */prompter-ai.moscow|*/genii-ai.ru)
+    echo "ОШИБКА: это папка боевого сайта."; exit 1 ;;
+esac
 
 echo "Очищаю..."
 find "$DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +

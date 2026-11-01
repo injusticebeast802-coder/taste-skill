@@ -35,6 +35,12 @@ sh -c "$(curl -sSL https://raw.githubusercontent.com/injusticebeast802-coder/tas
 sh -c "$(curl -sSL https://raw.githubusercontent.com/injusticebeast802-coder/taste-skill/main/prompter-moscow/hosting-ru/ubrat-test.sh)"
 ```
 
+Папку скрипт ищет сам — в `data/www`, `www`, `public_html` и
+`domains`: на reg.ru сайты лежат в `data/www`, и первый раз скрипт
+смотрел только в `www` и не нашёл ничего. Если папок со словом `test`
+несколько или ни одной, он покажет список всех сайтов на хостинге и
+попросит указать нужную через `SITE_DIR=`.
+
 Папка очищается, и в ней остаётся одно правило: любой адрес отвечает
 «переехало навсегда» и ведёт на боевой сайт. Просто удалить папку
 хуже — адрес ещё месяцами висит в выдаче с ошибкой, а накопленный вес
