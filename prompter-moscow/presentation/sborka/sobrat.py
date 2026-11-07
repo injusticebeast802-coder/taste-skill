@@ -289,8 +289,7 @@ def slajd_3(prs):
 # Площадки перечислены плитками, без фирменных значков: рисовать чужие
 # логотипы от руки нельзя, а похожие «почти логотипы» на слайде
 # выглядят хуже, чем честное название.
-PLOSHCHADKI = ['Telegram', 'Instagram*', 'VK', 'Яндекс Дзен',
-               'TikTok', 'TenChat']
+PLOSHCHADKI = ['Telegram', 'Instagram*', 'VK', 'Яндекс Дзен', 'TikTok']
 
 GRAFIK = [
     'Публикации 5 дней в неделю',
@@ -311,7 +310,10 @@ def slajd_4(prs):
 
     y = 2.5
     lw = 3.9
-    vy = blok(sl, PAD, y - 0.16, lw, '6', UB, 96, font=DISP, color=LBLUE,
+    # Число берётся из самого списка: когда из него убрали площадку,
+    # цифра рядом осталась прежней и слайд противоречил сам себе.
+    vy = blok(sl, PAD, y - 0.16, lw, str(len(PLOSHCHADKI)), UB, 96,
+              font=DISP, color=LBLUE,
               bold=True, lead=1.0, max_strok=1, max_h=1.5)
     vy = blok(sl, PAD, vy + 0.08, lw, 'площадок в одной подписке',
               UB, 17, font=DISP, color=WHITE, bold=True, lead=1.25,
@@ -333,12 +335,17 @@ def slajd_4(prs):
     # Две колонки, а не три: «Яндекс Дзен» — из двух слов, и в узкой
     # плитке оно либо разрывается посередине, либо мельчает до нечитаемого.
     for i, p in enumerate(PLOSHCHADKI):
-        cx = rx + (i % 2) * (cw + zaz)
+        # Площадок нечётное число — последняя плитка занимает строку
+        # целиком. Иначе рядом с ней зияет пустая половина, и ряд
+        # выглядит так, будто из него что-то выпало.
+        odna_v_ryadu = i == len(PLOSHCHADKI) - 1 and len(PLOSHCHADKI) % 2
+        cx = rx if odna_v_ryadu else rx + (i % 2) * (cw + zaz)
+        shir = rw if odna_v_ryadu else cw
         cy = y + (i // 2) * (ch + zaz)
-        plitka(sl, cx, cy, cw, ch, fill=CARD, line=LINE, radius=0.16)
-        pt, lines = podobrat(p, UB, [19, 18, 17, 16, 15], cw - 0.4, 0.7, 1.2, 1)
+        plitka(sl, cx, cy, shir, ch, fill=CARD, line=LINE, radius=0.16)
+        pt, lines = podobrat(p, UB, [19, 18, 17, 16, 15], shir - 0.4, 0.7, 1.2, 1)
         vys = len(lines) * pt * 1.2 / 72.0
-        tf = nadpis(sl, cx + 0.2, cy + (ch - vys) / 2, cw - 0.4, vys + 0.08)
+        tf = nadpis(sl, cx + 0.2, cy + (ch - vys) / 2, shir - 0.4, vys + 0.08)
         abzac(tf, p, pt, font=DISP, color=WHITE, bold=True, lead=1.2,
               align=PP_ALIGN.CENTER, first=True)
 
@@ -447,7 +454,7 @@ def slajd_6(prs):
 VHODIT = [
     'Полный цикл: тема, текст, картинка, видео, проверка, публикация',
     'Публикации 5 дней в неделю и 2 экспертные статьи',
-    'Автопубликация на 6 площадках: Telegram, Instagram*, VK, Дзен, TikTok, TenChat',
+    'Автопубликация на 5 площадках: Telegram, Instagram*, VK, Дзен, TikTok',
     'Видео по сценарию и цифровой двойник',
     'Сайт под заявки, брендбук и мерч',
     'Договор и закрывающие документы по законодательству РФ',

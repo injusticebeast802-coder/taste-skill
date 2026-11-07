@@ -305,7 +305,7 @@ AGENTY = [
     ('send', 'AI СММ-менеджер', 'Проверка и публикация'),
 ]
 
-PLOSHCHADKI = 'Telegram · VK · Дзен · TikTok · TenChat · Instagram*'
+PLOSHCHADKI = 'Telegram · VK · Дзен · TikTok · Instagram*'
 
 SVERH = 'Цифровой двойник · Видео по сценарию · Сайт под заявки · Брендбук и мерч'
 
