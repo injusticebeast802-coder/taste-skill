@@ -962,19 +962,26 @@ html{scroll-padding-top:84px}
   background:var(--surface);border:1px solid var(--line);
 }
 .chans__t{
-  margin:0;font-size:13.5px;font-weight:700;letter-spacing:.1em;
+  margin:0;font-size:15px;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;color:var(--mint);
 }
 /* Одной строкой объясняем, зачем подписываться: без неё значки —
-   просто украшение, и на них не нажимают. */
+   просто украшение, и на них не нажимают.
+   Строка набрана фирменным цветом и крупно: серым и в четырнадцать
+   пунктов она читалась как сноска, хотя это и есть предложение,
+   ради которого блок стоит на странице. */
 .chans__d{
-  margin:4px 0 0;max-width:34ch;
-  color:var(--muted);font-size:14px;line-height:1.5;
+  margin:8px 0 0;max-width:40ch;
+  color:var(--mint);font-weight:600;
+  font-size:clamp(17px,1.5vw,20px);line-height:1.45;
 }
+/* Сумма — розовым: он самый громкий в палитре и потому стоит
+   точечно, на одном слове. */
+.chans__sum{color:var(--blush);font-weight:700}
 /* Срок акции — мельче и тише остального: это сноска к предложению,
    а не само предложение. */
 .chans__till{
-  margin:8px 0 0;color:var(--muted-2);font-size:12.5px;line-height:1.4;
+  margin:10px 0 0;color:var(--muted-2);font-size:13px;line-height:1.4;
 }
 .chans__col{display:flex;flex-direction:column}
 .chans__list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px}
