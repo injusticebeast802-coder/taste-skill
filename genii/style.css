@@ -957,19 +957,24 @@ html{scroll-padding-top:84px}
    каналов подставляются в href, когда они появятся. */
 .chans{
   display:flex;flex-wrap:wrap;align-items:center;gap:18px 26px;
-  margin-top:22px;padding:20px clamp(20px,2.6vw,28px);
+  margin:22px 0;padding:20px clamp(20px,2.6vw,28px);
   border-radius:var(--r-lg);
   background:var(--surface);border:1px solid var(--line);
 }
 .chans__t{
   margin:0;font-size:13.5px;font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--muted-2);
+  text-transform:uppercase;color:var(--mint);
 }
 /* Одной строкой объясняем, зачем подписываться: без неё значки —
    просто украшение, и на них не нажимают. */
 .chans__d{
   margin:4px 0 0;max-width:34ch;
   color:var(--muted);font-size:14px;line-height:1.5;
+}
+/* Срок акции — мельче и тише остального: это сноска к предложению,
+   а не само предложение. */
+.chans__till{
+  margin:8px 0 0;color:var(--muted-2);font-size:12.5px;line-height:1.4;
 }
 .chans__col{display:flex;flex-direction:column}
 .chans__list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px}
