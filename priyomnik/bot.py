@@ -68,6 +68,18 @@ TUT = os.path.dirname(os.path.abspath(__file__))
 API = 'https://api.telegram.org/bot%s/%s'
 ANKETY = os.path.join(TUT, 'anketa.json')
 
+# Промокод, обещанный на сайте подписчикам. Один на всех: именных
+# кодов нет, и заводить их ради одной акции незачем. Значения
+# перебиваются в config.ini строками promokod, promokod_skidka и
+# promokod_do. Пустая строка promokod в настройках выключает выдачу
+# совсем — так акцию можно закрыть, не трогая код.
+#
+# Сумма и срок написаны и здесь, и на сайте. Поменяете в одном
+# месте — поменяйте и во втором, иначе бот и страница разойдутся.
+PROMOKOD = 'GENII5000'
+PROMOKOD_SKIDKA = '5 000 ₽'
+PROMOKOD_DO = '12.12.2026'
+
 # Сколько ждать ответа телеграма при длинном опросе. Меньше — больше
 # пустых запросов, больше — дольше реакция на остановку с клавиатуры.
 ZHDAT = 25
@@ -129,6 +141,14 @@ def nastrojki():
         cfg['sajt_anketa'] = 'https://genii-ai.ru/analiz'
     if not (cfg.get('sajt_anketa_prompter') or '').strip():
         cfg['sajt_anketa_prompter'] = 'https://prompter-ai.moscow/analiz'
+
+    # Ключа нет в файле — берём умолчание. Ключ есть, но пустой —
+    # это осознанное «не выдавать», и умолчание его не перебивает.
+    for imya, znachenie in (('promokod', PROMOKOD),
+                            ('promokod_skidka', PROMOKOD_SKIDKA),
+                            ('promokod_do', PROMOKOD_DO)):
+        if imya not in cfg:
+            cfg[imya] = znachenie
 
     kanal = cfg['kanal'].strip()
     if not kanal.startswith('@') and not kanal.lstrip('-').isdigit():
@@ -473,6 +493,31 @@ def pokazat_itog(cfg, chat_id, sostoyanie):
             ]))
 
 
+def vydat_promokod(cfg, chat_id):
+    """Промокод подписчику — сразу после проверки подписки.
+
+    Отдельным сообщением, а не строкой в общем: код набран
+    моноширинно, и в телеграме такой текст копируют одним нажатием.
+    Внутри длинного сообщения с кнопками это теряется.
+
+    Возвращает True, если код ушёл: следующее сообщение не должно
+    второй раз здороваться с подпиской.
+    """
+    kod = (cfg.get('promokod') or '').strip()
+    if not kod:
+        return False
+    skidka = (cfg.get('promokod_skidka') or '').strip()
+    do = (cfg.get('promokod_do') or '').strip()
+    napisat(cfg, chat_id,
+            'Подписка есть, спасибо. Ваш промокод на скидку%s на подписку:\n'
+            '<code>%s</code>\n\n'
+            'Нажмите на код, чтобы скопировать, и назовите его менеджеру.%s'
+            % (' ' + html.escape(skidka) if skidka else '',
+               html.escape(kod),
+               ' Действует до %s.' % html.escape(do) if do else ''))
+    return True
+
+
 def predlozhit_put(cfg, chat_id, sostoyanie, metka, kto):
     """Подписка есть — спрашиваем, где человеку удобнее отвечать.
 
@@ -495,10 +540,15 @@ def predlozhit_put(cfg, chat_id, sostoyanie, metka, kto):
     # выбора сайта. По этой строке видно, что бот решил на самом деле.
     print('выбор пути: метка %s, анкета %s'
           % (metka, adres_ankety(cfg, metka)))
+    # Код уходит раньше кнопок: кнопки должны остаться последними,
+    # иначе человек листает вверх и отвечает не на тот вопрос.
+    s_kodom = vydat_promokod(cfg, chat_id)
     napisat(cfg, chat_id,
-            'Подписка есть, спасибо. Осталось рассказать о компании — '
-            'шесть коротких вопросов.\n\n'
-            'Где удобнее ответить?',
+            ('Осталось рассказать о компании — шесть коротких вопросов.'
+             if s_kodom else
+             'Подписка есть, спасибо. Осталось рассказать о компании — '
+             'шесть коротких вопросов.')
+            + '\n\nГде удобнее ответить?',
             knopki([
                 [{'text': 'Прямо здесь', 'callback_data': 'anketa_tut'}],
                 [{'text': 'На сайте, одной формой',
@@ -516,9 +566,9 @@ def nachat_anketu(cfg, chat_id, sostoyanie, metka, kto):
     }
     sohranit(sostoyanie)
     napisat(cfg, chat_id,
-            'Подписка есть, спасибо. Шесть коротких вопросов — и менеджер '
-            'пришлёт разбор: что отвечают GigaChat и YandexGPT по запросам '
-            'вашей ниши и кого называют вместо вас.\n\n'
+            'Шесть коротких вопросов — и менеджер пришлёт разбор: '
+            'что отвечают GigaChat и YandexGPT по запросам вашей ниши '
+            'и кого называют вместо вас.\n\n'
             'Передумали — напишите /otmena.')
     sprosit(cfg, chat_id, sostoyanie)
 

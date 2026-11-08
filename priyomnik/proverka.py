@@ -244,6 +244,65 @@ def proverka_razgovora():
         b.ANKETY = staroe
 
 
+def proverka_promokoda():
+    """Код уходит подписчику, и кнопки остаются последними.
+
+    Две вещи, которые легко сломать незаметно. Первая: код набран
+    моноширинно — иначе в телеграме его не скопировать нажатием, и
+    человек перепечатывает руками. Вторая: сообщение с кодом не
+    должно оказаться ниже сообщения с кнопками, иначе кнопки уезжают
+    вверх и человек отвечает не на тот вопрос.
+    """
+    def progovorit(cfg):
+        poslano = []
+
+        def pritvorno(_cfg, metod, **params):
+            poslano.append((metod, params))
+            if metod == 'getChatMember':
+                return {'ok': True, 'result': {'status': 'member'}}
+            return {'ok': True, 'result': {'message_id': len(poslano)}}
+
+        nastoyashchij, staroe = b.api, b.ANKETY
+        b.api = pritvorno
+        b.ANKETY = os.path.join(os.path.dirname(staroe), 'anketa-promokod.json')
+        try:
+            b.obrabotat_soobshchenie(cfg, {}, {
+                'chat': {'id': 777},
+                'from': {'id': 777, 'first_name': 'Иван'},
+                'text': '/start sajt-glavnaya'})
+        finally:
+            b.api = nastoyashchij
+            if os.path.exists(b.ANKETY):
+                os.remove(b.ANKETY)
+            b.ANKETY = staroe
+        return [p for m, p in poslano if m == 'sendMessage']
+
+    osnova = {'kanal': '@geniimoscow', 'kanal_ssylka': 'https://t.me/geniimoscow',
+              'sajt_anketa': 'https://genii-ai.ru/analiz', 'sekret_ssylki': '',
+              'chat_zayavok': '-100500'}
+
+    cfg = dict(osnova, promokod='GENII5000', promokod_skidka='5 000 ₽',
+               promokod_do='12.12.2026')
+    pisma = progovorit(cfg)
+    teksty = [p.get('text', '') for p in pisma]
+    ravno(any('<code>GENII5000</code>' in t for t in teksty), True,
+          'промокод не ушёл или набран не моноширинно: %r' % (teksty,))
+    ravno(any('12.12.2026' in t for t in teksty), True,
+          'срок акции не назван: %r' % (teksty,))
+    ravno(bool(pisma[-1].get('reply_markup')), True,
+          'последним пришло сообщение без кнопок — кнопки уехали вверх')
+    ravno(sum('Подписка есть' in t for t in teksty), 1,
+          'про подписку сказано не один раз: %r' % (teksty,))
+
+    # Пустой промокод в настройках — осознанное «акция кончилась».
+    pisma = progovorit(dict(osnova, promokod=''))
+    teksty = [p.get('text', '') for p in pisma]
+    ravno(any('промокод' in t.lower() for t in teksty), False,
+          'выключённый промокод всё равно выдан: %r' % (teksty,))
+    ravno(bool(pisma[-1].get('reply_markup')), True,
+          'без промокода пропали кнопки выбора пути')
+
+
 def proverka_dvuh_sajtov():
     """Человека возвращают на тот сайт, с которого он пришёл.
 
@@ -541,7 +600,7 @@ if __name__ == '__main__':
     for proverka in (proverka_polej, proverka_inn_chistitsya, proverka_poryadka,
                      proverka_dlinnogo_otveta, proverka_hranilishcha,
                      proverka_bitogo_fajla, proverka_kanala,
-                     proverka_razgovora,
+                     proverka_razgovora, proverka_promokoda,
                      proverka_dvuh_sajtov, proverka_chata_zayavok,
                      proverka_poteri_zayavki, proverka_posrednika, proverka_dorogi):
         proverka()
