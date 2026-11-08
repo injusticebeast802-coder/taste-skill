@@ -25,7 +25,9 @@
 # Вернуть прямую дорогу:
 #   sh ~/priyomnik/hosting/cherez-sajt.sh otmenit
 #
-# Если сайт лежит не в ~/www/genii-ai.ru:
+# Папку сайта скрипт ищет сам — по файлу tg.php в data/www, www,
+# public_html и domains. Если сайтов с ним несколько, он покажет
+# список и попросит выбрать:
 #   SITE_DIR=/полный/путь sh ~/priyomnik/hosting/cherez-sajt.sh
 # =========================================================
 
@@ -60,17 +62,45 @@ EOF
 fi
 
 # ---------- где сайт ----------
+# Ищем не по имени папки, а по самому tg.php: имена у сайтов разные,
+# а посредник — это он. Хостинги держат папки по-разному: на reg.ru
+# это data/www, на других просто www. Раньше скрипт смотрел только в
+# www и не находил сайт, который лежал рядом.
+BAZY="$HOME/data/www $HOME/www $HOME/public_html $HOME/domains"
+
+najti_sajty() {
+  for baza in $BAZY; do
+    [ -d "$baza" ] || continue
+    for d in "$baza"/*/; do
+      [ -f "$d/tg.php" ] || continue
+      ( cd -P "$d" 2>/dev/null && pwd ) || printf '%s\n' "${d%/}"
+    done
+  done | sort -u
+}
+
 if [ -n "$SITE_DIR" ]; then
   SAJT="$SITE_DIR"
 else
-  SAJT=""
-  for d in "$HOME/www/genii-ai.ru" "$HOME/www/prompter-ai.moscow"; do
-    [ -f "$d/tg.php" ] && SAJT="$d" && break
-  done
+  NAJDENO=$(najti_sajty)
+  SKOLKO=$(printf '%s' "$NAJDENO" | grep -c . || true)
+  if [ "$SKOLKO" -eq 1 ]; then
+    SAJT="$NAJDENO"
+    echo "Сайт с посредником нашёлся сам: $SAJT"
+  elif [ "$SKOLKO" -gt 1 ]; then
+    echo "Сайтов с tg.php несколько — выберите, через какой ходить:"
+    printf '%s\n' "$NAJDENO" | sed 's/^/  /'
+    echo
+    echo "  SITE_DIR=/полный/путь sh $0"
+    exit 1
+  else
+    SAJT=""
+  fi
 fi
 
 if [ -z "$SAJT" ] || [ ! -f "$SAJT/tg.php" ]; then
-  echo "Не нашёл tg.php. Укажите папку сайта:"
+  echo "Не нашёл tg.php ни в одной папке сайта."
+  echo "Искал в: $BAZY"
+  echo "Укажите папку сайта вручную:"
   echo "  SITE_DIR=/полный/путь sh $0"
   exit 1
 fi
