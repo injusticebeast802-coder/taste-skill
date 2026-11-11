@@ -333,6 +333,10 @@ html{scroll-padding-top:84px}
    укладывается в три строки на компьютере, а balance выравнивает
    длину строк и не даёт последней выродиться в одно слово. */
 .hero .h1{font-size:clamp(28px,4.5vw,46px);text-wrap:balance}
+/* «Интеллектуальный» — одно слово на всю ширину. На телефоне в 360
+   точек при 28 пунктах оно не влезало и обрезалось справа, поэтому
+   на узких экранах кегль идёт от ширины, а не от нижней планки. */
+@media (max-width:400px){.hero .h1{font-size:clamp(22px,6.9vw,28px)}}
 
 
 .hero__sub{color:var(--muted);font-size:clamp(18px,1.9vw,21px);max-width:52ch;margin:0 0 30px}
@@ -980,6 +984,10 @@ html{scroll-padding-top:84px}
 .chans__sum{color:var(--blush);font-weight:700}
 /* Срок акции — мельче и тише остального: это сноска к предложению,
    а не само предложение. */
+/* Кнопка ведёт в бота: он проверит подписку и пришлёт код. Без неё
+   промокод доставался только тем, кто шёл за разбором, а подписчик,
+   который просто нажал на значок канала, кода не получал вовсе. */
+.chans__go{margin-top:14px;align-self:flex-start}
 .chans__till{
   margin:10px 0 0;color:var(--muted-2);font-size:13px;line-height:1.4;
 }

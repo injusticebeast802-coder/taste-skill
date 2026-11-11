@@ -82,8 +82,8 @@
 
   <div class="fpage__win modal__win">
     <div class="modal__body">
-      <h1 class="modal__t">Разбор открывается в Telegram</h1>
-      <p class="modal__sub">Бот спросит шесть коротких вопросов о компании и передаст их менеджеру. Разбор бесплатный для подписчиков канала — подписку бот проверит сам.</p>
+      <h1 class="modal__t" id="razbor-t">Разбор открывается в Telegram</h1>
+      <p class="modal__sub" id="razbor-sub">Бот спросит шесть коротких вопросов о компании и передаст их менеджеру. Разбор бесплатный для подписчиков канала — подписку бот проверит сам.</p>
 
       <a class="btn btn--grad btn--lg btn--full razbor__go" id="razbor-go"
          href="tg://resolve?domain=Geniipodpiskabot&amp;start=sajt">
@@ -126,6 +126,15 @@
   var knopka = document.getElementById('razbor-go');
   var web = document.getElementById('razbor-web');
   var zapas = document.getElementById('razbor-zapas');
+  // Пришли с кнопки «Забрать промокод» — говорим про код, а не про
+  // разбор: человек нажимал за скидкой и иначе решит, что попал не туда.
+  if (metka === 'promokod') {
+    var t = document.getElementById('razbor-t');
+    var sub = document.getElementById('razbor-sub');
+    if (t) t.textContent = 'Промокод пришлёт бот в Telegram';
+    if (sub) sub.textContent = 'Бот проверит подписку на канал и сразу пришлёт код. Если вы уже подписаны — код придёт в ту же секунду.';
+  }
+
   if (knopka) knopka.href = prilozhenie;
   if (web) web.href = brauzer;
 
